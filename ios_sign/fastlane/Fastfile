@@ -1,0 +1,99 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Description of what the lane does"
+
+  #宣吿，帳號密碼
+  fastlane_require ‘spaceship’
+  fastlane_require 'credentials_manager'
+
+  lane :custom_lane do
+    # add actions here: https://docs.fastlane.tools/actions
+  end
+
+  #ex: fastlane test model:iphone8 udid:12342222 ipa:"xxx" acc:"wqfqw.com" appid:"com.123.abc" tag:"imqifm32i3mrimrim"
+  lane :add_device do |options|
+    puts "獲取參數 ..."
+
+    model = options[:model]
+    udid = options[:udid]
+    ipa = options[:ipa]
+    acc = options[:acc]
+    appid = options[:appid]
+    tag = options[:tag]
+
+    puts "型號: #{model}"
+    puts "UDID: #{udid}"
+    puts "IPA: #{ipa}"
+    puts "帳戶: #{acc}"
+    puts "BundleID: #{appid}"
+    puts "Tag名稱: #{tag}"
+    
+    #credentials = CredentialsManager::AccountManager.new(user: acc)
+    #Spaceship.login(credentials.user, credentials.password)
+    #Spaceship.device.create!(name: model, udid: udid)
+
+    #註冊新的設備
+    register_device(
+      name: model,
+      udid: udid,
+      username: acc,
+    )
+
+    puts "註冊設備成功，發布adhoc ..."
+    release_adhoc(filename: ipa, acc: acc, appid: appid, tag: tag)
+    
+  end
+
+  desc "發布ad-hoc"
+  lane :release_adhoc do |options|
+
+    filename = options[:filename]
+    acc = options[:acc]
+    appid = options[:appid]
+    tag = options[:tag]
+    provisioning_file = tag + ".mobileprovision"
+
+    #更新下載證書
+    puts "下載證書 ..."
+    cert(
+      username: acc,
+      filename: "pro_cert",
+      output_path: "./cert_file"
+    )
+
+    #更新下載描述文件
+    puts "下載描述文件 ..."
+    sigh(
+      username: acc,
+      app_identifier: appid,
+      provisioning_name: appid + "_adhoc",
+      filename: provisioning_file,
+      output_path: "./" + filename,
+      adhoc: true,
+      force: true,
+      skip_certificate_verification: true,
+    )
+
+    puts "執行重簽名動作 resign_ipa.sh ..."
+    sh(
+      "sh", "../resign_ipa.sh", filename, provisioning_file
+    )
+
+  end
+end

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.011687">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: register_device" time="3.183176">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: Switch to ios release_adhoc lane" time="0.002237">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="3: cert" time="3.272349">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="4: sigh" time="7.329345">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="5: sh ../resign_ipa.sh dev_188 PsjdttyCtG8Ncz6YQ88rZMtEwtjEYShT.mobileprovision" time="9.390627">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>
