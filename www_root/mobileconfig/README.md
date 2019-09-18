@@ -1,0 +1,3 @@
+透過test_build_xml.js 自動化產生最後的mobileconfig。
+
+根據ipa包名產生對應的mobileconfig，再將透過openssl 將https憑證簽名mobileconfig。
