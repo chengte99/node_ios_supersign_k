@@ -33,17 +33,16 @@ router.get("/about", function(req, res){
     })
 })
 
+// 前端ajax 取得app tagid
 router.get("/downloadApp", function(req, res){
     log.info(req.query);
 
-    if(req.query.taskID == null || req.query.taskID == "" || req.query.fid == null){
-        log.info("taskID or fid = null or empty !!")
+    if(req.query.tagID == null || req.query.tagID == ""){
+        log.info("tagID = null or empty !!")
         return;
     }
 
-    var fid = parseInt(req.query.fid);
-
-    web_service.get_downloadApp_url(req.query.taskID, fid, function(ret){
+    web_service.get_downloadApp_url(req.query.tagID, function(ret){
         if(ret.status != Response.OK){
             log.error("get_loadxml error ...", ret.status);
             res.send(ret);
@@ -54,6 +53,7 @@ router.get("/downloadApp", function(req, res){
     });
 });
 
+// 前端href 取得.mobileconfig xml
 router.get("/loadxml", function(req, res){
     // res.sendFile(process.cwd() + "/www_root/new_signed.mobileconfig");
     log.info(req.query.params);
@@ -70,6 +70,13 @@ router.get("/loadxml", function(req, res){
     })
 })
 
+// 前端href 跳轉setting 描述檔畫面
+router.get("/loadprovision", function(req, res){
+    // log.info("/loadprovision ...");
+    res.download(process.cwd() + "/www_root/mobileconfig/embedded.mobileprovision");
+})
+
+// 裝置透過POST xml 傳送裝置資訊到服務器
 router.post("/submit", function(req, res, next){
     // log.info(req.headers);
     log.info(req.query.params);
@@ -102,11 +109,114 @@ router.post("/submit", function(req, res, next){
                 return;
             }
 
-            var r_url = "https://kritars.com?step=2&taskID=" + ret.app_taskid + "&fid=" + ret.app_fid;
+            var r_url = "https://kritars.com?step=2&tagID=" + ret.tag;
             res.redirect(301, r_url);
         })
     })
-    
+})
+
+// 管理後台收到device info後，透過api post json傳過來給重簽名後台
+/* 
+    var dinfo = {
+        UDID: "868a1cecfd7d01536d1b305b2594509a63fb4c4b",
+        PRODUCT: "iPhone9,4",
+        VERSION: "16G102",
+        SERIAL: "C39SVAE3HFY9",
+        IMEI: "35 381108 414291 1",
+        // 自定義
+        ACCOUNT: "xxx1234@gmail.com",
+        SHA1: "123123123123",
+    }
+*/
+router.post("/action_sigh", function(req, res, next){
+    log.info(req.headers);
+    // log.info(req.query);
+    log.info(req.body);
+
+    var dinfo;
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        res.send({"status":"success", "dinfo": req.body})
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', dinfo;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                dinfo = JSON.parse(body);
+            } catch (err) {
+                dinfo = null;
+            }
+            dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
+        });
+    }
+
+    /*
+    { CHALLENGE: 'dev188',
+  IMEI: '35 381108 414291 1',
+  PRODUCT: 'iPhone9,4',
+  SERIAL: 'C39SVAE3HFY9',
+  UDID: '868a1cecfd7d01536d1b305b2594509a63fb4c4b',
+  VERSION: '16G102' }
+    */
+
+    web_service.resign_ipa_via_api(dinfo, function(ret){
+        if(ret.status != Response.OK){
+            log.error("resign_ipa error ...", ret.status);
+            // res.send(ret.status);
+            return;
+        }
+
+        var r_url = "https://kritars.com?step=2&tagID=" + ret.tag;
+        res.redirect(301, r_url);
+    });
+})
+
+// 透過執行ruby update_acc_devices.rb (apple帳號)，更新mysql account_info的裝置數。
+router.post("/update_devices", function(req, res, next){
+    log.info(req.headers);
+    // log.info(req.query);
+    log.info(req.body);
+
+    var jsonStr;
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        jsonStr = req.body;
+        // res.send({"status":"success", "jsonStr": req.body})
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '';
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                jsonStr = JSON.parse(body);
+            } catch (err) {
+                jsonStr = null;
+            }
+            // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
+        });
+    }
+
+    web_service.update_acc_devices(jsonStr, function(ret){
+        if(ret.status != Response.OK){
+            log.error("更新設備數失敗 ...status = ", ret.status);
+            res.send({"status":"error", "code": ret.status});
+            return;
+        }
+
+        log.info("更新設備數成功");
+        res.send({"status":"success", "json": jsonStr})
+    });
 })
 
 router.get("*", function(req, res){

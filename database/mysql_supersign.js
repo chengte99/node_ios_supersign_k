@@ -96,7 +96,7 @@ function get_valid_accounts_by_devices(callback){
     })
 }
 
-function update_device_count_on_account_info(account, callback){
+function add_device_count_on_account_info(account, callback){
     var sql = "update account_info set devices = devices+1 where account = \"%s\"";
     var sql_cmd = util.format(sql, account);
     log.info(sql_cmd);
@@ -124,9 +124,9 @@ function update_path_on_app_info(path, app_name, callback){
     })
 }
 
-function update_app_name_on_device_info(udid, app_name, callback){
-    var sql = "update device_info set app_name = \"%s\" where udid = \"%s\"";
-    var sql_cmd = util.format(sql, app_name, udid);
+function update_app_name_on_device_info(udid, app_name, tag, callback){
+    var sql = "update device_info set app_name = \"%s\", ipa_name = \"%s\" where udid = \"%s\"";
+    var sql_cmd = util.format(sql, app_name, tag, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -138,9 +138,9 @@ function update_app_name_on_device_info(udid, app_name, callback){
     })
 }
 
-function get_downloadApp_url(taskid, callback){
-    var sql = "select resign_path from app_info where taskid = \"%s\"";
-    var sql_cmd = util.format(sql, taskid);
+function get_downloadApp_url(tag, callback){
+    var sql = "select download_path from resign_ipa_info where ipa_name = \"%s\"";
+    var sql_cmd = util.format(sql, tag);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -152,14 +152,44 @@ function get_downloadApp_url(taskid, callback){
     })
 }
 
+function update_device_count_on_account_info(info, callback){
+    var sql = "update account_info set devices = %d where account = \"%s\"";
+    var sql_cmd = util.format(sql, info.devices, info.acc);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
+function add_new_resign_info(tag, path, callback){
+    var sql = "insert into resign_ipa_info (`ipa_name`, `download_path`) values (\"%s\", \"%s\")";
+    var sql_cmd = util.format(sql, tag, path);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
 module.exports = {
     connect: connect_to_server,
     get_app_name_by_sha1: get_app_name_by_sha1,
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
     get_valid_accounts_by_devices: get_valid_accounts_by_devices,
-    update_device_count_on_account_info: update_device_count_on_account_info,
+    add_device_count_on_account_info: add_device_count_on_account_info,
     update_path_on_app_info: update_path_on_app_info,
     update_app_name_on_device_info: update_app_name_on_device_info,
     get_downloadApp_url: get_downloadApp_url,
+    update_device_count_on_account_info: update_device_count_on_account_info,
+    add_new_resign_info: add_new_resign_info,
 }

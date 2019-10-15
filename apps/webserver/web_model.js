@@ -58,8 +58,8 @@ function get_valid_account(ret_func){
     })
 }
 
-function update_device_count_on_account_info(account, ret_func){
-    mysql_supersign.update_device_count_on_account_info(account, function(status, sql_result){
+function add_device_count_on_account_info(account, ret_func){
+    mysql_supersign.add_device_count_on_account_info(account, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -80,8 +80,8 @@ function update_path_on_app_info(path, app_name, ret_func){
     })
 }
 
-function update_app_name_on_device_info(udid, app_name, ret_func){
-    mysql_supersign.update_app_name_on_device_info(udid, app_name, function(status, sql_result){
+function update_app_name_on_device_info(udid, app_name, tag, ret_func){
+    mysql_supersign.update_app_name_on_device_info(udid, app_name, tag, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -91,8 +91,8 @@ function update_app_name_on_device_info(udid, app_name, ret_func){
     })
 }
 
-function get_downloadApp_url(taskid, ret_func){
-    mysql_supersign.get_downloadApp_url(taskid, function(status, sql_result){
+function get_downloadApp_url(tag, ret_func){
+    mysql_supersign.get_downloadApp_url(tag, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -106,12 +106,36 @@ function get_downloadApp_url(taskid, ret_func){
     })
 }
 
+function update_device_count_on_account_info(info, ret_func){
+    mysql_supersign.update_device_count_on_account_info(info, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
+function add_new_resign_info(tag, path, ret_func){
+    mysql_supersign.add_new_resign_info(tag, path, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
 module.exports = {
     get_app_name: get_app_name,
     get_uinfo: get_uinfo,
     get_valid_account: get_valid_account,
-    update_device_count_on_account_info: update_device_count_on_account_info,
+    add_device_count_on_account_info: add_device_count_on_account_info,
     update_path_on_app_info: update_path_on_app_info,
     update_app_name_on_device_info: update_app_name_on_device_info,
     get_downloadApp_url: get_downloadApp_url,
+    update_device_count_on_account_info: update_device_count_on_account_info,
+    add_new_resign_info: add_new_resign_info,
 }

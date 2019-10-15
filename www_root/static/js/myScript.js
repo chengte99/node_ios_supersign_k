@@ -17,10 +17,14 @@ function installEvent(value){
         setTimeout(function() {
             location.href = loadxml;
         }, 3000)
+
+        setTimeout(function() {
+            location.href = "/loadprovision";
+        }, 6000)
     }else{
         var t1 = setInterval(function(){
             $.ajax({
-                url: "/downloadApp?taskID=" + getUrlParam("taskID") + "&fid=" + getUrlParam("fid"),
+                url: "/downloadApp?tagID=" + getUrlParam("tagID"),
                 success: function(data, textStatus){
                     console.log(data.status);
                     if(data.status != 1){
@@ -33,7 +37,7 @@ function installEvent(value){
                     console.log(data.url);
                     // alert(data.url);
                     setTimeout(function(){
-                        location.href = data.url;
+                        location.href = "" + data.url;
                     }, 1000);
                 },
                 error: function(xhr, ajaxOptions, thrownError){

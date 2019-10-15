@@ -6,6 +6,7 @@ var Response = {
     FILE_NOT_EXIST: -103,
     NO_VALID_ACCOUNT: -104,
     STILL_UPLOAD: -105,
+    UPLOAD_FAILED: -106,
 };
 
 module.exports = Response;

@@ -28,7 +28,7 @@ var http_config = server_config.webserver.http_config;
 var https_config = server_config.webserver.https_config;
 
 //設定view 副檔名hbs, 設定views 路徑, 設定partials 路徑
-var staticFilePath = path.join(process.cwd() + "/www_root");
+var staticFilePath = path.join(process.cwd() + "/www_root/static");
 var viewsPath = path.join(process.cwd() + "/www_root/views");
 var partialsPath = path.join(process.cwd() + "/www_root/partials");
 app.set("view engine", "hbs");
