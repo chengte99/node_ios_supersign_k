@@ -13,6 +13,7 @@ function setStepClass() {
 
 function installEvent(value){
     if (value === 0) {
+        console.log("獲取mobileconfig 描述檔文件 ...");
         var loadxml = "/loadxml?params=" + down_session;
         setTimeout(function() {
             location.href = loadxml;
@@ -21,7 +22,34 @@ function installEvent(value){
         setTimeout(function() {
             location.href = "/loadprovision";
         }, 6000)
-    }else{
+    }else if(value == '1'){
+        console.log("等待簽名且上傳，完成後分發檔案 ...");
+        var t1 = setInterval(function(){
+            $.ajax({
+                url: "/get_resign_status?dID=" + getUrlParam("dID") + "&fid=" + getUrlParam("fid"),
+                success: function(data, textStatus){
+                    console.log(data.status);
+                    if(data.status != 1){
+                        console.log(data.status);
+                        // alert(data.status);
+                        return;
+                    }
+                    
+                    clearInterval(t1);
+                    console.log(data.url);
+                    // alert(data.url);
+                    setTimeout(function(){
+                        location.href = "" + data.url;
+                    }, 1000);
+                },
+                error: function(xhr, ajaxOptions, thrownError){
+                    console.log(xhr.status);
+                    console.log(thrownError);
+                }
+            });
+        }, 10000);
+    }else if(value == '2'){
+        console.log("app已簽過，分發上次的檔案 ...");
         var t1 = setInterval(function(){
             $.ajax({
                 url: "/downloadApp?tagID=" + getUrlParam("tagID"),

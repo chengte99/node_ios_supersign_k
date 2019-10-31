@@ -1,5 +1,4 @@
 var http = require("http");
-var https = require("https");
 
 /*
 	[100] = "Continue",
@@ -83,7 +82,7 @@ http_get("127.0.0.1", 6080, "/login", "uname=blake&upwd=123456", function(is_ok,
 */
 
 // post可以带body数据传到服务器
-function https_post(hostname, port, url, params, body, callback) {
+function http_post(hostname, port, url, params, body, callback) {
 	// step1,创建一个 http.ClientRequest
 	var options = {
 		hostname: hostname,
@@ -99,7 +98,7 @@ function https_post(hostname, port, url, params, body, callback) {
 		}
 	};
 
-	var req = https.request(options, function(incoming_msg) {
+	var req = http.request(options, function(incoming_msg) {
 		console.log("respones status " + incoming_msg.statusCode);
 
 		// 监听IncomingMessage的data事件，当收到服务器发过来的数据的时候，触发这个事件
@@ -124,21 +123,21 @@ function https_post(hostname, port, url, params, body, callback) {
 // 	}
 // });
 
-var dinfo = {
-	UDID: "868a1cecfd7d01536d1b305b2594509a63fb4c4b",
-	PRODUCT: "iPhone9,4",
-	VERSION: "16G102",
-	SERIAL: "C39SVAE3HFY9",
-	IMEI: "35 381108 414291 1",
-	// 自定義
-	SHA1: "123123123123",
-}
+// var dinfo = {
+// 	UDID: "868a1cecfd7d01536d1b305b2594509a63fb4c4b",
+// 	PRODUCT: "iPhone9,4",
+// 	VERSION: "16G102",
+// 	SERIAL: "C39SVAE3HFY9",
+// 	IMEI: "35 381108 414291 1",
+// 	// 自定義
+// 	SHA1: "123123123123",
+// }
 
-var post_data= JSON.stringify(dinfo);
+// var post_data= JSON.stringify(dinfo);
 
-https_post("kritars.com", 443, "/action_sigh", null, post_data, function(is_ok, data){
-	if(is_ok){
-		console.log("upload_success", JSON.parse(data));
+// http_post("kritars.com", 443, "/action_sigh", null, post_data, function(is_ok, data){
+// 	if(is_ok){
+// 		console.log("upload_success", JSON.parse(data));
 		
-	}
-})
+// 	}
+// })

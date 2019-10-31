@@ -23,3 +23,8 @@ function sha1(data) {
     sha1.update(data);
     return sha1.digest('hex'); 
 }
+
+var name = "Mowwo456";
+
+console.log(sha1(name));
+console.log(md5(name));
