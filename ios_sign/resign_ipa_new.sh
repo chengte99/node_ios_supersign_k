@@ -17,8 +17,8 @@ PROVIS_PATH="./ios_sign/account/"$PROVIS_FILE_NAME".mobileprovision"
 echo $PROVIS_PATH
 # echo $NEW_PROVISIONING_PATH
 
-ORI_APP_PATH="./ios_sign/"$APP_NAME"/"$ORI_FILE_NAME".ipa"
-RESIGNED_APP_PATH="./ios_sign/"$APP_NAME"/"$RESIGNED_APP_NAME".ipa"
+ORI_APP_PATH="./ios_sign/app_resource/"$APP_NAME"/"$ORI_FILE_NAME".ipa"
+RESIGNED_APP_PATH="./ios_sign/app_resource/"$APP_NAME"/"$RESIGNED_APP_NAME".ipa"
 echo $ORI_APP_PATH
 echo $RESIGNED_APP_PATH
 

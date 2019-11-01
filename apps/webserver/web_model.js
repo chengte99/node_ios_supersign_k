@@ -3,6 +3,11 @@ var Response = require("../Response");
 var log = require("../../utils/log");
 
 function get_app_info(sha1, ret_func){
+    if(!sha1 || sha1 == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.get_app_info_by_sha1(sha1, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -26,7 +31,6 @@ function get_uinfo_by_udid(udid, model, version, ret_func){
         }
 
         if(sql_result.length <= 0){
-            log.warn("該udid 不在device_info內, 立即新增 ...");
             mysql_supersign.add_uinfo_by_udid(udid, model, version, function(status, sql_result){
                 if(status != Response.OK){
                     ret_func(status, null);
@@ -36,13 +40,17 @@ function get_uinfo_by_udid(udid, model, version, ret_func){
                 get_uinfo_by_udid(udid, model, version, ret_func);
             });
         }else{
-            log.info("該udid 在device_info內, 返回結果 ...");
             ret_func(status, sql_result[0]);
         }
     });
 }
 
 function get_uinfo_by_id(id, ret_func){
+    if(!id){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.get_uinfo_by_id(id, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -50,11 +58,11 @@ function get_uinfo_by_id(id, ret_func){
         }
 
         if(sql_result.length <= 0){
-            log.warn("該id 不在device_info內 ...");
+            // log.warn("該id 不在device_info內 ...");
             ret_func(Response.DB_SEARCH_EMPTY, null);
             return;
         }else{
-            log.info("id 在device_info內, 返回結果 ...");
+            // log.info("id 在device_info內, 返回結果 ...");
             ret_func(status, sql_result[0]);
         }
     })
@@ -77,6 +85,10 @@ function get_valid_account(ret_func){
 }
 
 function add_device_count_on_account_info(account, reg_count, ret_func){
+    if(!account || account == "" || !reg_count){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
     mysql_supersign.add_device_count_on_account_info(account, reg_count, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -88,6 +100,11 @@ function add_device_count_on_account_info(account, reg_count, ret_func){
 }
 
 function clear_appinfo_on_device_info(udid, ret_func){
+    if(!udid || udid == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.clear_appinfo_on_device_info(udid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -99,6 +116,11 @@ function clear_appinfo_on_device_info(udid, ret_func){
 }
 
 function get_downloadApp_url(tag, ret_func){
+    if(!tag || tag == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.get_downloadApp_url(tag, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -113,8 +135,13 @@ function get_downloadApp_url(tag, ret_func){
     })
 }
 
-function update_device_count_on_account_info(info, ret_func){
-    mysql_supersign.update_device_count_on_account_info(info, function(status, sql_result){
+function update_device_count_on_account_info(acc, devices, ret_func){
+    if(!acc || acc == "" || !devices){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.update_device_count_on_account_info(acc, devices, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -125,6 +152,11 @@ function update_device_count_on_account_info(info, ret_func){
 }
 
 function add_new_resign_info(tag, path, ret_func){
+    if(!tag || tag == "" || !path || path == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.add_new_resign_info(tag, path, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -136,6 +168,11 @@ function add_new_resign_info(tag, path, ret_func){
 }
 
 function add_new_to_app_info(app_info, ret_func){
+    if(!app_info){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.add_new_to_app_info(app_info, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -147,6 +184,11 @@ function add_new_to_app_info(app_info, ret_func){
 }
 
 function update_app_to_app_info(app_info, ret_func){
+    if(!app_info){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.update_app_to_app_info(app_info, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -158,6 +200,11 @@ function update_app_to_app_info(app_info, ret_func){
 }
 
 function update_device_info_by_udid(udid, jsonstr, time_valid, ret_func){
+    if(!udid || udid == "" || !jsonstr || jsonstr == "" || !time_valid){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.update_device_info_by_udid(udid, jsonstr, time_valid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -169,6 +216,11 @@ function update_device_info_by_udid(udid, jsonstr, time_valid, ret_func){
 }
 
 function get_timestamp_valid_by_udid(udid, ret_func){
+    if(!udid || udid == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
     mysql_supersign.get_timestamp_valid_by_udid(udid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -184,6 +236,11 @@ function get_timestamp_valid_by_udid(udid, ret_func){
 }
 
 function get_account_info_by_acc(acc, ret_func){
+    if(!acc || acc == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+    
     mysql_supersign.get_account_info_by_acc(acc, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);

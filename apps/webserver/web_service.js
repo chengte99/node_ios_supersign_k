@@ -18,7 +18,8 @@ var ftp_config = server_config.ftp_file_server;
 // ftp end
 
 var APP_DOWNLOAD_SCHEME = "itms-services://?action=download-manifest&url="
-var PUBLIC_URL = "https://apple.bckappgs.info/" // sftp 用的
+var PUBLIC_URL = "https://apple.bckappgs.info/" // kritars 自己測試用的ftp server
+var TEST_SITE_URL = "https://appdownload.webpxy.info/" // 與內部組對接用的ftp server
 
 function write_err(status, ret_func){
     var ret = {};
@@ -97,87 +98,91 @@ function get_app_name_by_sha1(sha1, callback){
 }
 
 function ready_to_upload(ret, local_plist_path){
-    // // ftp
-    // var local_ipa_path = __dirname + "/../../ios_sign/" + ret.app_name + "/" + ret.tag + ".ipa";
-    // var remote_dir_path = "/appfile/" + ret.app_name + "/" + ret.tag;
-    // var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
-    // var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
+    if(server_config.rundown_config.api_with_system){
+        // ftp
+        var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
+        var remote_dir_path = "/appfile/" + ret.app_name + "/" + ret.tag;
+        var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
+        var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
 
-    // var ftp_client = new Client();
-    // ftp_client.on("ready", function(){    
-    //     log.info("ftp file server已連線 ...");
-    // });
-    
-    // ftp_client.mkdir(remote_dir_path, true, function(err){
-    //     if(err){
-    //         log.error(err);
-    //         return;
-    //     }
-    
-    //     ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
-    //         if(err){
-    //             log.error(err);
-    //         }
-    
-    //         log.info("上傳ipa 成功 ...");
-    //         ftp_client.put(local_plist_path, remote_plist_path, function(err){
-    //             if(err){
-    //                 log.error(err);
-    //             }
+        var ftp_client = new Client();
+        ftp_client.on("ready", function(){    
+            log.info("ftp file server已連線 ...");
+        });
         
-    //             log.info("上傳plist 成功 ...");
-    //             ftp_client.end();
-    //         });
-    //     });
-    // });
-
-    // ftp_client.connect({
-    //     host: ftp_config.host,
-    //     port: ftp_config.port,
-    //     user: ftp_config.username,
-    //     password: ftp_config.password,
-    // });
-
-
-
-    //sftp
-    var local_ipa_path = __dirname + "/../../ios_sign/" + ret.app_name + "/" + ret.tag + ".ipa";
-    var remote_dir_path = "/home/web_gs_pb/fun/apple.bckappgs.info/" + ret.app_name + "/" + ret.tag;
-    var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
-    var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
-
-    sftp_client
-        .exists(remote_dir_path)
-        .then(function(exist){
-            if(exist != "d"){
-                return sftp_client.mkdir(remote_dir_path);
+        ftp_client.mkdir(remote_dir_path, true, function(err){
+            if(err){
+                log.error(err);
+                return;
             }
-        })
-        .then(function(){
-            return sftp_client.fastPut(local_ipa_path, remote_ipa_path);
-        })
-        .then(function(){
-            log.info("上傳ipa 成功 ...");
+        
+            ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
+                if(err){
+                    log.error(err);
+                }
+        
+                log.info("上傳ipa 成功 ...");
+                ftp_client.put(local_plist_path, remote_plist_path, function(err){
+                    if(err){
+                        log.error(err);
+                    }
+            
+                    log.info("上傳plist 成功 ...");
 
-            return sftp_client.fastPut(local_plist_path, remote_plist_path);
-        })
-        .then(function(){
-            log.info("上傳plist 成功 ...");
+                    // 刪除上傳列表的紀錄
+                    global_upload_list[ret.tag] = null;
+                    delete global_upload_list[ret.tag];
 
-            // 刪除上傳列表的紀錄
-            global_upload_list[ret.tag] = null;
-            delete global_upload_list[ret.tag];
+                    ftp_client.end();
+                });
+            });
+        });
 
-            // return sftp_client.end();
-        })
-        .catch(function(err){
-            log.error("err = ", err);
-            log.error("err.message = ", err.message);
-            global_upload_list[ret.tag].status = -1;
-            global_upload_list[ret.tag].err_msg = err.message;
-            // write_err(Response.UPLOAD_FAILED, callback);
-        })
-    
+        ftp_client.connect({
+            host: ftp_config.host,
+            port: ftp_config.port,
+            user: ftp_config.username,
+            password: ftp_config.password,
+        });
+    }else{
+        //sftp
+        var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
+        var remote_dir_path = "/home/web_gs_pb/fun/apple.bckappgs.info/" + ret.app_name + "/" + ret.tag;
+        var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
+        var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
+
+        sftp_client
+            .exists(remote_dir_path)
+            .then(function(exist){
+                if(exist != "d"){
+                    return sftp_client.mkdir(remote_dir_path);
+                }
+            })
+            .then(function(){
+                return sftp_client.fastPut(local_ipa_path, remote_ipa_path);
+            })
+            .then(function(){
+                log.info("上傳ipa 成功 ...");
+
+                return sftp_client.fastPut(local_plist_path, remote_plist_path);
+            })
+            .then(function(){
+                log.info("上傳plist 成功 ...");
+
+                // 刪除上傳列表的紀錄
+                global_upload_list[ret.tag] = null;
+                delete global_upload_list[ret.tag];
+
+                // return sftp_client.end();
+            })
+            .catch(function(err){
+                log.error("err = ", err);
+                log.error("err.message = ", err.message);
+                global_upload_list[ret.tag].status = -1;
+                global_upload_list[ret.tag].err_msg = err.message;
+                // write_err(Response.UPLOAD_FAILED, callback);
+            })
+    }
 }
 
 function update_each_device_info_from_app_req_queue(ret, callback){
@@ -235,7 +240,6 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 var jsonstr = JSON.stringify(json);
                 // 重簽名時間戳加上一年，app有效期限
                 var time_valid = parseInt(ret.tag) + 31536000;
-                log.warn(time_valid);
                 // 更新數據庫
                 web_model.update_device_info_by_udid(udid, jsonstr, time_valid, function(status, result){
                     if(status != Response.OK){
@@ -332,7 +336,7 @@ function ready_to_sigh(ret, callback){
         log.info("in setInterval ...", sec);
         sec ++;
 
-        var end_resign_path = __dirname + "/../../ios_sign/" + ret.app_name + "/" + ret.tag + ".txt";
+        var end_resign_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".txt";
         fs.access(end_resign_path, fs.constants.F_OK, function(err){
             if(err){
                 log.info("正在重簽名app包 ...");
@@ -340,13 +344,18 @@ function ready_to_sigh(ret, callback){
                 log.info("app包已重簽名完成，準備進行上傳與更新DB ...");
                 clearInterval(timer);
 
-                // 動態產生該tag的manifest.plist
+                // 動態產生該tag的manifest.plist, 更改ipa路徑與title名稱
                 var xml = fs.readFileSync(__dirname + "/../../ios_sign/manifest.plist", "utf8");
                 var json = plist.parse(xml);
                 // console.log(json.items[0].assets[0].url);
-                json.items[0].assets[0].url = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+                if(server_config.rundown_config.api_with_system){
+                    json.items[0].assets[0].url = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+                }else{
+                    json.items[0].assets[0].url = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+                }
+                json.items[0].metadata.title = "" + ret.app_name;
                 var newxml = plist.build(json);
-                var plist_path = __dirname + "/../../ios_sign/" + ret.app_name + "/" + ret.tag + ".plist";
+                var plist_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".plist";
                 fs.writeFileSync(plist_path, newxml);
 
                 // 刪除end_resign_path
@@ -475,41 +484,44 @@ function get_resign_status(dID, fid, callback){
                 var queue = json.app_resigned_info;
                 for(var i = 0; i < queue.length; i ++){
                     var item = queue[i];
-                    if(item.app_name == app_name && item.ipa_name != ""){
-                        download_name = item.ipa_name;
+                    if(item.app_name != app_name){
+                        continue;
                     }
+
+                    download_name = item.ipa_name;
                 }
-            }
 
-            if(download_name != null && download_name != ""){
-                // 取得下載路徑
-                get_downloadApp_url(download_name, function(ret){
-                    if(ret.status != Response.OK){
-                        write_err(status, callback);
-                        return;
-                    }
+                if(download_name != null && download_name != ""){
+                    // 取得下載路徑
+                    get_downloadApp_url(download_name, function(ret){
+                        if(ret.status != Response.OK){
+                            write_err(ret.status, callback);
+                            return;
+                        }
+    
+                        callback(ret);
+                    })
+                }else{
+                    // 無法下載路徑，直接返回
+                    write_err(Response.FILE_NOT_EXIST, callback);
+                    return;
+                }
 
-                    callback(ret);
-                })
             }else{
-                // 無法下載路徑，直接返回
-                var ret = {};
-                ret.status = Response.FILE_NOT_EXIST;
-                callback(ret);
+                write_err(Response.FILE_NOT_EXIST, callback);
+                return;
             }
         });
-    })
-
-    
+    }) 
 }
 
 function update_acc_devices(info, callback){
-    if(info == null || info.acc == null || info.devices == null){
+    if(info == null || info.acc == null || info.acc == "" || info.devices == null){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
-    web_model.update_device_count_on_account_info(info, function(status, result){
+    web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
@@ -783,8 +795,11 @@ function start_resign_app(account_info, app_info, callback){
     ret.tag = resigned_app_name;
     ret.app_req_queue = queue;
     // ret.path = "itms-services://?action=download-manifest&url=https://apple.bckappgs.info/dev_188/xxxxx/manifest.plist";
-    ret.path = APP_DOWNLOAD_SCHEME + PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
-    // ret.path = "/appfile/" + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+    if(server_config.rundown_config.api_with_system){
+        ret.path = APP_DOWNLOAD_SCHEME + TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+    }else{
+        ret.path = APP_DOWNLOAD_SCHEME + PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+    }
 
     ready_to_sigh(ret, callback);
 }
@@ -792,47 +807,48 @@ function start_resign_app(account_info, app_info, callback){
 function start_resign_on_app_queue(account_info, callback){
     // 判斷是否有acc佇列
     if(app_queue_list.length <= 0){
-        log.warn("app 佇列為空, 直接返回 ...");
+        // log.info("app 佇列為空, 直接返回 ...");
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
     var app_info;
     app_info = app_queue_list[app_queue_index];
-    log.info("當前為重簽名佇列: " + app_info.app_name + "，app_id = " + app_info.app_id);
+    log.info("当前重签名伫列: " + app_info.app_name + "，app_id = " + app_info.app_id);
 
     // 開始簽名
     start_resign_app(account_info, app_info, function(ret){
-        // log.info("ret = ", ret);
-
         if(ret.status != Response.OK){
             if(ret.status == Response.RESIGN_QUEUE_IS_EMPTY){
-                log.warn("" + app_info.app_name + " 重簽名佇列排程為空 ...");
+                log.info("" + app_info.app_name + " 重签名伫列为空 ...");
             }
         }else{
-            // 簽名完成且上傳，通知管理後台
-            var data = {udid_list: ret.app_req_queue, file_path: ret.path};
-            var json_data = JSON.stringify(data);
-            // log.info(json_data);
+            // 判斷是否與內部組對接
+            if(server_config.rundown_config.api_with_system){
+                // 簽名完成且上傳，通知管理後台
+                var data = {udid_list: ret.app_req_queue, file_path: ret.path};
+                var json_data = JSON.stringify(data);
+                log.info(json_data);
 
-            // post到管理後台
-            /*
-            https://mem518.webpxy.info/api/v1/request/sign_complete
-            */
-            // https.https_post("mem518.webpxy.info", 443, "/api/v1/request/sign_complete", null, json_data, function(is_ok, data){
-            //     if(is_ok){
-            //         console.log("upload_success", JSON.parse(data));
-            //     }
-            // })
+                // post到管理後台
+                /*
+                https://mem518.webpxy.info/api/v1/request/sign_complete
+                */
+                // https.https_post("mem518.webpxy.info", 443, "/api/v1/request/sign_complete", null, json_data, function(is_ok, data){
+                //     if(is_ok){
+                //         console.log("upload_success", JSON.parse(data));
+                //     }
+                // })
+            }
         };
         
         app_queue_index ++;
         if(app_queue_index >= app_queue_list.length){
-            log.info("已無重簽名佇列，回到註冊帳號佇列流程...");
+            log.info("已无重签名伫列，回到帐号注册伫列流程 ...");
             app_queue_index = 0;
             callback(ret);
         }else{
-            log.info("2秒後往下一個重簽名佇列排程 ...");
+            log.info("2秒后往下一个重签名伫列 ...");
             setTimeout(function(){
                 start_resign_on_app_queue();
             }, 2000);
@@ -841,6 +857,7 @@ function start_resign_on_app_queue(account_info, callback){
 }
 
 function sort_acc_req_queue_by_app(account_info, acc_req_queue, callback){
+    log.info("分类不同app重签名伫列 ...");
     // 根據不同app 分類不同簽名佇列
     for(var i = 0; i < acc_req_queue.length; i ++){
         var device_info = acc_req_queue[i];
@@ -858,7 +875,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
     }
 
     //進行重簽名，並部署到file server
-    log.info("進行重簽名流程 ...");
+    log.info("进入帐号注册udid流程 ...");
 
     var sh = "ruby ios_sign/test_reg_to_apple.rb \"%s\" \"%s\" \"%s\" \"true\" ";
     var sh_cmd = util.format(sh, account_info.account, account_info.bundle_id, account_info.acc_md5);
@@ -886,9 +903,9 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
         var mobileprovision_path = __dirname + "/../../ios_sign/account/" + account_info.acc_md5 + ".mobileprovision";
         fs.access(mobileprovision_path, fs.constants.F_OK, function(err){
             if(err){
-                log.info("正在對帳號註冊udid並下載描述文件中 ...");
+                log.info("正对帐号注册udid并下载描述文件中 ...");
             }else{
-                log.info("已下載完成描述文件，準備重簽名app包 ...");
+                log.info("已下载完成描述文件，准备进入重签名app包流程 ...");
                 clearInterval(timer);
 
                 // 將設備批次文件刪除
@@ -897,7 +914,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                         throw err;
                     }
 
-                    log.info("設備批次文件已刪除 ...");
+                    // log.info("设备批次文件已删除 ...");
                 });
 
                 sort_acc_req_queue_by_app(account_info, acc_req_queue, callback);
@@ -917,6 +934,8 @@ function ready_to_reg_apple(account_info, callback){
         write_err(Response.RESIGN_QUEUE_IS_EMPTY, callback);
         return;
     }
+
+    log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
     // log.info("目前佇列內資料: ", queue);
     
     // 加入帳號的md5到表內
@@ -936,14 +955,14 @@ function ready_to_reg_apple(account_info, callback){
 
     writeStream.end();
     writeStream.on('finish', function() {
-        log.info("udid列表寫入完成。");
+        // log.info("udid列表寫入完成。");
 
         // 準備註冊apple 帳號
         action_reg_to_apple(account_info, queue, file_path, callback);
     });
     
     writeStream.on('error', function(err){
-        log.info("udid列表寫入錯誤。");
+        // log.info("udid列表寫入錯誤。");
         write_err(Response.WRITESTREAM_ERROR, callback);
         return;
     });  
@@ -980,6 +999,7 @@ function resign_ipa_via_api(dinfo, callback){
             }
 
             ret.msg = "已接收並排入簽名佇列 ...";
+            ret.sha1 = dinfo.SHA1;
             callback(ret);
         });
     });
@@ -1009,18 +1029,21 @@ function check_app_is_exist(app_info, callback){
 }
 
 function download_ipa_to_local(app_name, upload_name, callback){
-    var ret = {};
+    if(app_name == null || app_name == "" || upload_name == null || upload_name == ""){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
 
     // fs 檢查本地目錄是否存在，無則創建目錄
-    var local_dir_path = __dirname + "../../ios_sign/" + app_name;
+    var local_dir_path = __dirname + "/../../ios_sign/app_resource/" + app_name;
     fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
         if(err){
             log.error(err);
 
             fs.mkdir(local_dir_path, {recursive: true}, function(err){
                 if(err){
-                    ret.status = Response.LOCAL_MKDIR_FAILED;
-                    callback(ret);
+                    log.error(err);
+                    write_err(Response.LOCAL_MKDIR_FAILED, callback);
                     return;
                 }
             });
@@ -1033,23 +1056,24 @@ function download_ipa_to_local(app_name, upload_name, callback){
     var remote_ipa_path = remote_dir_path + "/" + upload_name + ".ipa";
 
     var ftp_client = new Client();
-    ftp_client.on("ready", function(){    
-        log.info("ftp file server已連線 ...");
-    });
 
     ftp_client.on("ready", function(){
+        log.info("ftp file server已連線 ...");
         ftp_client.get(remote_ipa_path, function(err, stream){
             if(err){
-                ret.status = Response.GET_REMOTE_FAILED;
-                callback(ret);
+                log.error(err);
+                ftp_client.end();
+
+                write_err(Response.GET_REMOTE_FAILED, callback);
                 return;
             }
 
-            console.log("準備下載 ...");
+            log.info("準備下載 ...");
             stream.once('close', function(){
                 log.info("下載完成 ...");
                 ftp_client.end();
 
+                var ret = {};
                 ret.status = Response.OK;
                 callback(ret);
             });
@@ -1066,8 +1090,9 @@ function download_ipa_to_local(app_name, upload_name, callback){
 }
 
 function create_app_to_db(app_info, callback){
-    if(app_info == null || app_info.app == null || app_info.name == null
-         || app_info.ver == null || app_info.sha1 == null || app_info.md5 == null){
+    if(app_info == null || app_info.app == null || app_info.app == "" || app_info.name == null || app_info.name == "" || 
+    app_info.ver == null || app_info.ver == "" || app_info.sha1 == null || app_info.sha1 == "" || app_info.md5 == null || 
+    app_info.md5 == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1078,7 +1103,6 @@ function create_app_to_db(app_info, callback){
             return;
         }
 
-        var ret = {};
         if(is_empty){
             log.info("無紀錄此app，新增至DB並下載至本地 ...");
             web_model.add_new_to_app_info(app_info, function(status, result){
@@ -1089,7 +1113,7 @@ function create_app_to_db(app_info, callback){
 
                 download_ipa_to_local(app_info.app, app_info.name, function(ret){
                     if(ret.status != Response.OK){
-                        write_err(status, callback);
+                        write_err(ret.status, callback);
                         return;
                     }
 
@@ -1109,7 +1133,7 @@ function create_app_to_db(app_info, callback){
         
                     download_ipa_to_local(app_info.app, app_info.name, function(ret){
                         if(ret.status != Response.OK){
-                            write_err(status, callback);
+                            write_err(ret.status, callback);
                             return;
                         }
     
@@ -1121,6 +1145,7 @@ function create_app_to_db(app_info, callback){
             }else{
                 log.info("已紀錄過此app，且檔名相同，不需更新 ...");
                 
+                var ret = {};
                 ret.status = Response.OK;
                 ret.msg = "已紀錄過此app，且檔名相同，不需更新 ...";
                 callback(ret);
@@ -1129,25 +1154,25 @@ function create_app_to_db(app_info, callback){
     });
 }
 
-function check_timestamp_valid(info, callback){
-    if(info == null || info.udid == null || info.timestamp == null){
+function check_timestamp_valid(udid, timestamp, callback){
+    if(udid == null || udid == "" || timestamp == null){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
     // 根據udid 找出 當時寫入的期限 (timestamp += 31536000)
-    web_model.get_timestamp_valid_by_udid(info.udid, function(status, result){
+    web_model.get_timestamp_valid_by_udid(udid, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
         }
         
         var time_valid = result.time_valid;
-        // log.info("time_valid = " + time_valid + ", info.timestamp = " + info.timestamp);
-        if(info.timestamp > time_valid){
+        // log.info("time_valid = " + time_valid + ", timestamp = " + timestamp);
+        if(timestamp > time_valid){
             // 已超過一年，更新db內該udid跟app_name, ipa_name 為空
             log.info("已超過一年，更新db內該udid跟app_name, ipa_name 為空 ...");
-            web_model.clear_appinfo_on_device_info(info.udid, function(status, result){
+            web_model.clear_appinfo_on_device_info(udid, function(status, result){
                 if(status != Response.OK){
                     write_err(status, callback);
                     return;
@@ -1169,7 +1194,7 @@ function check_timestamp_valid(info, callback){
 function schedule_to_check_resign_queue(){
     // 判斷是否有acc佇列
     if(acc_queue_list.length <= 0){
-        log.warn("acc 佇列為空, 等待五秒後重新檢測 ...");
+        // acc伫列为空，5秒后重跑
         setTimeout(function(){
             schedule_to_check_resign_queue();
         }, 5000);
@@ -1178,12 +1203,11 @@ function schedule_to_check_resign_queue(){
 
     var account_info;
     account_info = acc_queue_list[acc_queue_index];
-    log.warn("當前為Apple帳號註冊佇列: " + account_info.account + "，acc_id = " + account_info.acc_id);
 
     ready_to_reg_apple(account_info, function(ret){
         if(ret.status != Response.OK){
             if(ret.status == Response.RESIGN_QUEUE_IS_EMPTY){
-                log.warn("" + account_info.account + " 的帳號註冊佇列為空 ...");
+                // log.info("" + account_info.account + " 帐号注册伫列为空 ...");
             }
         }
         
@@ -1191,7 +1215,8 @@ function schedule_to_check_resign_queue(){
         if(acc_queue_index >= acc_queue_list.length){
             acc_queue_index = 0;
         }
-        log.info("3秒後往下一個帳號註冊佇列 ...");
+
+        // log.info("3 秒后网下一个帐号注册伫列 ...");
         setTimeout(function(){
             schedule_to_check_resign_queue();
         }, 3000);
@@ -1199,7 +1224,7 @@ function schedule_to_check_resign_queue(){
 }
 
 setTimeout(function(){
-    log.warn("server 啟動後 5秒 開始跑acc佇列排程 ...");
+    log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
     schedule_to_check_resign_queue();
 }, 5000);
 

@@ -49,6 +49,11 @@ var server_config = {
         username: "brilliantkevin99",
         password: "qaz123"
     },
+
+    rundown_config: {
+        api_with_system: true,
+        
+    },
 }
 
 module.exports = server_config;

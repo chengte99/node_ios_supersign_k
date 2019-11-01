@@ -6,6 +6,8 @@ require 'net/http' #net/https does not have to be required anymore
 require 'json'
 require 'uri'
 
+# ruby update_acc_devices.rb "liaoyanchi3@gmail.com"
+
 acc = ARGV[0]
 
 puts "======Hello, Write Start======"

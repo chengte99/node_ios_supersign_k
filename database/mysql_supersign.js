@@ -152,9 +152,9 @@ function get_downloadApp_url(tag, callback){
     })
 }
 
-function update_device_count_on_account_info(info, callback){
+function update_device_count_on_account_info(acc, devices, callback){
     var sql = "update account_info set devices = %d where account = \"%s\"";
-    var sql_cmd = util.format(sql, info.devices, info.acc);
+    var sql_cmd = util.format(sql, devices, acc);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -195,8 +195,8 @@ function add_new_to_app_info(info, callback){
 }
 
 function update_app_to_app_info(info, callback){
-    var sql = "update app_info set upload_name = \"%s\" where md5_name = \"%s\"";
-    var sql_cmd = util.format(sql, info.name, info.md5);
+    var sql = "update app_info set upload_name = \"%s\", version = \"%s\" where md5_name = \"%s\"";
+    var sql_cmd = util.format(sql, info.name, info.ver, info.md5);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){

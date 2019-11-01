@@ -3,8 +3,8 @@ var fs = require("fs");
 var util = require("util");
 var exec = require("child_process").exec;
 
-var log = require("../../utils/log");
-var utils = require("../../utils/utils");
+var log = require("../utils/log");
+var utils = require("../utils/utils");
 
 // ipa包名稱
 var name = "1570613049";
@@ -16,10 +16,15 @@ var xml = fs.readFileSync(__dirname + "/manifest.plist", "utf8");
 var json = plist.parse(xml);
 // console.log(json.items[0].assets[0].url);
 
-json.items[0].assets[0].url = "https://apple.bckappgs.info/dev_188/" + name + "/" + name + ".plist"
-var newxml = plist.build(json);
-var filename = "" + name + ".plist";
-fs.writeFileSync(__dirname + "/" + filename, newxml);
+console.log(json.items[0].metadata);
+console.log(json.items[0].metadata.title);
+
+// json.items[0].assets[0].url = "https://apple.bckappgs.info/dev_188/" + name + "/" + name + ".plist"
+// json.items[0].metadata.title = "abckevin";
+// var newxml = plist.build(json);
+// var filename = "" + name + ".plist";
+// fs.writeFileSync(__dirname + "/" + filename, newxml);
+
 
 // // 進行簽名憑證動作
 // // openssl smime -sign -in ./d2cb56f8b25f102ef363ca7c9f151d1d.mobileconfig -out ./d2cb56f8b25f102ef363ca7c9f151d1dsigned.mobileconfig -signer ./domain.crt -inkey ./ybsnopass.key -certfile ./ssl.pem -outform der -nodetach

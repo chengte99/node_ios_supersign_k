@@ -94,7 +94,7 @@ router.get("/loadxml", function(req, res){
 // 前端href 跳轉setting 描述檔畫面
 router.get("/loadprovision", function(req, res){
     // log.info("/loadprovision ...");
-    var path = process.cwd() + "/www_root/mobileconfig/embedded.mobileprovision";
+    var path = __dirname + "/../../www_root/mobileconfig/embedded.mobileprovision";
     res.download(path);
 })
 
@@ -126,7 +126,6 @@ router.post("/submit", function(req, res, next){
         // log.info(plist2json);
 
         web_service.resign_ipa(plist2json, function(ret){
-            log.warn(ret);
             if(ret.status != Response.OK){
                 if(ret.status == Response.APP_IS_EXIST){
                     log.info("app已簽過，分發上次的檔案 ...");
@@ -327,7 +326,7 @@ router.post("/valid_timestamp", function(req, res, next){
         var jsonStr;
         jsonStr = req.body;
         // res.send({"status":"success", "jsonStr": req.body})
-        web_service.check_timestamp_valid(jsonStr, function(ret){
+        web_service.check_timestamp_valid(jsonStr.udid, jsonStr.timestamp, function(ret){
             if(ret.status != Response.OK){
                 log.error("check_timestamp_valid error ...", ret.status);
                 res.send(ret);
@@ -351,7 +350,7 @@ router.post("/valid_timestamp", function(req, res, next){
                 jsonStr = null;
             }
             // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
-            web_service.check_timestamp_valid(jsonStr, function(ret){
+            web_service.check_timestamp_valid(jsonStr.udid, jsonStr.timestamp, function(ret){
                 if(ret.status != Response.OK){
                     log.error("check_timestamp_valid error ...", ret.status);
                     res.send(ret);

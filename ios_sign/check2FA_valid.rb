@@ -23,3 +23,5 @@ Spaceship::Portal.login(credentials.user, credentials.password)
 # file.close
 
 puts "====== Hello, Write End! ======"
+
+# ruby check2FA_valid.rb "liaoyanchi3@gmail.com"
