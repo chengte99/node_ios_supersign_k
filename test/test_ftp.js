@@ -2,7 +2,7 @@ var fs = require("fs");
 var Client = require("ftp");
 
 var server_config = require("../apps/server_config");
-var log = require("./log");
+var log = require("../utils/log");
 
 var ftp_config = server_config.ftp_file_server;
 
@@ -47,5 +47,3 @@ ftp_client.connect({
     user: ftp_config.username,
     password: ftp_config.password,
 });
-
-// module.exports = ftp_client;
