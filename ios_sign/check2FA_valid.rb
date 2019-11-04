@@ -2,6 +2,8 @@ require "pathname"
 require "spaceship"
 require "credentials_manager"
 
+# ruby check2FA_valid.rb "liaoyanchi3@gmail.com"
+
 acc = ARGV[0]
 
 puts "======Hello, Write Start======"
@@ -24,4 +26,3 @@ Spaceship::Portal.login(credentials.user, credentials.password)
 
 puts "====== Hello, Write End! ======"
 
-# ruby check2FA_valid.rb "liaoyanchi3@gmail.com"

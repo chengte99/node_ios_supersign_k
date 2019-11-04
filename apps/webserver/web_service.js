@@ -836,7 +836,7 @@ function start_resign_on_app_queue(account_info, callback){
                 */
                 // https.https_post("mem518.webpxy.info", 443, "/api/v1/request/sign_complete", null, json_data, function(is_ok, data){
                 //     if(is_ok){
-                //         console.log("upload_success", JSON.parse(data));
+                //         log.info("通知管理后台成功，response: ", JSON.parse(data));
                 //     }
                 // })
             }
@@ -1216,7 +1216,7 @@ function schedule_to_check_resign_queue(){
             acc_queue_index = 0;
         }
 
-        // log.info("3 秒后网下一个帐号注册伫列 ...");
+        // log.info("3 秒后往下一个帐号注册伫列 ...");
         setTimeout(function(){
             schedule_to_check_resign_queue();
         }, 3000);
