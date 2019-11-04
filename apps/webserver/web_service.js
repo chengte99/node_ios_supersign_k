@@ -112,22 +112,39 @@ function ready_to_upload(ret, local_plist_path){
         
         ftp_client.mkdir(remote_dir_path, true, function(err){
             if(err){
-                log.error(err);
+                log.error("mkdir error: ", err);
                 return;
             }
         
             ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
                 if(err){
-                    log.error(err);
+                    log.error("put error: ", err);
+                    return;
                 }
         
-                log.info("上傳ipa 成功 ...");
+                log.info("上傳ipa成功 ...");
+                // fs.unlink(local_ipa_path, function(err){
+                //     if(err){
+                //         throw err;
+                //     }
+
+                //     // log.info("删除本地ipa成功 ...");
+                // });
+
                 ftp_client.put(local_plist_path, remote_plist_path, function(err){
                     if(err){
-                        log.error(err);
+                        log.error("put error: ", err);
+                        return;
                     }
             
-                    log.info("上傳plist 成功 ...");
+                    log.info("上傳plist成功 ...");
+                    // fs.unlink(local_plist_path, function(err){
+                    //     if(err){
+                    //         throw err;
+                    //     }
+    
+                    //     // log.info("删除本地plist成功 ...");
+                    // });
 
                     // 刪除上傳列表的紀錄
                     global_upload_list[ret.tag] = null;
