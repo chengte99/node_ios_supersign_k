@@ -1,5 +1,7 @@
 var https = require("https");
 
+var log = require("../utils/log");
+var server_config = require("../apps/server_config");
 /*
 	[100] = "Continue",
 		[101] = "Switching Protocols",
@@ -91,16 +93,15 @@ function https_post(hostname, port, url, params, body, callback) {
 		// path: url + "?" + params,
 		path: url,
 		method: "POST",
-
 		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
+			// "Content-Type": "application/x-www-form-urlencoded",
+			"Content-Type": "application/json",
 			"Content-Length": body.length
 		}
 	};
 
 	var req = https.request(options, function(incoming_msg) {
 		console.log("respones status " + incoming_msg.statusCode);
-
 		// 监听IncomingMessage的data事件，当收到服务器发过来的数据的时候，触发这个事件
 		incoming_msg.on("data", function(data) {
 			if (incoming_msg.statusCode === 200) {
@@ -122,27 +123,34 @@ module.exports = {
     https_post: https_post,
 }
 
+
 // https_post("127.0.0.1", 6080, "/book", "filename=my_file.txt", "Hello Htpp Post", function(is_ok, data) {
 // 	if (is_ok) {
 // 		console.log("upload_success", data.toString());	
 // 	}
 // });
 
-// var dinfo = {
-// 	UDID: "868a1cecfd7d01536d1b305b2594509a63fb4c4b",
-// 	PRODUCT: "iPhone9,4",
-// 	VERSION: "16G102",
-// 	SERIAL: "C39SVAE3HFY9",
-// 	IMEI: "35 381108 414291 1",
-// 	// 自定義
-// 	SHA1: "123123123123",
+// var data = {
+// 	udid_list:["0bc3bfbe3781a2917d4edc3733d052465d528e2a"],
+// 	file_path:"itms-services://?action=download-manifest&url=https://appdownload.webpxy.info/dev_188/1572942535/1572942535.plist",
+// 	ipa_path:"https://appdownload.webpxy.info/dev_188/1572942535/1572942535.ipa",
+// 	app_name:"dev_188"
 // }
+// log.info(data);
+// var json_data = JSON.stringify(data);
+// log.info(json_data);
 
-// var post_data= JSON.stringify(dinfo);
-
-// https_post("kritars.com", 443, "/action_sigh", null, post_data, function(is_ok, data){
+// var api_with_system_config = server_config.rundown_config.api_with_system_config;
+// https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
 // 	if(is_ok){
-// 		console.log("upload_success", JSON.parse(data));
-		
+// 		// log.warn(data);
+// 		// log.warn(data.toString());
+// 		// var json = JSON.parse(data.toString());
+// 		// if(!json){
+// 			// log.error("管理后台incoming_msg.statusCode = 200，但response無法解析 ...", data);
+// 		// }else{
+// 			// log.warn("管理后台incoming_msg.statusCode = 200，response成功解析 ...", json);
+// 		// }
+// 		log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
 // 	}
 // })

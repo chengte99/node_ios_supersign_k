@@ -17,3 +17,8 @@ function connect_to_server(host, port, db_index){
     });
 }
 
+function set_appinfo_inredis(){
+
+}
+
+

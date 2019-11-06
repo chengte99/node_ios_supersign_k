@@ -123,9 +123,10 @@ router.post("/submit", function(req, res, next){
         // log.info(t2);
         var plist2json = plist.parse(t2);
         plist2json.SHA1 = sha1;
-        // log.info(plist2json);
+        log.warn(plist2json);
 
         web_service.resign_ipa(plist2json, function(ret){
+            log.warn(ret);
             if(ret.status != Response.OK){
                 if(ret.status == Response.APP_IS_EXIST){
                     log.info("app已簽過，分發上次的檔案 ...");
@@ -135,7 +136,8 @@ router.post("/submit", function(req, res, next){
                 }
 
                 log.error("resign_ipa error ...", ret.status);
-                res.send(ret.status);
+                var r_url = "https://kritars.com/error";
+                res.redirect(301, r_url);
                 return;
             }
             
@@ -167,8 +169,11 @@ router.post("/action_sigh", function(req, res, next){
         log.info("正确解析");
         var dinfo;
         dinfo = req.body;
+
+        log.warn(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
         web_service.resign_ipa_via_api(dinfo, function(ret){
+            log.warn(ret);
             if(ret.status != Response.OK){
                 log.error("resign_ipa_via_api error ...", ret.status);
                 res.send(ret);
@@ -194,7 +199,9 @@ router.post("/action_sigh", function(req, res, next){
             }
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
 
+            log.warn(dinfo);
             web_service.resign_ipa_via_api(dinfo, function(ret){
+                log.warn(ret);
                 if(ret.status != Response.OK){
                     log.error("resign_ipa_via_api error ...", ret.status);
                     res.send(ret);

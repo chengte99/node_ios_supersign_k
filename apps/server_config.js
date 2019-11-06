@@ -50,9 +50,19 @@ var server_config = {
         password: "qaz123"
     },
 
+    appfile_config: {
+        appfile_download_scheme: "itms-services://?action=download-manifest&url=",
+        appfile_domain: "https://apple.bckappgs.info/", // kritars 自己測試用的ftp server
+    },
+    
     rundown_config: {
         api_with_system: true,
-        
+        api_with_system_config: {
+            hostname: "mem518.webpxy.info",
+            port: 443,
+            url: "/api/v1/request/sign_complete",
+        },
+        appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
     },
 }
 

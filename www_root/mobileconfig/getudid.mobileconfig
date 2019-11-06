@@ -9,12 +9,13 @@
             <key>DeviceAttributes</key>
             <array>
                 <string>UDID</string>
-                <string>IMEI</string>
                 <string>SERIAL</string>
-                <string>DEVICE_NAME</string>
-                <string>ICCID</string>
                 <string>VERSION</string>
-                <string>PRODUCT</string> 
+                <string>PRODUCT</string>
+                <string>MAC_ADDRESS_EN0</string>
+                <string>ICCID</string>
+                <string>IMEI</string>
+                <string>DEVICE_NAME</string>
             </array>
             <key>Challenge</key>
             <string>dev188</string>

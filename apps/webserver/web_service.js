@@ -17,9 +17,9 @@ var server_config = require("../server_config");
 var ftp_config = server_config.ftp_file_server;
 // ftp end
 
-var APP_DOWNLOAD_SCHEME = "itms-services://?action=download-manifest&url="
-var PUBLIC_URL = "https://apple.bckappgs.info/" // kritars 自己測試用的ftp server
-var TEST_SITE_URL = "https://appdownload.webpxy.info/" // 與內部組對接用的ftp server
+var APP_DOWNLOAD_SCHEME = server_config.appfile_config.appfile_download_scheme;
+var PUBLIC_URL = server_config.appfile_config.appfile_domain // kritars 自己測試用的ftp server
+var TEST_SITE_URL = server_config.rundown_config.appfile_domain // 與內部組對接用的ftp server
 
 function write_err(status, ret_func){
     var ret = {};
@@ -701,6 +701,7 @@ function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
                     ret.status = Response.OK;
                     ret.device_id = device_id;
                     ret.ipa_name = download_name;
+                    ret.ipa_path = TEST_SITE_URL + app_name + "/" + download_name + "/" + download_name + ".ipa";
                     callback(ret);
                     return;
                 }else{
@@ -814,8 +815,10 @@ function start_resign_app(account_info, app_info, callback){
     // ret.path = "itms-services://?action=download-manifest&url=https://apple.bckappgs.info/dev_188/xxxxx/manifest.plist";
     if(server_config.rundown_config.api_with_system){
         ret.path = APP_DOWNLOAD_SCHEME + TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+        ret.ipa_path = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
     }else{
         ret.path = APP_DOWNLOAD_SCHEME + PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+        ret.ipa_path = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
     }
 
     ready_to_sigh(ret, callback);
@@ -843,7 +846,12 @@ function start_resign_on_app_queue(account_info, callback){
             // 判斷是否與內部組對接
             if(server_config.rundown_config.api_with_system){
                 // 簽名完成且上傳，通知管理後台
-                var data = {udid_list: ret.app_req_queue, file_path: ret.path};
+                var data = {
+                    udid_list: ret.app_req_queue,
+                    file_path: ret.path,
+                    ipa_path: ret.ipa_path,
+                    app_name: ret.app_name,
+                };
                 var json_data = JSON.stringify(data);
                 log.info(json_data);
 
@@ -851,11 +859,13 @@ function start_resign_on_app_queue(account_info, callback){
                 /*
                 https://mem518.webpxy.info/api/v1/request/sign_complete
                 */
-                // https.https_post("mem518.webpxy.info", 443, "/api/v1/request/sign_complete", null, json_data, function(is_ok, data){
-                //     if(is_ok){
-                //         log.info("通知管理后台成功，response: ", JSON.parse(data));
-                //     }
-                // })
+                var api_with_system_config = server_config.rundown_config.api_with_system_config;
+                https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
+                    if(is_ok){
+                        // log.warn(data);
+                        log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                    }
+                })
             }
         };
         
