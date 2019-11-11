@@ -46,15 +46,15 @@ var server_config = {
     ftp_file_server: {
         host: "192.168.20.8", // 210.68.95.166 (192.168.20.8)
         port: 4428,
-        username: "brilliantkevin99",
-        password: "qaz123"
+        username: "supersign",
+        password: "8yxRPG7C5k"
     },
 
     appfile_config: {
         appfile_download_scheme: "itms-services://?action=download-manifest&url=",
         appfile_domain: "https://apple.bckappgs.info/", // kritars 自己測試用的ftp server
     },
-    
+
     rundown_config: {
         api_with_system: true,
         api_with_system_config: {

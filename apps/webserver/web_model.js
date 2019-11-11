@@ -69,7 +69,7 @@ function get_uinfo_by_id(id, ret_func){
 }
 
 function get_valid_account(ret_func){
-    mysql_supersign.get_valid_accounts_by_devices(function(status, sql_result){
+    mysql_supersign.get_valid_account(function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -80,6 +80,22 @@ function get_valid_account(ret_func){
             ret_func(Response.NO_VALID_ACCOUNT, null);
         }else{
             ret_func(status, sql_result[0]);
+        }
+    })
+}
+
+function get_max_devices_accounts(ret_func){
+    mysql_supersign.get_max_devices_accounts(function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        if(sql_result.length <= 0){
+            // log.info("no valid account ...");
+            ret_func(Response.NO_MAX_DEVICES_ACCOUNT, null);
+        }else{
+            ret_func(status, sql_result);
         }
     })
 }
@@ -199,13 +215,13 @@ function update_app_to_app_info(app_info, ret_func){
     });
 }
 
-function update_device_info_by_udid(udid, jsonstr, time_valid, ret_func){
-    if(!udid || udid == "" || !jsonstr || jsonstr == "" || !time_valid){
+function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, ret_func){
+    if(udid == null || udid == "" || jsonstr == null || jsonstr == "" || time_valid == null || need_update_time == null){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
-    mysql_supersign.update_device_info_by_udid(udid, jsonstr, time_valid, function(status, sql_result){
+    mysql_supersign.update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -271,4 +287,5 @@ module.exports = {
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
     get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
+    get_max_devices_accounts: get_max_devices_accounts,
 }

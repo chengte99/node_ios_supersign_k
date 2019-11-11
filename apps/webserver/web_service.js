@@ -2,6 +2,7 @@ var fs = require("fs");
 var plist = require('plist');
 var exec = require("child_process").exec;
 var util = require("util");
+var schedule = require("node-schedule");
 
 var sftp_client = require("../../utils/sftp");
 var Response = require("../Response");
@@ -215,7 +216,9 @@ function update_each_device_info_from_app_req_queue(ret, callback){
             app_resigned_info: [
                 {
                     app_name: "dev_188",
+                    app_ver: "1234",
                     ipa_name: "123456",
+                    site_code: site_code,
                 },
                 ...
             ],
@@ -243,7 +246,9 @@ function update_each_device_info_from_app_req_queue(ret, callback){
             if(json){
                 json.app_resigned_info.push({
                     "app_name": ret.app_name,
+                    "app_ver": ret.app_ver,
                     "ipa_name": ret.tag,
+                    "site_code": ret.site_code,
                 });
 
                 json.reg_acc_info = {
@@ -258,7 +263,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 // 重簽名時間戳加上一年，app有效期限
                 var time_valid = parseInt(ret.tag) + 31536000;
                 // 更新數據庫
-                web_model.update_device_info_by_udid(udid, jsonstr, time_valid, function(status, result){
+                web_model.update_device_info_by_udid(udid, jsonstr, time_valid, false, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
                         return;
@@ -269,7 +274,9 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     "app_resigned_info": [
                         {
                             "app_name": ret.app_name,
+                            "app_ver": ret.app_ver,
                             "ipa_name": ret.tag,
+                            "site_code": ret.site_code,
                         },
                     ],
                     "reg_acc_info": {
@@ -281,10 +288,30 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     }
                 }
 
+                // json = {
+                //     app_resigned_info: [],
+                //     reg_acc_info: {},
+                // }
+
+                // json.app_resigned_info.push({
+                //     "app_name": ret.app_name,
+                //     "app_ver": ret.app_ver,
+                //     "ipa_name": ret.tag,
+                //     "site_code": ret.site_code,
+                // });
+
+                // json.reg_acc_info = {
+                //     "is_reg": 1,
+                //     "acc_id": ret.account_info.acc_id,
+                //     "reg_account": ret.account_info.account,
+                //     "cert_name": ret.account_info.cert_name,
+                //     "bundle_id": ret.account_info.bundle_id,
+                // };
+
                 var jsonstr = JSON.stringify(json);
                 var time_valid = parseInt(ret.tag) + 31536000;
                 // 更新數據庫
-                web_model.update_device_info_by_udid(udid, jsonstr, time_valid, function(status, result){
+                web_model.update_device_info_by_udid(udid, jsonstr, time_valid, true, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
                         return;
@@ -409,8 +436,9 @@ function ready_to_sigh(ret, callback){
 }
 
 function resign_ipa(dinfo, callback){
-    if(dinfo == null || dinfo.UDID == null || dinfo.PRODUCT == null 
-        || dinfo.VERSION == null || dinfo.SERIAL == null || dinfo.SHA1 == null){
+    if(dinfo == null || dinfo.UDID == null || dinfo.UDID == "" || dinfo.PRODUCT == null 
+    || dinfo.PRODUCT == "" || dinfo.VERSION == null || dinfo.VERSION == "" || dinfo.SERIAL == null 
+    || dinfo.SERIAL == "" || dinfo.SHA1 == null || dinfo.SHA1 == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -421,10 +449,15 @@ function resign_ipa(dinfo, callback){
             return;
         }
         
-        var app_id = result.id;
-        var app_name = result.app_name;
-        var upload_name = result.upload_name;
-        check_udid_is_resigned(app_id, app_name, upload_name, dinfo, function(ret){
+        var app_info = {
+            app_id: result.id,
+            app_name: result.app_name,
+            upload_name: result.upload_name,
+            app_ver: result.version,
+            site_code: result.site_code
+        };
+
+        check_udid_is_resigned(app_info, dinfo, function(ret){
             if(ret.status != Response.OK){
                 write_err(status, callback);
                 return;
@@ -433,6 +466,7 @@ function resign_ipa(dinfo, callback){
             // 已有簽過該app，不需再簽名
             if(ret.ipa_name != null && ret.ipa_name != ""){
                 ret.status = Response.APP_IS_EXIST;
+                ret.site_code = app_info.site_code;
                 ret.msg = "app已存在且已簽過名 ...";
                 callback(ret);
                 return;
@@ -576,6 +610,9 @@ acc_req_queue_list[acc_id] =
         "version": dinfo.VERSION,
         "app_id": app_id,
         "app_name": app_name,
+        "upload_name": upload_name,
+        "app_ver": app_ver,
+        "site_code": dinfo.SITE_CODE,
         
         "acc_id": device_acc_info.acc_id,
         "account": device_acc_info.account,
@@ -593,6 +630,8 @@ app_queue_list = [
         "app_id": id,
         "app_name": app_name,
         "upload_name": upload_name,
+        "app_ver": app_ver,
+        "site_code": site_code,
     },
     ...
 ]
@@ -608,7 +647,7 @@ app_req_queue_list[app_id] =
 ]
 */
 
-function add_data_to_acc_queue(dinfo, app_id, app_name, upload_name, device_acc_info, device_id, callback){
+function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback){
     // 檢查acc佇列，是否需push
     var acc_queue_is_exist = false;
     for(var i = 0; i < acc_queue_list.length; i ++){
@@ -646,9 +685,11 @@ function add_data_to_acc_queue(dinfo, app_id, app_name, upload_name, device_acc_
             "udid": dinfo.UDID,
             "product": dinfo.PRODUCT,
             "version": dinfo.VERSION,
-            "app_id": app_id,
-            "app_name": app_name,
-            "upload_name": upload_name,
+            "app_id": ainfo.app_id,
+            "app_name": ainfo.app_name,
+            "upload_name": ainfo.upload_name,
+            "app_ver": ainfo.app_ver,
+            "site_code": ainfo.site_code,
             
             "acc_id": device_acc_info.acc_id,
             "account": device_acc_info.account,
@@ -661,7 +702,7 @@ function add_data_to_acc_queue(dinfo, app_id, app_name, upload_name, device_acc_
     callback(ret);
 }
 
-function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
+function check_udid_is_resigned(ainfo, dinfo, callback){
     // 判斷該dinfo 是否已存在db，是否已有簽過該app
     web_model.get_uinfo_by_udid(dinfo.UDID, dinfo.PRODUCT, dinfo.VERSION, function(status, result){
         if(status != Response.OK){
@@ -670,8 +711,7 @@ function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
         }
 
         var device_id = result.id;
-        var jsonstr = result.jsonstr;
-        var json = JSON.parse(jsonstr);
+        var json = JSON.parse(result.jsonstr);
         if(json){
             var reg_acc_info = json.reg_acc_info;
 
@@ -685,12 +725,20 @@ function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
                     bundle_id: reg_acc_info.bundle_id
                 }
 
-                var app_info_list = json.app_resigned_info;
                 var download_name;
-                for(var i = 0; i < app_info_list.length; i ++){
-                    if(app_info_list[i].app_name == app_name){
-                        // 如果有簽過該app 且download_name不為空
-                        download_name = app_info_list[i].ipa_name;
+                var index = -1;
+                for(var i = 0; i < json.app_resigned_info.length; i ++){
+                    if(json.app_resigned_info[i].app_name == ainfo.app_name){
+                        // 如果有簽過該app
+                        if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
+                            // 紀錄的版本號與當前DB app_info的版本號相同
+                            log.info("紀錄的版本號與當前DB app_info的版本號相同 ...");
+                            download_name = json.app_resigned_info[i].ipa_name;
+                        }else{
+                            // 紀錄的版本號與當前DB app_info的版本號不同
+                            log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
+                            index = i;
+                        }
                     }
                 }
                 
@@ -701,15 +749,30 @@ function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
                     ret.status = Response.OK;
                     ret.device_id = device_id;
                     ret.ipa_name = download_name;
-                    ret.ipa_path = TEST_SITE_URL + app_name + "/" + download_name + "/" + download_name + ".ipa";
+                    ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
                     callback(ret);
                     return;
                 }else{
                     // 未簽過該app，無download_name或download_name為空
                     log.info("未簽過該app，無download_name或download_name為空，重簽名app");
-                    
+
+                    // 更新該設備的jsonStr 內容
+                    if(index != -1){
+                        json.app_resigned_info[index] = null;
+                        json.app_resigned_info.splice(index, 1);
+
+                        var jsonstr = JSON.stringify(json);
+                        var time_valid = 999999;
+                        web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, time_valid, false, function(status, result){
+                            if(status != Response.OK){
+                                write_err(status, callback);
+                                return;
+                            };
+                        })
+                    }
+
                     // 加入acc佇列
-                    add_data_to_acc_queue(dinfo, app_id, app_name, upload_name, device_acc_info, device_id, callback);
+                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
                 }
             }
         }else{
@@ -731,7 +794,7 @@ function check_udid_is_resigned(app_id, app_name, upload_name, dinfo, callback){
                 }
 
                 // 加入acc佇列
-                add_data_to_acc_queue(dinfo, app_id, app_name, upload_name, device_acc_info, device_id, callback);
+                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
             });
         }
     });
@@ -752,6 +815,8 @@ function add_data_to_app_queue(device_info){
             "app_id": device_info.app_id,
             "app_name": device_info.app_name,
             "upload_name": device_info.upload_name,
+            "app_ver": device_info.app_ver,
+            "site_code": device_info.site_code,
         });
     }
 
@@ -791,8 +856,7 @@ function start_resign_app(account_info, app_info, callback){
     var resigned_app_name = "" + utils.timestamp();
     // 執行重簽名並上傳腳本
     var sh = "sh ios_sign/resign_ipa_new.sh \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" ";
-    var sh_cmd = util.format(sh, app_info.app_name, app_info.upload_name, 
-        account_info.acc_md5, account_info.cert_name, resigned_app_name);
+    var sh_cmd = util.format(sh, app_info.app_name, app_info.upload_name, account_info.acc_md5, account_info.cert_name, resigned_app_name);
     log.info(sh_cmd);
 
     exec(sh_cmd, function(error, stdout, stderr){
@@ -810,6 +874,8 @@ function start_resign_app(account_info, app_info, callback){
     var ret = {};
     ret.account_info = account_info;
     ret.app_name = app_info.app_name;
+    ret.app_ver = app_info.app_ver;
+    ret.site_code = app_info.site_code;
     ret.tag = resigned_app_name;
     ret.app_req_queue = queue;
     // ret.path = "itms-services://?action=download-manifest&url=https://apple.bckappgs.info/dev_188/xxxxx/manifest.plist";
@@ -848,12 +914,13 @@ function start_resign_on_app_queue(account_info, callback){
                 // 簽名完成且上傳，通知管理後台
                 var data = {
                     udid_list: ret.app_req_queue,
-                    file_path: ret.path,
+                    // file_path: ret.path,
                     ipa_path: ret.ipa_path,
                     app_name: ret.app_name,
+                    site_code: ret.site_code,
                 };
                 var json_data = JSON.stringify(data);
-                log.info(json_data);
+                log.warn(json_data);
 
                 // post到管理後台
                 /*
@@ -862,7 +929,6 @@ function start_resign_on_app_queue(account_info, callback){
                 var api_with_system_config = server_config.rundown_config.api_with_system_config;
                 https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
                     if(is_ok){
-                        // log.warn(data);
                         log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                     }
                 })
@@ -996,8 +1062,10 @@ function ready_to_reg_apple(account_info, callback){
 }
 
 function resign_ipa_via_api(dinfo, callback){
-    if(dinfo == null || dinfo.UDID == null || dinfo.PRODUCT == null 
-        || dinfo.VERSION == null || dinfo.SERIAL == null || dinfo.SHA1 == null){
+    if(dinfo == null || dinfo.UDID == null || dinfo.UDID == "" || dinfo.PRODUCT == null 
+    || dinfo.PRODUCT == "" || dinfo.VERSION == null || dinfo.VERSION == "" || dinfo.SERIAL == null 
+    || dinfo.SERIAL == "" || dinfo.SHA1 == null || dinfo.SHA1 == "" || dinfo.APP_VER == null 
+    || dinfo.APP_VER == "" || dinfo.SITE_CODE == null){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1008,10 +1076,15 @@ function resign_ipa_via_api(dinfo, callback){
             return;
         }
 
-        var app_id = result.id;
-        var app_name = result.app_name;
-        var upload_name = result.upload_name;
-        check_udid_is_resigned(app_id, app_name, upload_name, dinfo, function(ret){
+        var app_info = {
+            app_id: result.id,
+            app_name: result.app_name,
+            upload_name: result.upload_name,
+            app_ver: result.version,
+            site_code: result.site_code
+        };
+
+        check_udid_is_resigned(app_info, dinfo, function(ret){
             if(ret.status != Response.OK){
                 write_err(status, callback);
                 return;
@@ -1020,6 +1093,7 @@ function resign_ipa_via_api(dinfo, callback){
             // 已有簽過該app，不需再簽名
             if(ret.ipa_name != null && ret.ipa_name != ""){
                 ret.status = Response.APP_IS_EXIST;
+                ret.site_code = app_info.site_code;
                 ret.msg = "app已存在且已簽過名 ...";
                 callback(ret);
                 return;
@@ -1117,9 +1191,9 @@ function download_ipa_to_local(app_name, upload_name, callback){
 }
 
 function create_app_to_db(app_info, callback){
-    if(app_info == null || app_info.app == null || app_info.app == "" || app_info.name == null || app_info.name == "" || 
-    app_info.ver == null || app_info.ver == "" || app_info.sha1 == null || app_info.sha1 == "" || app_info.md5 == null || 
-    app_info.md5 == ""){
+    if(app_info == null || app_info.app == null || app_info.app == "" || app_info.name == null 
+    || app_info.name == "" || app_info.ver == null || app_info.ver == "" || app_info.sha1 == null 
+    || app_info.sha1 == "" || app_info.md5 == null || app_info.md5 == "" || app_info.site_code == null){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1218,6 +1292,62 @@ function check_timestamp_valid(udid, timestamp, callback){
     });
 }
 
+function start_verify_acc(queue){
+    for(var i = 0; i < queue.length; i ++){
+        var acc = queue[i];
+
+        // ruby update_acc_devices.rb "liaoyanchi3@gmail.com"
+        var sh = "ruby ios_sign/update_acc_devices.rb \"%s\" ";
+        var sh_cmd = util.format(sh, acc);
+        log.info(sh_cmd);
+
+        //运行spaceship 脚本
+        exec(sh_cmd, function(error, stdout, stderr){
+            // if(error){
+            //     log.info('error: ' + error);
+            // }
+
+            // if(stderr){
+            //     log.info('stderr: ' + stderr);
+            // }
+
+            // log.info('stdout: ' + stdout);
+        });
+    }
+}
+
+function schedule_to_action(){
+    var rule = new schedule.RecurrenceRule();
+
+    // 每天0時執行
+    rule.hour = 0;
+    rule.minute = 0;
+    rule.second = 0;
+
+    var j = schedule.scheduleJob(rule, function(){
+        // 取出devices數已達100的帳號進行驗證核對
+        web_model.get_max_devices_accounts(function(status, result){
+            if(status != Response.OK){
+                if(status == Response.NO_MAX_DEVICES_ACCOUNT){
+                    log.info("無設備數達100的app的帳號，無需檢查 ...");
+                }else{
+                    log.info("其他錯誤 ...", status);
+                }
+            }else{
+                log.info("已獲取設備數達100的app的帳號 ...");
+                // log.info(result);
+                var acc_verify_list = [];
+                for(var i = 0; i < result.length; i ++){
+                    // console.log(result[i].account);
+                    acc_verify_list.push(result[i].account);
+                }
+
+                start_verify_acc(acc_verify_list);
+            }
+        })
+    });
+}
+
 function schedule_to_check_resign_queue(){
     // 判斷是否有acc佇列
     if(acc_queue_list.length <= 0){
@@ -1254,6 +1384,9 @@ setTimeout(function(){
     log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
     schedule_to_check_resign_queue();
 }, 5000);
+
+// 每天定時檢查設備數已達100的可用帳號
+schedule_to_action();
 
 module.exports = {
     get_loadxml: get_loadxml,

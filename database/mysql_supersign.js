@@ -96,8 +96,22 @@ function add_uinfo_by_udid(udid, model, version, callback){
     })
 }
 
-function get_valid_accounts_by_devices(callback){
+function get_valid_account(callback){
     var sql_cmd = "select * from account_info where devices != 100 and is_enable != 0 limit 1";
+    // var sql_cmd = util.format(sql, udid);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, sql_result);
+    })
+}
+
+function get_max_devices_accounts(callback){
+    var sql_cmd = "select * from account_info where devices = 100 and is_enable != 0";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -181,8 +195,8 @@ function add_new_resign_info(tag, path, callback){
 }
 
 function add_new_to_app_info(info, callback){
-    var sql = "insert into app_info (`app_name`, `upload_name`, `version`, `sha1_name`, `md5_name`) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")";
-    var sql_cmd = util.format(sql, info.app, info.name, info.ver, info.sha1, info.md5);
+    var sql = "insert into app_info (`app_name`, `upload_name`, `version`, `sha1_name`, `md5_name`, `site_code`) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d)";
+    var sql_cmd = util.format(sql, info.app, info.name, info.ver, info.sha1, info.md5, info.site_code);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -208,9 +222,15 @@ function update_app_to_app_info(info, callback){
     })
 }
 
-function update_device_info_by_udid(udid, jsonstr, time_valid, callback){
-    var sql = "update device_info set jsonstr = \'%s\', time_valid = %d where udid = \"%s\" ";
-    var sql_cmd = util.format(sql, jsonstr, time_valid, udid);
+function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, callback){
+    var sql, sql_cmd;
+    if(need_update_time){
+        sql = "update device_info set jsonstr = \'%s\', time_valid = %d where udid = \"%s\" ";
+        sql_cmd = util.format(sql, jsonstr, time_valid, udid);
+    }else{
+        sql = "update device_info set jsonstr = \'%s\' where udid = \"%s\" ";
+        sql_cmd = util.format(sql, jsonstr, udid);
+    }
     log.info(sql_cmd);
 
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -255,7 +275,7 @@ module.exports = {
     get_app_info_by_sha1: get_app_info_by_sha1,
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
-    get_valid_accounts_by_devices: get_valid_accounts_by_devices,
+    get_valid_account: get_valid_account,
     add_device_count_on_account_info: add_device_count_on_account_info,
     clear_appinfo_on_device_info: clear_appinfo_on_device_info,
     get_downloadApp_url: get_downloadApp_url,
@@ -267,4 +287,5 @@ module.exports = {
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
     get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
+    get_max_devices_accounts: get_max_devices_accounts,
 }

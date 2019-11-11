@@ -6,7 +6,7 @@ var log = require("../utils/log");
 
 var ftp_config = server_config.ftp_file_server;
 
-var local_dir_path = __dirname + "/dev_188/1572339697";
+var local_dir_path = __dirname + "/../ios_sign/app_resource/dev_188/1572942535";
 fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
     if(err){
         log.error(err);
@@ -26,7 +26,7 @@ ftp_client.on("ready", function(){
 });
 
 ftp_client.on("ready", function(){
-    ftp_client.get("/appfile/dev_188/1572339697/1572339697.plist", function(err, stream){
+    ftp_client.get("/appfile/dev_188/1572942535/1572942535.plist", function(err, stream){
         if(err){
             log.error(err);
             return;
@@ -37,7 +37,7 @@ ftp_client.on("ready", function(){
             log.info("下載完成 ...");
             ftp_client.end();
         });
-        stream.pipe(fs.createWriteStream(local_dir_path + "/1572339697.plist"));
+        stream.pipe(fs.createWriteStream(local_dir_path + "/1572942535.plist"));
     })
 });
 

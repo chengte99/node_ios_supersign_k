@@ -14,7 +14,13 @@ cwd_path = Pathname.new(File.dirname(__FILE__)).realpath
 puts "帳戶: #{acc}"
 
 credentials = CredentialsManager::AccountManager.new(user: acc)
-Spaceship::Portal.login(credentials.user, credentials.password)
+is_login = Spaceship::Portal.login(credentials.user, credentials.password)
+
+if is_login != nil
+    puts "login success"
+else
+    puts "login fail"
+end
 # Spaceship::Portal.select_team
 
 # devices = Spaceship::Portal.device.all

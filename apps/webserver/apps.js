@@ -157,12 +157,14 @@ router.post("/submit", function(req, res, next){
         "SERIAL": "C39SVAE3HFY9",
         // 自定義
         "SHA1": "123123123123",
+        "SITE_CODE": 0,
+        "APP_VER": "1234",
     }
 */
 router.post("/action_sigh", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
-    log.info(req.body);
+    // log.info(req.body);
 
     if (req.body) {
         //能正确解析 json 格式的post参数
@@ -272,20 +274,24 @@ router.post("/update_devices", function(req, res, next){
        "ver": "1603",
        "sha1": "xxxxxx111",
        "md5": "ddddddd222",
+       "site_code": 0,
    }
 */
 router.post("/create_app", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
-    log.info(req.body);
+    // log.info(req.body);
     
     if (req.body) {
         //能正确解析 json 格式的post参数
         log.info("正确解析");
         var dinfo;
         dinfo = req.body;
+
+        log.warn(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
         web_service.create_app_to_db(dinfo, function(ret){
+            log.warn(ret);
             if(ret.status != Response.OK){
                 log.error("create_app_to_db error ...", ret.status);
                 res.send(ret);
@@ -308,8 +314,11 @@ router.post("/create_app", function(req, res, next){
             } catch (err) {
                 dinfo = null;
             }
+
+            log.warn(dinfo);
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
             web_service.create_app_to_db(dinfo, function(ret){
+                log.warn(ret);
                 if(ret.status != Response.OK){
                     log.error("create_app_to_db error ...", ret.status);
                     res.send(ret);
