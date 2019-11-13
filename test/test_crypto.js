@@ -24,7 +24,7 @@ function sha1(data) {
     return sha1.digest('hex'); 
 }
 
-var name = "devSPORT";
+var name = "APP_188_1603";
 
 console.log(sha1(name));
 console.log(md5(name));

@@ -269,8 +269,8 @@ router.post("/update_devices", function(req, res, next){
 // 管理後台上傳app後，透過api post json傳過來給重簽名後台新增到DB
 /* 
    {
-       "app": "BF178",
-       "name": "test_fileName_123"
+       "app_name": "APP_XXX_1234",
+       "app_desc": "188_SPORT"
        "ver": "1603",
        "sha1": "xxxxxx111",
        "md5": "ddddddd222",

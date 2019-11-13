@@ -2,13 +2,34 @@ var mysql_supersign = require("../../database/mysql_supersign");
 var Response = require("../Response");
 var log = require("../../utils/log");
 
-function get_app_info(sha1, ret_func){
+function get_app_info_by_sha1(sha1, ret_func){
     if(!sha1 || sha1 == ""){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
     mysql_supersign.get_app_info_by_sha1(sha1, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        if(sql_result.length <= 0){
+            ret_func(Response.DB_SEARCH_EMPTY, null);
+            return;
+        }
+
+        ret_func(Response.OK, sql_result[0]);
+    })
+}
+
+function get_app_info_by_sitecode(site_code, ret_func){
+    if(site_code == null){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.get_app_info_by_sitecode(site_code, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -273,7 +294,8 @@ function get_account_info_by_acc(acc, ret_func){
 }
 
 module.exports = {
-    get_app_info: get_app_info,
+    get_app_info_by_sha1: get_app_info_by_sha1,
+    get_app_info_by_sitecode: get_app_info_by_sitecode,
     get_uinfo_by_udid: get_uinfo_by_udid,
     get_valid_account: get_valid_account,
     add_device_count_on_account_info: add_device_count_on_account_info,
@@ -287,5 +309,5 @@ module.exports = {
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
     get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
-    get_max_devices_accounts: get_max_devices_accounts,
+    get_max_devices_accounts: get_max_devices_accounts,   
 }

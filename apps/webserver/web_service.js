@@ -95,7 +95,7 @@ function get_app_name_by_sha1(sha1, callback){
         return;
     }
 
-    web_model.get_app_info(sha1, callback);
+    web_model.get_app_info_by_sha1(sha1, callback);
 }
 
 function ready_to_upload(ret, local_plist_path){
@@ -108,52 +108,68 @@ function ready_to_upload(ret, local_plist_path){
 
         var ftp_client = new Client();
         ftp_client.on("ready", function(){    
-            log.info("ftp file server已連線 ...");
-        });
-        
-        ftp_client.mkdir(remote_dir_path, true, function(err){
-            if(err){
-                log.error("mkdir error: ", err);
-                return;
-            }
-        
-            ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
+            log.info("ftp connection 已連線 ...");
+
+            ftp_client.mkdir(remote_dir_path, true, function(err){
                 if(err){
-                    log.error("put error: ", err);
+                    log.error("mkdir error: ", err);
                     return;
                 }
-        
-                log.info("上傳ipa成功 ...");
-                // fs.unlink(local_ipa_path, function(err){
-                //     if(err){
-                //         throw err;
-                //     }
-
-                //     // log.info("删除本地ipa成功 ...");
-                // });
-
-                ftp_client.put(local_plist_path, remote_plist_path, function(err){
+            
+                ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
                     if(err){
                         log.error("put error: ", err);
                         return;
                     }
             
-                    log.info("上傳plist成功 ...");
-                    // fs.unlink(local_plist_path, function(err){
+                    log.info("上傳ipa成功 ...");
+                    // fs.unlink(local_ipa_path, function(err){
                     //     if(err){
                     //         throw err;
                     //     }
     
-                    //     // log.info("删除本地plist成功 ...");
+                    //     // log.info("删除本地ipa成功 ...");
                     // });
-
-                    // 刪除上傳列表的紀錄
-                    global_upload_list[ret.tag] = null;
-                    delete global_upload_list[ret.tag];
-
-                    ftp_client.end();
+    
+                    ftp_client.put(local_plist_path, remote_plist_path, function(err){
+                        if(err){
+                            log.error("put error: ", err);
+                            return;
+                        }
+                
+                        log.info("上傳plist成功 ...");
+                        // fs.unlink(local_plist_path, function(err){
+                        //     if(err){
+                        //         throw err;
+                        //     }
+        
+                        //     // log.info("删除本地plist成功 ...");
+                        // });
+    
+                        // 刪除上傳列表的紀錄
+                        global_upload_list[ret.tag] = null;
+                        delete global_upload_list[ret.tag];
+    
+                        ftp_client.end();
+                    });
                 });
             });
+        });
+
+        ftp_client.on("end", function(){
+            log.info("ftp connection 已斷開 ...");
+        });
+
+        ftp_client.on("close", function(hadErr){
+            if(hadErr){
+                log.warn("ftp connection close ...", hadErr);
+            }
+        });
+
+        ftp_client.on("error", function(err){
+            if(err){
+                log.error("ftp connection error ...", err);
+            }
         });
 
         ftp_client.connect({
@@ -216,6 +232,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
             app_resigned_info: [
                 {
                     app_name: "dev_188",
+                    app_desc: "188_SPORT"
                     app_ver: "1234",
                     ipa_name: "123456",
                     site_code: site_code,
@@ -246,6 +263,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
             if(json){
                 json.app_resigned_info.push({
                     "app_name": ret.app_name,
+                    "app_desc": ret.app_desc,
                     "app_ver": ret.app_ver,
                     "ipa_name": ret.tag,
                     "site_code": ret.site_code,
@@ -274,6 +292,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     "app_resigned_info": [
                         {
                             "app_name": ret.app_name,
+                            "app_desc": ret.app_desc,
                             "app_ver": ret.app_ver,
                             "ipa_name": ret.tag,
                             "site_code": ret.site_code,
@@ -397,7 +416,7 @@ function ready_to_sigh(ret, callback){
                 }else{
                     json.items[0].assets[0].url = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
                 }
-                json.items[0].metadata.title = "" + ret.app_name;
+                json.items[0].metadata.title = "" + ret.app_desc;
                 var newxml = plist.build(json);
                 var plist_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".plist";
                 fs.writeFileSync(plist_path, newxml);
@@ -452,7 +471,7 @@ function resign_ipa(dinfo, callback){
         var app_info = {
             app_id: result.id,
             app_name: result.app_name,
-            upload_name: result.upload_name,
+            app_desc: result.app_desc,
             app_ver: result.version,
             site_code: result.site_code
         };
@@ -687,12 +706,12 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
             "version": dinfo.VERSION,
             "app_id": ainfo.app_id,
             "app_name": ainfo.app_name,
-            "upload_name": ainfo.upload_name,
+            "app_desc": ainfo.app_desc,
             "app_ver": ainfo.app_ver,
             "site_code": ainfo.site_code,
             
-            "acc_id": device_acc_info.acc_id,
-            "account": device_acc_info.account,
+            // "acc_id": device_acc_info.acc_id,
+            // "account": device_acc_info.account,
         })
     }
 
@@ -728,7 +747,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                 var download_name;
                 var index = -1;
                 for(var i = 0; i < json.app_resigned_info.length; i ++){
-                    if(json.app_resigned_info[i].app_name == ainfo.app_name){
+                    if(json.app_resigned_info[i].site_code == ainfo.site_code){
                         // 如果有簽過該app
                         if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
                             // 紀錄的版本號與當前DB app_info的版本號相同
@@ -806,6 +825,9 @@ function add_data_to_app_queue(device_info){
     for(var i = 0; i < app_queue_list.length; i ++){
         var id = app_queue_list[i].app_id;
         if(id == device_info.app_id){
+            if(app_queue_list[i].app_ver != device_info.app_ver){
+                app_queue_list[i].app_ver = device_info.app_ver;
+            }
             app_queue_is_exist = true;
         }
     }
@@ -814,7 +836,7 @@ function add_data_to_app_queue(device_info){
         app_queue_list.push({
             "app_id": device_info.app_id,
             "app_name": device_info.app_name,
-            "upload_name": device_info.upload_name,
+            "app_desc": device_info.app_desc,
             "app_ver": device_info.app_ver,
             "site_code": device_info.site_code,
         });
@@ -856,7 +878,7 @@ function start_resign_app(account_info, app_info, callback){
     var resigned_app_name = "" + utils.timestamp();
     // 執行重簽名並上傳腳本
     var sh = "sh ios_sign/resign_ipa_new.sh \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" ";
-    var sh_cmd = util.format(sh, app_info.app_name, app_info.upload_name, account_info.acc_md5, account_info.cert_name, resigned_app_name);
+    var sh_cmd = util.format(sh, app_info.app_name, app_info.app_name, account_info.acc_md5, account_info.cert_name, resigned_app_name);
     log.info(sh_cmd);
 
     exec(sh_cmd, function(error, stdout, stderr){
@@ -874,6 +896,7 @@ function start_resign_app(account_info, app_info, callback){
     var ret = {};
     ret.account_info = account_info;
     ret.app_name = app_info.app_name;
+    ret.app_desc = app_info.app_desc;    
     ret.app_ver = app_info.app_ver;
     ret.site_code = app_info.site_code;
     ret.tag = resigned_app_name;
@@ -1079,7 +1102,7 @@ function resign_ipa_via_api(dinfo, callback){
         var app_info = {
             app_id: result.id,
             app_name: result.app_name,
-            upload_name: result.upload_name,
+            app_desc: result.app_desc,
             app_ver: result.version,
             site_code: result.site_code
         };
@@ -1107,7 +1130,8 @@ function resign_ipa_via_api(dinfo, callback){
 }
 
 function check_app_is_exist(app_info, callback){
-    web_model.get_app_info(app_info.sha1, function(status, result){
+    web_model.get_app_info_by_sitecode(app_info.site_code, function(status, result){
+    // web_model.get_app_info(app_info.site_code, function(status, result){
         if(status != Response.OK){
             if(status == Response.DB_SEARCH_EMPTY){
                 // 無此app 紀錄，可新增
@@ -1119,7 +1143,7 @@ function check_app_is_exist(app_info, callback){
             }
         }
         
-        if(result.upload_name == app_info.name){
+        if(result.app_name == app_info.app_name){
             // 已有此app 紀錄，且檔名相同
             callback(Response.OK, false, false);
         }else{
@@ -1129,8 +1153,8 @@ function check_app_is_exist(app_info, callback){
     });
 }
 
-function download_ipa_to_local(app_name, upload_name, callback){
-    if(app_name == null || app_name == "" || upload_name == null || upload_name == ""){
+function download_ipa_to_local(app_name, callback){
+    if(app_name == null || app_name == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1152,14 +1176,15 @@ function download_ipa_to_local(app_name, upload_name, callback){
     });
 
     // ftp 下載至本地目錄
-    var local_ipa_path = local_dir_path + "/" + upload_name + ".ipa";
+    var local_ipa_path = local_dir_path + "/" + app_name + ".ipa";
     var remote_dir_path = "/appfile/" + app_name;
-    var remote_ipa_path = remote_dir_path + "/" + upload_name + ".ipa";
+    var remote_ipa_path = remote_dir_path + "/" + app_name + ".ipa";
 
     var ftp_client = new Client();
 
     ftp_client.on("ready", function(){
-        log.info("ftp file server已連線 ...");
+        log.info("ftp connection 已連線 ...");
+
         ftp_client.get(remote_ipa_path, function(err, stream){
             if(err){
                 log.error(err);
@@ -1182,6 +1207,22 @@ function download_ipa_to_local(app_name, upload_name, callback){
         })
     });
 
+    ftp_client.on("end", function(){
+        log.info("ftp connection 已斷開 ...");
+    });
+
+    ftp_client.on("close", function(hadErr){
+        if(hadErr){
+            log.warn("ftp connection close ...", hadErr);
+        }
+    });
+
+    ftp_client.on("error", function(err){
+        if(err){
+            log.error("ftp connection error ...", err);
+        }
+    });
+
     ftp_client.connect({
         host: ftp_config.host,
         port: ftp_config.port,
@@ -1191,8 +1232,8 @@ function download_ipa_to_local(app_name, upload_name, callback){
 }
 
 function create_app_to_db(app_info, callback){
-    if(app_info == null || app_info.app == null || app_info.app == "" || app_info.name == null 
-    || app_info.name == "" || app_info.ver == null || app_info.ver == "" || app_info.sha1 == null 
+    if(app_info == null || app_info.app_name == null || app_info.app_name == "" || app_info.app_desc == null 
+    || app_info.app_desc == "" || app_info.ver == null || app_info.ver == "" || app_info.sha1 == null 
     || app_info.sha1 == "" || app_info.md5 == null || app_info.md5 == "" || app_info.site_code == null){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
@@ -1212,7 +1253,7 @@ function create_app_to_db(app_info, callback){
                     return;
                 }
 
-                download_ipa_to_local(app_info.app, app_info.name, function(ret){
+                download_ipa_to_local(app_info.app_name, function(ret){
                     if(ret.status != Response.OK){
                         write_err(ret.status, callback);
                         return;
@@ -1232,7 +1273,7 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
         
-                    download_ipa_to_local(app_info.app, app_info.name, function(ret){
+                    download_ipa_to_local(app_info.app_name, function(ret){
                         if(ret.status != Response.OK){
                             write_err(ret.status, callback);
                             return;

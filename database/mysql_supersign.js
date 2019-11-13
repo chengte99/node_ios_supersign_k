@@ -54,6 +54,19 @@ function get_app_info_by_sha1(sha1, callback){
     });
 }
 
+function get_app_info_by_sitecode(site_code, callback){
+    var sql = "select * from app_info where site_code = %d";
+    var sql_cmd = util.format(sql, site_code);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+        callback(Response.OK, sql_result);
+    });
+}
+
 function get_uinfo_by_udid(udid, callback){
     var sql = "select * from device_info where udid = \"%s\"";
     var sql_cmd = util.format(sql, udid);
@@ -195,8 +208,8 @@ function add_new_resign_info(tag, path, callback){
 }
 
 function add_new_to_app_info(info, callback){
-    var sql = "insert into app_info (`app_name`, `upload_name`, `version`, `sha1_name`, `md5_name`, `site_code`) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d)";
-    var sql_cmd = util.format(sql, info.app, info.name, info.ver, info.sha1, info.md5, info.site_code);
+    var sql = "insert into app_info (`app_name`, `app_desc`, `version`, `sha1_name`, `md5_name`, `site_code`) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d)";
+    var sql_cmd = util.format(sql, info.app_name, info.app_desc, info.ver, info.sha1, info.md5, info.site_code);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -209,8 +222,8 @@ function add_new_to_app_info(info, callback){
 }
 
 function update_app_to_app_info(info, callback){
-    var sql = "update app_info set upload_name = \"%s\", version = \"%s\" where md5_name = \"%s\"";
-    var sql_cmd = util.format(sql, info.name, info.ver, info.md5);
+    var sql = "update app_info set app_name = \"%s\", version = \"%s\", sha1_name = \"%s\", md5_name = \"%s\" where site_code = %d ";
+    var sql_cmd = util.format(sql, info.app_name, info.ver, info.sha1, info.md5, info.site_code);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -273,6 +286,7 @@ function get_account_info_by_acc(acc, callback){
 module.exports = {
     connect: connect_to_server,
     get_app_info_by_sha1: get_app_info_by_sha1,
+    get_app_info_by_sitecode: get_app_info_by_sitecode,
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
     get_valid_account: get_valid_account,
@@ -287,5 +301,5 @@ module.exports = {
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
     get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
-    get_max_devices_accounts: get_max_devices_accounts,
+    get_max_devices_accounts: get_max_devices_accounts,   
 }
