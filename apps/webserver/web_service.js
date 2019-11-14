@@ -245,6 +245,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 "reg_account": "liaoyanchi3@gmail.com",
                 "cert_name": "DEVELOPER .....",
                 "bundle_id": "123123"
+                "expired": 1605145756
             }
         }
     */
@@ -274,6 +275,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     "acc_id": ret.account_info.acc_id,
                     "reg_account": ret.account_info.account,
                     "cert_name": ret.account_info.cert_name,
+                    "expired": ret.account_info.expired,
                     "bundle_id": ret.account_info.bundle_id,
                 }
 
@@ -303,6 +305,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                         "acc_id": ret.account_info.acc_id,
                         "reg_account": ret.account_info.account,
                         "cert_name": ret.account_info.cert_name,
+                        "expired": ret.account_info.expired,
                         "bundle_id": ret.account_info.bundle_id,
                     }
                 }
@@ -324,6 +327,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 //     "acc_id": ret.account_info.acc_id,
                 //     "reg_account": ret.account_info.account,
                 //     "cert_name": ret.account_info.cert_name,
+                //     "expired": ret.account_info.expired,
                 //     "bundle_id": ret.account_info.bundle_id,
                 // };
 
@@ -613,6 +617,7 @@ acc_queue_list = [
         "acc_id": device_acc_info.acc_id,
         "account": device_acc_info.account,
         "cert_name": device_acc_info.cert_name,
+        "expired": device_acc_info.expired,
         "bundle_id": device_acc_info.bundle_id,
     },
     ....
@@ -666,7 +671,7 @@ app_req_queue_list[app_id] =
 ]
 */
 
-function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback){
+function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback){
     // 檢查acc佇列，是否需push
     var acc_queue_is_exist = false;
     for(var i = 0; i < acc_queue_list.length; i ++){
@@ -682,6 +687,7 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
             "account": device_acc_info.account,
             "cert_name": device_acc_info.cert_name,
             "bundle_id": device_acc_info.bundle_id,
+            "expired": device_acc_info.expired,
         });
     }
 
@@ -718,6 +724,7 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
     var ret = {};
     ret.status = Response.OK;
     ret.device_id = device_id;
+    ret.charge_status = charge_status;
     callback(ret);
 }
 
@@ -729,6 +736,17 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
             return;
         }
 
+        var now_time = parseInt(utils.timestamp());
+        // 判断该设备距离第一次签名是否已超过一年，超过则重新收取费用。0-新用户，1-重复下载，2-重新收费
+        var charge_status = -1;
+        if(result.time_valid == 0){
+            charge_status = 0;
+        }else if(result.time_valid != 0 && now_time > result.time_valid){
+            charge_status = 2;
+        }else{
+            charge_status = 1;
+        }
+
         var device_id = result.id;
         var json = JSON.parse(result.jsonstr);
         if(json){
@@ -736,62 +754,102 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
 
             if(reg_acc_info.is_reg == 1 && reg_acc_info.acc_id != 0){
                 // 已註冊過apple帳號
-                // 將該設備註冊的帳號資訊抓出來
-                var device_acc_info = {
-                    acc_id: reg_acc_info.acc_id,
-                    account: reg_acc_info.reg_account,
-                    cert_name: reg_acc_info.cert_name,
-                    bundle_id: reg_acc_info.bundle_id
-                }
 
-                var download_name;
-                var index = -1;
-                for(var i = 0; i < json.app_resigned_info.length; i ++){
-                    if(json.app_resigned_info[i].site_code == ainfo.site_code){
-                        // 如果有簽過該app
-                        if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
-                            // 紀錄的版本號與當前DB app_info的版本號相同
-                            log.info("紀錄的版本號與當前DB app_info的版本號相同 ...");
-                            download_name = json.app_resigned_info[i].ipa_name;
-                        }else{
-                            // 紀錄的版本號與當前DB app_info的版本號不同
-                            log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
-                            index = i;
-                        }
-                    }
-                }
-                
-                if(download_name != null && download_name != ""){
-                    // 有簽過該app 且download_name不為空
-                    log.info("有簽過該app 且download_name不為空，不需重簽名直接分發");
-                    var ret = {};
-                    ret.status = Response.OK;
-                    ret.device_id = device_id;
-                    ret.ipa_name = download_name;
-                    ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
-                    callback(ret);
-                    return;
-                }else{
-                    // 未簽過該app，無download_name或download_name為空
-                    log.info("未簽過該app，無download_name或download_name為空，重簽名app");
+                if(now_time > reg_acc_info.expired){
+                    // 帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號
+                    log.info("帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號進行簽名 ...");
 
-                    // 更新該設備的jsonStr 內容
-                    if(index != -1){
-                        json.app_resigned_info[index] = null;
-                        json.app_resigned_info.splice(index, 1);
+                    var jsonstr = '';
+                    var time_valid = 0;
+                    web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, time_valid, false, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
+                            return;
+                        };
 
-                        var jsonstr = JSON.stringify(json);
-                        var time_valid = 999999;
-                        web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, time_valid, false, function(status, result){
+                        // 取一個有效的帳號來用
+                        web_model.get_valid_account(function(status, result){
                             if(status != Response.OK){
                                 write_err(status, callback);
                                 return;
-                            };
-                        })
+                            }
+
+                            var device_acc_info = {
+                                acc_id: result.id,
+                                account: result.account,
+                                cert_name: result.cert_name,
+                                expired: result.expired,
+                                bundle_id: result.bundle_id,
+                            }
+
+                            // 加入acc佇列
+                            add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                        });
+                    })
+                    
+                }else{
+                    // 帳號未超過一年，判斷檔案
+                    log.info("帳號未超過一年，判斷檔案 ...");
+
+                    // 將該設備註冊的帳號資訊抓出來
+                    var device_acc_info = {
+                        acc_id: reg_acc_info.acc_id,
+                        account: reg_acc_info.reg_account,
+                        cert_name: reg_acc_info.cert_name,
+                        expired: reg_acc_info.expired,
+                        bundle_id: reg_acc_info.bundle_id
                     }
 
-                    // 加入acc佇列
-                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                    var download_name;
+                    var index = -1;
+                    for(var i = 0; i < json.app_resigned_info.length; i ++){
+                        if(json.app_resigned_info[i].site_code == ainfo.site_code){
+                            // 如果有簽過該app
+                            if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
+                                // 紀錄的版本號與當前DB app_info的版本號相同
+                                log.info("紀錄的版本號與當前DB app_info的版本號相同 ...");
+                                download_name = json.app_resigned_info[i].ipa_name;
+                            }else{
+                                // 紀錄的版本號與當前DB app_info的版本號不同
+                                log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
+                                index = i;
+                            }
+                        }
+                    }
+                    
+                    if(download_name != null && download_name != ""){
+                        // 有簽過該app 且download_name不為空
+                        log.info("有簽過該app 且download_name不為空，不需重簽名直接分發");
+                        var ret = {};
+                        ret.status = Response.OK;
+                        ret.device_id = device_id;
+                        ret.charge_status = charge_status;
+                        ret.ipa_name = download_name;
+                        ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
+                        callback(ret);
+                        return;
+                    }else{
+                        // 未簽過該app，無download_name或download_name為空
+                        log.info("未簽過該app，無download_name或download_name為空，重簽名app");
+
+                        // 更新該設備的jsonStr 內容
+                        if(index != -1){
+                            json.app_resigned_info[index] = null;
+                            json.app_resigned_info.splice(index, 1);
+
+                            var jsonstr = JSON.stringify(json);
+                            var time_valid = 999999;
+                            web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, time_valid, false, function(status, result){
+                                if(status != Response.OK){
+                                    write_err(status, callback);
+                                    return;
+                                };
+                            })
+                        }
+
+                        // 加入acc佇列
+                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                    }
                 }
             }
         }else{
@@ -809,11 +867,12 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                     acc_id: result.id,
                     account: result.account,
                     cert_name: result.cert_name,
+                    expired: result.expired,
                     bundle_id: result.bundle_id,
                 }
 
                 // 加入acc佇列
-                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
             });
         }
     });

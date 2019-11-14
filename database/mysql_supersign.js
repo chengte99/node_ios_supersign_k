@@ -110,7 +110,7 @@ function add_uinfo_by_udid(udid, model, version, callback){
 }
 
 function get_valid_account(callback){
-    var sql_cmd = "select * from account_info where devices != 100 and is_enable != 0 limit 1";
+    var sql_cmd = "select * from account_info where devices <= 99 and is_enable != 0 limit 1";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
