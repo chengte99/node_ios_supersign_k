@@ -58,7 +58,7 @@ var server_config = {
     rundown_config: {
         api_with_system: true,
         api_with_system_config: {
-            hostname: "mem518.webpxy.info",
+            hostname: "api-518.webpxy.info",
             port: 443,
             url: "/api/v1/request/sign_complete",
         },

@@ -42,32 +42,24 @@ function mysql_exec(sql, callback) {
 	});
 }
 
-function update_ipa_name_on_multiple_device_info(udid_data, tag, callback){
-    for(var i = 0; i < udid_data.count; i ++){
-        var sql = "update device_info set ipa_name = \"%s\" where udid = \"%s\" ";
-        var sql_cmd = util.format(sql, tag, udid_data.list[i]);
-        log.info(sql_cmd);
+function test_sql_request(){
+    var sql = "select account from account_info where devices = 99 and is_enable != 0";
+    // var sql_cmd = util.format(sql, tag, udid_data.list[i]);
+    log.info(sql);
 
-        mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
-            if(sql_err){
-                log.error(sql_err);
-                callback(Response.SYS_ERROR, null);
-                return;
-            }
+    mysql_exec(sql, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            log.error(sql_err);
+            return;
+        }
 
-            log.info("sql_reult = ", sql_result);
-        })
-    }
-
-    callback(Response.OK, null);
-    
-    // var sql = "update device_info set ipa_name = \"%s\" where udid = \"%s\" ";
-    // var sql_cmd = util.format(sql, tag);
-    // log.info(sql_cmd);
-    
+        log.info("sql_reult = ", sql_result);
+    })
 }
 
 connect_to_server(center_database.host, center_database.port, center_database.db_name, center_database.user, center_database.password);
+
+test_sql_request();
 
 // var udid = "c3d699593eae5c0cb68a83ce4a458c0000000000";
 // var sql = "select * from device_uinfo where udid = \"%s\"";

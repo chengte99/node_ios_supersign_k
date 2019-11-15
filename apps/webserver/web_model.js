@@ -105,6 +105,22 @@ function get_valid_account(ret_func){
     })
 }
 
+function get_all_valid_accounts(ret_func){
+    mysql_supersign.get_all_valid_accounts(function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        if(sql_result.length <= 0){
+            // log.info("no valid account ...");
+            ret_func(Response.NO_VALID_ACCOUNT, null);
+        }else{
+            ret_func(status, sql_result);
+        }
+    })
+}
+
 function get_max_devices_accounts(ret_func){
     mysql_supersign.get_max_devices_accounts(function(status, sql_result){
         if(status != Response.OK){
@@ -179,6 +195,22 @@ function update_device_count_on_account_info(acc, devices, ret_func){
     }
 
     mysql_supersign.update_device_count_on_account_info(acc, devices, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
+function update_days_on_account_info(acc, ret_func){
+    if(!acc || acc == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.update_days_on_account_info(acc, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -272,32 +304,12 @@ function get_timestamp_valid_by_udid(udid, ret_func){
     })
 }
 
-function get_account_info_by_acc(acc, ret_func){
-    if(!acc || acc == ""){
-        ret_func(Response.INVAILD_PARAMS, null);
-        return;
-    }
-    
-    mysql_supersign.get_account_info_by_acc(acc, function(status, sql_result){
-        if(status != Response.OK){
-            ret_func(status, null);
-            return;
-        }
-
-        if(sql_result.length <= 0){
-            ret_func(Response.DB_SEARCH_EMPTY, null);
-            return;
-        }
-
-        ret_func(Response.OK, sql_result[0]);
-    })
-}
-
 module.exports = {
     get_app_info_by_sha1: get_app_info_by_sha1,
     get_app_info_by_sitecode: get_app_info_by_sitecode,
     get_uinfo_by_udid: get_uinfo_by_udid,
     get_valid_account: get_valid_account,
+    get_all_valid_accounts: get_all_valid_accounts,
     add_device_count_on_account_info: add_device_count_on_account_info,
     clear_appinfo_on_device_info: clear_appinfo_on_device_info,
     get_downloadApp_url: get_downloadApp_url,
@@ -307,7 +319,7 @@ module.exports = {
     update_app_to_app_info: update_app_to_app_info,
     update_device_info_by_udid: update_device_info_by_udid,
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
-    get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
-    get_max_devices_accounts: get_max_devices_accounts,   
+    get_max_devices_accounts: get_max_devices_accounts,
+    update_days_on_account_info: update_days_on_account_info,
 }

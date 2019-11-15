@@ -214,7 +214,48 @@ router.post("/action_sigh", function(req, res, next){
             });
         });
     }
+})
 
+/* 
+    var dinfo = {
+        "UDID": "868a1cecfd7d01536d1b305b2594509a63fb4c4b",
+        "PRODUCT": "iPhone9,4",
+        "VERSION": "16G102",
+        "SERIAL": "C39SVAE3HFY9",
+        // 自定義
+        "SHA1": "123123123123",
+        "SITE_CODE": 0,
+        "APP_VER": "1234",
+    }
+*/
+router.post("/test_post_api", function(req, res, next){
+    // log.info(req.headers);
+    // log.info(req.query);
+    log.info(req.body);
+
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+
+        res.send({"status":"success", "dinfo": req.body})
+
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', dinfo;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                dinfo = JSON.parse(body);
+            } catch (err) {
+                dinfo = null;
+            }
+            dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
+        });
+    }
 })
 
 // 透過執行ruby update_acc_devices.rb (apple帳號)，更新mysql account_info的裝置數。

@@ -1006,7 +1006,7 @@ function start_resign_on_app_queue(account_info, callback){
 
                 // post到管理後台
                 /*
-                https://mem518.webpxy.info/api/v1/request/sign_complete
+                https://api-518.webpxy.info/api/v1/request/sign_complete
                 */
                 var api_with_system_config = server_config.rundown_config.api_with_system_config;
                 https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
@@ -1119,7 +1119,6 @@ function ready_to_reg_apple(account_info, callback){
     var file_path = __dirname + "/../../ios_sign/account/" + account_info.acc_md5 + ".txt";
     var writeStream = fs.createWriteStream(file_path, {flags: "a+"});
 
-    
     for(var i = 0; i < queue.length; i ++){
         var item = queue[i];
 
@@ -1416,25 +1415,37 @@ function start_verify_acc(queue){
     }
 }
 
+function update_days_account_info(queue){
+    for(var i = 0; i < queue.length; i ++){
+        var acc = queue[i];
+
+        web_model.update_days_on_account_info(acc, function(status, result){
+            if(status != Response.OK){
+                log.error("其他錯誤 ...", status);
+            }
+
+        });
+    }
+}
+
 function schedule_to_action(){
     var rule = new schedule.RecurrenceRule();
-
     // 每天0時執行
     rule.hour = 0;
     rule.minute = 0;
     rule.second = 0;
 
     var j = schedule.scheduleJob(rule, function(){
-        // 取出devices數已達100的帳號進行驗證核對
+        // 取出devices數已>=99的帳號
         web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_MAX_DEVICES_ACCOUNT){
-                    log.info("無設備數達100的app的帳號，無需檢查 ...");
+                    log.info("無設備數>=99的app的帳號，無需檢查 ...");
                 }else{
-                    log.info("其他錯誤 ...", status);
+                    log.error("其他錯誤 ...", status);
                 }
             }else{
-                log.info("已獲取設備數達100的app的帳號 ...");
+                log.info("已獲取設備數>99的app的帳號 ...");
                 // log.info(result);
                 var acc_verify_list = [];
                 for(var i = 0; i < result.length; i ++){
@@ -1442,7 +1453,37 @@ function schedule_to_action(){
                     acc_verify_list.push(result[i].account);
                 }
 
+                // 與蘋果驗證設備數
                 start_verify_acc(acc_verify_list);
+            }
+        })
+    });
+
+
+    var rule2 = new schedule.RecurrenceRule();
+    // 每天2時執行
+    rule2.hour = 2;
+    rule2.minute = 0;
+    rule2.second = 0;
+
+    var j2 = schedule.scheduleJob(rule2, function(){
+        // 取出可用的帳號
+        web_model.get_all_valid_accounts(function(status, result){
+            if(status != Response.OK){
+                if(status == Response.NO_VALID_ACCOUNT){
+                    log.info("無可用帳號 ...");
+                }else{
+                    log.error("其他錯誤 ...", status);
+                }
+            }else{
+                var acc_list = [];
+                for(var i = 0; i < result.length; i ++){
+                    // console.log(result[i].account);
+                    acc_list.push(result[i].account);
+                }
+
+                // 更新本地帳號session 期限
+                update_days_account_info(acc_list);
             }
         })
     });
@@ -1485,7 +1526,7 @@ setTimeout(function(){
     schedule_to_check_resign_queue();
 }, 5000);
 
-// 每天定時檢查設備數已達100的可用帳號
+// 定時器
 schedule_to_action();
 
 module.exports = {

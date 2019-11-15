@@ -110,7 +110,21 @@ function add_uinfo_by_udid(udid, model, version, callback){
 }
 
 function get_valid_account(callback){
-    var sql_cmd = "select * from account_info where devices <= 99 and is_enable != 0 limit 1";
+    var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0 limit 1";
+    // var sql_cmd = util.format(sql, udid);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, sql_result);
+    })
+}
+
+function get_all_valid_accounts(callback){
+    var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -124,7 +138,7 @@ function get_valid_account(callback){
 }
 
 function get_max_devices_accounts(callback){
-    var sql_cmd = "select * from account_info where devices = 100 and is_enable != 0";
+    var sql_cmd = "select account from account_info where devices >= 99 and days < 30 and is_enable != 0";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -182,6 +196,20 @@ function get_downloadApp_url(tag, callback){
 function update_device_count_on_account_info(acc, devices, callback){
     var sql = "update account_info set devices = %d where account = \"%s\"";
     var sql_cmd = util.format(sql, devices, acc);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
+function update_days_on_account_info(acc, callback){
+    var sql = "update account_info set days = days+1 where account = \"%s\"";
+    var sql_cmd = util.format(sql, acc);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -270,19 +298,6 @@ function get_timestamp_valid_by_udid(udid, callback){
     })
 }
 
-function get_account_info_by_acc(acc, callback){
-    var sql = "select * from account_info where account = \"%s\"";
-    var sql_cmd = util.format(sql, acc);
-    log.info(sql_cmd);
-    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
-        if(sql_err){
-            callback(Response.SYS_ERROR, null);
-            return;
-        }
-        callback(Response.OK, sql_result);
-    });
-}
-
 module.exports = {
     connect: connect_to_server,
     get_app_info_by_sha1: get_app_info_by_sha1,
@@ -290,6 +305,7 @@ module.exports = {
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
     get_valid_account: get_valid_account,
+    get_all_valid_accounts: get_all_valid_accounts,
     add_device_count_on_account_info: add_device_count_on_account_info,
     clear_appinfo_on_device_info: clear_appinfo_on_device_info,
     get_downloadApp_url: get_downloadApp_url,
@@ -299,7 +315,7 @@ module.exports = {
     update_app_to_app_info: update_app_to_app_info,
     update_device_info_by_udid: update_device_info_by_udid,
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
-    get_account_info_by_acc: get_account_info_by_acc,
     get_uinfo_by_id: get_uinfo_by_id,
-    get_max_devices_accounts: get_max_devices_accounts,   
+    get_max_devices_accounts: get_max_devices_accounts,
+    update_days_on_account_info: update_days_on_account_info,
 }

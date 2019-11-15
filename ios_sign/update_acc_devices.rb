@@ -36,7 +36,8 @@ dic = {
 jsonStr = JSON[dic]
 # puts jsonStr
 
-uri = URI('https://kritars.com/update_devices')
+# uri = URI('https://kritars.com/update_devices')
+uri = URI('http://10.159.5.141/update_devices')
 Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
   request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
   request.body = jsonStr
