@@ -542,7 +542,7 @@ function get_resign_status(dID, fid, callback){
         }
 
         var app_name = result.app_name;
-        var download_name;
+        var download_name = "";
 
         // 透過id取得uinfo
         web_model.get_uinfo_by_id(dID, function(status, result){
@@ -559,10 +559,11 @@ function get_resign_status(dID, fid, callback){
                 for(var i = 0; i < queue.length; i ++){
                     var item = queue[i];
                     if(item.app_name != app_name){
-                        continue;
+                        // log.info("名稱不符，跳過 ...");
+                    }else{
+                        // log.info("名稱相符，儲存ipa_name ...");
+                        download_name = item.ipa_name;
                     }
-
-                    download_name = item.ipa_name;
                 }
 
                 if(download_name != null && download_name != ""){
@@ -580,7 +581,6 @@ function get_resign_status(dID, fid, callback){
                     write_err(Response.FILE_NOT_EXIST, callback);
                     return;
                 }
-
             }else{
                 write_err(Response.FILE_NOT_EXIST, callback);
                 return;
@@ -735,6 +735,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
             write_err(status, callback);
             return;
         }
+        log.warn(result);
 
         var now_time = parseInt(utils.timestamp());
         // 判断该设备距离第一次签名是否已超过一年，超过则重新收取费用。0-新用户，1-重复下载，2-重新收费
@@ -750,6 +751,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
         var device_id = result.id;
         var json = JSON.parse(result.jsonstr);
         if(json){
+            log.info("有簽名紀錄 ...");
             var reg_acc_info = json.reg_acc_info;
 
             if(reg_acc_info.is_reg == 1 && reg_acc_info.acc_id != 0){
@@ -757,7 +759,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
 
                 if(now_time > reg_acc_info.expired){
                     // 帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號
-                    log.info("帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號進行簽名 ...");
+                    log.info("紀錄的帳號已超過一年未續費，清除該設備的簽名紀錄，重新抓取可用帳號進行簽名 ...");
 
                     var jsonstr = '';
                     var time_valid = 0;
@@ -789,7 +791,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                     
                 }else{
                     // 帳號未超過一年，判斷檔案
-                    log.info("帳號未超過一年，判斷檔案 ...");
+                    log.info("紀錄的帳號未超過一年，判斷簽名紀錄 ...");
 
                     // 將該設備註冊的帳號資訊抓出來
                     var device_acc_info = {
@@ -800,10 +802,11 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                         bundle_id: reg_acc_info.bundle_id
                     }
 
-                    var download_name;
+                    var download_name = "";
                     var index = -1;
                     for(var i = 0; i < json.app_resigned_info.length; i ++){
                         if(json.app_resigned_info[i].site_code == ainfo.site_code){
+                            log.info("紀錄有簽過site_code該app，判斷版本 ...");
                             // 如果有簽過該app
                             if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
                                 // 紀錄的版本號與當前DB app_info的版本號相同
@@ -814,12 +817,14 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                                 log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
                                 index = i;
                             }
+                        }else{
+                            log.info("紀錄查無此site_code，跳過 ...");
                         }
                     }
                     
                     if(download_name != null && download_name != ""){
                         // 有簽過該app 且download_name不為空
-                        log.info("有簽過該app 且download_name不為空，不需重簽名直接分發");
+                        log.info("有簽過該app且版本號與最新版本相同，不需重簽名直接分發");
                         var ret = {};
                         ret.status = Response.OK;
                         ret.device_id = device_id;
@@ -829,11 +834,9 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                         callback(ret);
                         return;
                     }else{
-                        // 未簽過該app，無download_name或download_name為空
-                        log.info("未簽過該app，無download_name或download_name為空，重簽名app");
-
                         // 更新該設備的jsonStr 內容
                         if(index != -1){
+                            log.info("有簽過該app，但版本不符，移除原先紀錄並重簽名app");
                             json.app_resigned_info[index] = null;
                             json.app_resigned_info.splice(index, 1);
 
@@ -844,17 +847,20 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                                     write_err(status, callback);
                                     return;
                                 };
-                            })
-                        }
 
-                        // 加入acc佇列
-                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                            })
+                        }else{
+                            log.info("沒簽過該app，加入重簽名佇列");
+
+                            add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                        }
                     }
                 }
             }
         }else{
             // 未註冊過帳號，需要註冊帳號且重簽名app
-            log.info("未註冊過帳號，需要註冊帳號且重簽名app");
+            log.info("無簽名紀錄，需要註冊帳號且重簽名app ...");
     
             // 取一個有效的帳號來用
             web_model.get_valid_account(function(status, result){
@@ -1011,7 +1017,8 @@ function start_resign_on_app_queue(account_info, callback){
                 var api_with_system_config = server_config.rundown_config.api_with_system_config;
                 https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
                     if(is_ok){
-                        log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                        log.warn("管理后台incoming_msg.statusCode = 200");
                     }
                 })
             }

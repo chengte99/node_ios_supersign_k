@@ -7,7 +7,7 @@ var log = require("../../utils/log");
 var utils = require("../../utils/utils");
 
 // ipa包名稱
-var name = "APP_188_1603";
+var name = "APP_dbp_1604";
 
 log.info(utils.sha1(name));
 log.info(utils.md5(name));

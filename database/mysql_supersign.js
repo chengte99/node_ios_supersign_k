@@ -250,8 +250,8 @@ function add_new_to_app_info(info, callback){
 }
 
 function update_app_to_app_info(info, callback){
-    var sql = "update app_info set app_name = \"%s\", version = \"%s\", sha1_name = \"%s\", md5_name = \"%s\" where site_code = %d ";
-    var sql_cmd = util.format(sql, info.app_name, info.ver, info.sha1, info.md5, info.site_code);
+    var sql = "update app_info set app_name = \"%s\", app_desc = \"%s\", version = \"%s\", sha1_name = \"%s\", md5_name = \"%s\" where site_code = %d ";
+    var sql_cmd = util.format(sql, info.app_name, info.app_desc, info.ver, info.sha1, info.md5, info.site_code);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
