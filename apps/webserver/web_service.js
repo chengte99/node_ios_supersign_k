@@ -310,27 +310,6 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     }
                 }
 
-                // json = {
-                //     app_resigned_info: [],
-                //     reg_acc_info: {},
-                // }
-
-                // json.app_resigned_info.push({
-                //     "app_name": ret.app_name,
-                //     "app_ver": ret.app_ver,
-                //     "ipa_name": ret.tag,
-                //     "site_code": ret.site_code,
-                // });
-
-                // json.reg_acc_info = {
-                //     "is_reg": 1,
-                //     "acc_id": ret.account_info.acc_id,
-                //     "reg_account": ret.account_info.account,
-                //     "cert_name": ret.account_info.cert_name,
-                //     "expired": ret.account_info.expired,
-                //     "bundle_id": ret.account_info.bundle_id,
-                // };
-
                 var jsonstr = JSON.stringify(json);
                 var time_valid = parseInt(ret.tag) + 31536000;
                 // 更新數據庫
@@ -360,21 +339,21 @@ function update_all_info(ret, callback){
     // log.info(ret);
     // process.chdir(process.cwd() + "/../");
 
-    web_model.add_device_count_on_account_info(ret.account_info.account, ret.app_req_queue.length, function(status, result){
+    web_model.add_new_resign_info(ret.tag, ret.path, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
         }
+        
+        update_each_device_info_from_app_req_queue(ret, callback);
+    })
 
-        web_model.add_new_resign_info(ret.tag, ret.path, function(status, result){
-            if(status != Response.OK){
-                write_err(status, callback);
-                return;
-            }
-            
-            update_each_device_info_from_app_req_queue(ret, callback);
-        })
-    });
+    // web_model.add_device_count_on_account_info(ret.account_info.account, ret.app_req_queue.length, function(status, result){
+    //     if(status != Response.OK){
+    //         write_err(status, callback);
+    //         return;
+    //     }
+    // });
 }
 
 var global_upload_list = {}
@@ -784,8 +763,16 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                                 bundle_id: result.bundle_id,
                             }
 
-                            // 加入acc佇列
-                            add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                            // 將該帳號設備數+1，以防滿了被其他請求取得
+                            web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
+                                if(status != Response.OK){
+                                    write_err(status, callback);
+                                    return;
+                                }
+
+                                // 加入acc佇列
+                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                            })
                         });
                     })
                     
@@ -877,8 +864,16 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                     bundle_id: result.bundle_id,
                 }
 
-                // 加入acc佇列
-                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                // 將該帳號設備數+1，以防滿了被其他請求取得
+                web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
+                    if(status != Response.OK){
+                        write_err(status, callback);
+                        return;
+                    }
+
+                    // 加入acc佇列
+                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                })
             });
         }
     });
@@ -1208,11 +1203,11 @@ function check_app_is_exist(app_info, callback){
             }
         }
         
-        if(result.app_name == app_info.app_name){
-            // 已有此app 紀錄，且檔名相同
+        if(result.version == app_info.ver){
+            // 已有此app 紀錄，且版本相同
             callback(Response.OK, false, false);
         }else{
-            // 已有此app 紀錄，但檔名不同
+            // 已有此app 紀錄，但版本不同
             callback(Response.OK, false, true);
         }
     });
@@ -1331,7 +1326,7 @@ function create_app_to_db(app_info, callback){
             })
         }else{
             if(need_update){
-                log.info("已紀錄過此app，但檔名不同。DB更新檔名並重新下載 ...");
+                log.info("已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
                 web_model.update_app_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
@@ -1350,11 +1345,11 @@ function create_app_to_db(app_info, callback){
                     });
                 })
             }else{
-                log.info("已紀錄過此app，且檔名相同，不需更新 ...");
+                log.info("已紀錄過此app，且版本相同，不需更新 ...");
                 
                 var ret = {};
                 ret.status = Response.OK;
-                ret.msg = "已紀錄過此app，且檔名相同，不需更新 ...";
+                ret.msg = "已紀錄過此app，且版本相同，不需更新 ...";
                 callback(ret);
             }
         }
