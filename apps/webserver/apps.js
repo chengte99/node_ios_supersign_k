@@ -157,8 +157,8 @@ router.post("/submit", function(req, res, next){
         "SERIAL": "C39SVAE3HFY9",
         // 自定義
         "SHA1": "123123123123",
-        "SITE_CODE": 0,
         "APP_VER": "1234",
+        "SITE_CODE": 0,
     }
 */
 router.post("/action_sigh", function(req, res, next){

@@ -1,16 +1,12 @@
 var utils = require("../utils/utils");
 var log = require("../utils/log");
 
-log.info(utils.timestamp());
-
 var timestamp = utils.timestamp();
-var timestampStr = "" + utils.timestamp();
+var timestampStr = "" + timestamp
 
 log.info("timestamp = ", timestamp);
 log.info("timestampStr = ", timestampStr);
 
-// 1571729377
-//   31536000
+var date = "2020-05-10 00:00:00";
 
-log.info(timestamp + 31536000);
-log.info(parseInt(timestampStr) + 31536000);
+log.info("date = ", utils.date2timestamp(date));

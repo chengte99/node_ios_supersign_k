@@ -4,7 +4,7 @@ var exec = require("child_process").exec;
 var util = require("util");
 var schedule = require("node-schedule");
 
-var sftp_client = require("../../utils/sftp");
+// var sftp_client = require("../../utils/sftp");
 var Response = require("../Response");
 var log = require("../../utils/log");
 var web_model = require("./web_model");
@@ -333,6 +333,8 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 })
             }
 
+            remove_udid_from_cache_area(udid);
+
             if(i >= ret.app_req_queue.length){
                 log.info("app_req_queue 已全數更新完DB ")
                 ret.status = Response.OK;
@@ -450,9 +452,16 @@ function ready_to_sigh(ret, callback){
 }
 
 function resign_ipa(dinfo, callback){
-    if(dinfo == null || dinfo.UDID == null || dinfo.UDID == "" || dinfo.PRODUCT == null 
-    || dinfo.PRODUCT == "" || dinfo.VERSION == null || dinfo.VERSION == "" || dinfo.SERIAL == null 
-    || dinfo.SERIAL == "" || dinfo.SHA1 == null || dinfo.SHA1 == ""){
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
+    var pattern_3 = new RegExp('^[0-9]{4}$');
+
+    if(dinfo == null 
+    || typeof(dinfo.UDID) != "string" || dinfo.UDID == "" || (!dinfo.UDID.match(pattern_1) && !dinfo.UDID.match(pattern_2)) 
+    || typeof(dinfo.PRODUCT) != "string" || dinfo.PRODUCT == "" 
+    || typeof(dinfo.VERSION) != "string" || dinfo.VERSION == "" 
+    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" 
+    || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1169,10 +1178,18 @@ var udid_cache_area = {};
 */
 
 function resign_ipa_via_api(dinfo, callback){
-    if(dinfo == null || dinfo.UDID == null || dinfo.UDID == "" || dinfo.PRODUCT == null 
-    || dinfo.PRODUCT == "" || dinfo.VERSION == null || dinfo.VERSION == "" || dinfo.SERIAL == null 
-    || dinfo.SERIAL == "" || dinfo.SHA1 == null || dinfo.SHA1 == "" || dinfo.APP_VER == null 
-    || dinfo.APP_VER == "" || dinfo.SITE_CODE == null){
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
+    var pattern_3 = new RegExp('^[0-9]{4}$');
+
+    if(dinfo == null 
+    || typeof(dinfo.UDID) != "string" || dinfo.UDID == "" || (!dinfo.UDID.match(pattern_1) && !dinfo.UDID.match(pattern_2)) 
+    || typeof(dinfo.PRODUCT) != "string" || dinfo.PRODUCT == "" 
+    || typeof(dinfo.VERSION) != "string" || dinfo.VERSION == "" 
+    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" 
+    || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)
+    || typeof(dinfo.APP_VER) != "string" || dinfo.APP_VER == "" || !dinfo.APP_VER.match(pattern_3)
+    || typeof(dinfo.SITE_CODE) != "number"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1216,7 +1233,6 @@ function resign_ipa_via_api(dinfo, callback){
                 ret.msg = "已接收並排入簽名佇列 ...";
                 ret.sha1 = dinfo.SHA1;
                 callback(ret);
-                remove_udid_from_cache_area(dinfo.UDID);
             });
         });
     }else{
@@ -1329,9 +1345,18 @@ function download_ipa_to_local(app_name, callback){
 }
 
 function create_app_to_db(app_info, callback){
-    if(app_info == null || app_info.app_name == null || app_info.app_name == "" || app_info.app_desc == null 
-    || app_info.app_desc == "" || app_info.ver == null || app_info.ver == "" || app_info.sha1 == null 
-    || app_info.sha1 == "" || app_info.md5 == null || app_info.md5 == "" || app_info.site_code == null){
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
+    var pattern_3 = new RegExp('^[0-9]{4}$');
+    var pattern_4 = new RegExp('^[A-Za-z0-9]{32}$');
+
+    if(app_info == null 
+    || typeof(app_info.app_name) != "string" || app_info.app_name == "" 
+    || typeof(app_info.app_desc) != "string" || app_info.app_desc == "" 
+    || typeof(app_info.ver) != "string" || app_info.ver == "" || !app_info.ver.match(pattern_3)
+    || typeof(app_info.sha1) != "string" || app_info.sha1 == "" || !app_info.sha1.match(pattern_2)
+    || typeof(app_info.md5) != "string" || app_info.md5 == "" || !app_info.md5.match(pattern_4)
+    || typeof(app_info.site_code) != "number"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
