@@ -65,6 +65,12 @@ function write_err(status, ret_func){
         case Response.LOCAL_MKDIR_FAILED:
             ret.msg = "本地創建目錄失敗 ...";
             break;
+        case Response.NO_MAX_DEVICES_ACCOUNT:
+            ret.msg = "無設備數達99的app帳號 ...";
+            break;
+        case Response.REQ_REPEAT:
+            ret.msg = "短時間內請求重複 ...";
+            break;
     }
     ret_func(ret);
 }
@@ -217,6 +223,12 @@ function ready_to_upload(ret, local_plist_path){
                 // write_err(Response.UPLOAD_FAILED, callback);
             })
     }
+}
+
+function remove_udid_from_cache_area(udid){
+    // 將該udid請求從快取區清除
+    udid_cache_area[udid] = null;
+    delete udid_cache_area[udid];
 }
 
 function update_each_device_info_from_app_req_queue(ret, callback){
@@ -632,7 +644,7 @@ app_queue_list = [
     {
         "app_id": id,
         "app_name": app_name,
-        "upload_name": upload_name,
+        "app_desc": app_desc,
         "app_ver": app_ver,
         "site_code": site_code,
     },
@@ -887,6 +899,8 @@ function add_data_to_app_queue(device_info){
         if(id == device_info.app_id){
             if(app_queue_list[i].app_ver != device_info.app_ver){
                 app_queue_list[i].app_ver = device_info.app_ver;
+                app_queue_list[i].app_name = device_info.app_name;
+                app_queue_list[i].app_desc = device_info.app_desc;
             }
             app_queue_is_exist = true;
         }
@@ -1144,6 +1158,16 @@ function ready_to_reg_apple(account_info, callback){
     });  
 }
 
+// udid請求暫存區，避免短時間重複請求
+var udid_cache_area = {};
+/*
+{
+    udid: dinfo,
+    udid: dinfo,
+    ...
+}
+*/
+
 function resign_ipa_via_api(dinfo, callback){
     if(dinfo == null || dinfo.UDID == null || dinfo.UDID == "" || dinfo.PRODUCT == null 
     || dinfo.PRODUCT == "" || dinfo.VERSION == null || dinfo.VERSION == "" || dinfo.SERIAL == null 
@@ -1153,40 +1177,53 @@ function resign_ipa_via_api(dinfo, callback){
         return;
     }
 
-    get_app_name_by_sha1(dinfo.SHA1, function(status, result){
-        if(status != Response.OK){
-            write_err(status, callback);
-            return;
-        }
+    if(!udid_cache_area[dinfo.UDID]){
+        // 短時間內第一次請求，加入快取區
+        udid_cache_area[dinfo.UDID] = dinfo;
 
-        var app_info = {
-            app_id: result.id,
-            app_name: result.app_name,
-            app_desc: result.app_desc,
-            app_ver: result.version,
-            site_code: result.site_code
-        };
-
-        check_udid_is_resigned(app_info, dinfo, function(ret){
-            if(ret.status != Response.OK){
+        get_app_name_by_sha1(dinfo.SHA1, function(status, result){
+            if(status != Response.OK){
                 write_err(status, callback);
+                remove_udid_from_cache_area(dinfo.UDID);
                 return;
             }
-
-            // 已有簽過該app，不需再簽名
-            if(ret.ipa_name != null && ret.ipa_name != ""){
-                ret.status = Response.APP_IS_EXIST;
-                ret.site_code = app_info.site_code;
-                ret.msg = "app已存在且已簽過名 ...";
+    
+            var app_info = {
+                app_id: result.id,
+                app_name: result.app_name,
+                app_desc: result.app_desc,
+                app_ver: result.version,
+                site_code: result.site_code
+            };
+    
+            check_udid_is_resigned(app_info, dinfo, function(ret){
+                if(ret.status != Response.OK){
+                    write_err(status, callback);
+                    remove_udid_from_cache_area(dinfo.UDID);
+                    return;
+                }
+    
+                // 已有簽過該app，不需再簽名
+                if(ret.ipa_name != null && ret.ipa_name != ""){
+                    ret.status = Response.APP_IS_EXIST;
+                    ret.site_code = app_info.site_code;
+                    ret.msg = "app已存在且已簽過名 ...";
+                    callback(ret);
+                    remove_udid_from_cache_area(dinfo.UDID);
+                    return;
+                }
+    
+                ret.msg = "已接收並排入簽名佇列 ...";
+                ret.sha1 = dinfo.SHA1;
                 callback(ret);
-                return;
-            }
-
-            ret.msg = "已接收並排入簽名佇列 ...";
-            ret.sha1 = dinfo.SHA1;
-            callback(ret);
+                remove_udid_from_cache_area(dinfo.UDID);
+            });
         });
-    });
+    }else{
+        // 短時間內重複請求，仍在快取區，返回response
+        write_err(Response.REQ_REPEAT, callback);
+        return;
+    }
 }
 
 function check_app_is_exist(app_info, callback){
