@@ -105,124 +105,84 @@ function get_app_name_by_sha1(sha1, callback){
 }
 
 function ready_to_upload(ret, local_plist_path){
-    if(server_config.rundown_config.api_with_system){
-        // ftp
-        var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
-        var remote_dir_path = "/appfile/" + ret.app_name + "/" + ret.tag;
-        var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
-        var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
+    // ftp
+    var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
+    var remote_dir_path = "/appfile/" + ret.app_name + "/" + ret.tag;
+    var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
+    var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
 
-        var ftp_client = new Client();
-        ftp_client.on("ready", function(){    
-            log.info("ftp connection 已連線 ...");
+    var ftp_client = new Client();
+    ftp_client.on("ready", function(){    
+        log.info("ftp connection 已連線 ...");
 
-            ftp_client.mkdir(remote_dir_path, true, function(err){
+        ftp_client.mkdir(remote_dir_path, true, function(err){
+            if(err){
+                log.error("mkdir error: ", err);
+                return;
+            }
+        
+            ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
                 if(err){
-                    log.error("mkdir error: ", err);
+                    log.error("put error: ", err);
                     return;
                 }
-            
-                ftp_client.put(local_ipa_path, remote_ipa_path, function(err){
+        
+                log.info("上傳ipa成功 ...");
+                // fs.unlink(local_ipa_path, function(err){
+                //     if(err){
+                //         throw err;
+                //     }
+
+                //     // log.info("删除本地ipa成功 ...");
+                // });
+
+                ftp_client.put(local_plist_path, remote_plist_path, function(err){
                     if(err){
                         log.error("put error: ", err);
                         return;
                     }
             
-                    log.info("上傳ipa成功 ...");
-                    // fs.unlink(local_ipa_path, function(err){
+                    log.info("上傳plist成功 ...");
+                    // fs.unlink(local_plist_path, function(err){
                     //     if(err){
                     //         throw err;
                     //     }
     
-                    //     // log.info("删除本地ipa成功 ...");
+                    //     // log.info("删除本地plist成功 ...");
                     // });
-    
-                    ftp_client.put(local_plist_path, remote_plist_path, function(err){
-                        if(err){
-                            log.error("put error: ", err);
-                            return;
-                        }
-                
-                        log.info("上傳plist成功 ...");
-                        // fs.unlink(local_plist_path, function(err){
-                        //     if(err){
-                        //         throw err;
-                        //     }
-        
-                        //     // log.info("删除本地plist成功 ...");
-                        // });
-    
-                        // 刪除上傳列表的紀錄
-                        global_upload_list[ret.tag] = null;
-                        delete global_upload_list[ret.tag];
-    
-                        ftp_client.end();
-                    });
+
+                    // 刪除上傳列表的紀錄
+                    global_upload_list[ret.tag] = null;
+                    delete global_upload_list[ret.tag];
+
+                    ftp_client.end();
                 });
             });
         });
+    });
 
-        ftp_client.on("end", function(){
-            log.info("ftp connection 已斷開 ...");
-        });
+    ftp_client.on("end", function(){
+        log.info("ftp connection 已斷開 ...");
+    });
 
-        ftp_client.on("close", function(hadErr){
-            if(hadErr){
-                log.warn("ftp connection close ...", hadErr);
-            }
-        });
+    ftp_client.on("close", function(hadErr){
+        if(hadErr){
+            log.warn("ftp connection close ...", hadErr);
+        }
+    });
 
-        ftp_client.on("error", function(err){
-            if(err){
-                log.error("ftp connection error ...", err);
-            }
-        });
+    ftp_client.on("error", function(err){
+        if(err){
+            log.error("ftp connection error ...", err);
+        }
+    });
 
-        ftp_client.connect({
-            host: ftp_config.host,
-            port: ftp_config.port,
-            user: ftp_config.username,
-            password: ftp_config.password,
-        });
-    }else{
-        //sftp
-        var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
-        var remote_dir_path = "/home/web_gs_pb/fun/apple.bckappgs.info/" + ret.app_name + "/" + ret.tag;
-        var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
-        var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
-
-        sftp_client
-            .exists(remote_dir_path)
-            .then(function(exist){
-                if(exist != "d"){
-                    return sftp_client.mkdir(remote_dir_path);
-                }
-            })
-            .then(function(){
-                return sftp_client.fastPut(local_ipa_path, remote_ipa_path);
-            })
-            .then(function(){
-                log.info("上傳ipa 成功 ...");
-
-                return sftp_client.fastPut(local_plist_path, remote_plist_path);
-            })
-            .then(function(){
-                log.info("上傳plist 成功 ...");
-
-                // 刪除上傳列表的紀錄
-                global_upload_list[ret.tag] = null;
-                delete global_upload_list[ret.tag];
-
-                // return sftp_client.end();
-            })
-            .catch(function(err){
-                log.error("err = ", err);
-                log.error("err.message = ", err.message);
-                global_upload_list[ret.tag].status = -1;
-                global_upload_list[ret.tag].err_msg = err.message;
-                // write_err(Response.UPLOAD_FAILED, callback);
-            })
-    }
+    ftp_client.connect({
+        host: ftp_config.host,
+        port: ftp_config.port,
+        user: ftp_config.username,
+        password: ftp_config.password,
+    });
 }
 
 function remove_udid_from_cache_area(udid){
@@ -408,11 +368,9 @@ function ready_to_sigh(ret, callback){
                 var xml = fs.readFileSync(__dirname + "/../../ios_sign/manifest.plist", "utf8");
                 var json = plist.parse(xml);
                 // console.log(json.items[0].assets[0].url);
-                if(server_config.rundown_config.api_with_system){
-                    json.items[0].assets[0].url = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
-                }else{
-                    json.items[0].assets[0].url = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
-                }
+                
+                json.items[0].assets[0].url = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+                
                 json.items[0].metadata.title = "" + ret.app_desc;
                 var newxml = plist.build(json);
                 var plist_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".plist";
@@ -452,7 +410,7 @@ function ready_to_sigh(ret, callback){
 }
 
 function resign_ipa(dinfo, callback){
-    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
     var pattern_3 = new RegExp('^[0-9]{4}$');
 
@@ -985,13 +943,9 @@ function start_resign_app(account_info, app_info, callback){
     ret.tag = resigned_app_name;
     ret.app_req_queue = queue;
     // ret.path = "itms-services://?action=download-manifest&url=https://apple.bckappgs.info/dev_188/xxxxx/manifest.plist";
-    if(server_config.rundown_config.api_with_system){
-        ret.path = APP_DOWNLOAD_SCHEME + TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
-        ret.ipa_path = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
-    }else{
-        ret.path = APP_DOWNLOAD_SCHEME + PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
-        ret.ipa_path = PUBLIC_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
-    }
+
+    ret.path = APP_DOWNLOAD_SCHEME + TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+    ret.ipa_path = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
 
     ready_to_sigh(ret, callback);
 }
@@ -1178,7 +1132,7 @@ var udid_cache_area = {};
 */
 
 function resign_ipa_via_api(dinfo, callback){
-    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
     var pattern_3 = new RegExp('^[0-9]{4}$');
 
@@ -1345,7 +1299,7 @@ function download_ipa_to_local(app_name, callback){
 }
 
 function create_app_to_db(app_info, callback){
-    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
+    var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
     var pattern_3 = new RegExp('^[0-9]{4}$');
     var pattern_4 = new RegExp('^[A-Za-z0-9]{32}$');
