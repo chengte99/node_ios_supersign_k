@@ -6,7 +6,7 @@ log4js.configure({
             // 设置类型为 dateFile
             type: 'dateFile',
             // 配置文件名为 myLog.log
-            filename: 'logs/myTestLog.log',
+            filename: 'logs/myLog.log',
             // 指定编码格式为 utf-8
             encoding: 'utf-8',
             // 配置 layout，此处使用自定义模式 pattern
@@ -26,16 +26,19 @@ log4js.configure({
     categories: {
         default: {
             appenders: ['cheese'],
-            level: 'trace'
+            level: 'debug'
         }
     }
 });
 
 
 const logger = log4js.getLogger('cheese');
-logger.trace('Entering cheese testing');
-logger.debug('Got cheese.');
-logger.info('Cheese is Comté.');
-logger.warn('Cheese is quite smelly.');
-logger.error('Cheese is too ripe!');
-logger.fatal('Cheese was breeding ground for listeria.');
+
+// logger.trace('Entering cheese testing');
+// logger.debug('Got cheese.');
+// logger.info('Cheese is Comté.');
+// logger.warn('Cheese is quite smelly.');
+// logger.error('Cheese is too ripe!');
+// logger.fatal('Cheese was breeding ground for listeria.');
+
+module.exports = logger;

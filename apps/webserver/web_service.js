@@ -11,6 +11,7 @@ var web_model = require("./web_model");
 var utils = require("../../utils/utils");
 var http = require("../../netbus/http");
 var https = require("../../netbus/https");
+var logger = require("../../utils/logger");
 
 // ftp
 var Client = require("ftp");
@@ -1322,7 +1323,9 @@ function create_app_to_db(app_info, callback){
         }
 
         if(is_empty){
-            log.info("無紀錄此app，新增至DB並下載至本地 ...");
+            log.info("DB無紀錄此app，新增至DB並下載至本地 ...");
+            logger.debug("DB無紀錄此app，新增至DB並下載至本地 ...");
+
             web_model.add_new_to_app_info(app_info, function(status, result){
                 if(status != Response.OK){
                     write_err(status, callback);
@@ -1335,14 +1338,16 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    ret.msg = "無紀錄此app，新增至DB並下載至本地 ...";
+                    ret.msg = "DB無紀錄此app，新增至DB並下載至本地 ...";
                     callback(ret);
                     return;
                 });
             })
         }else{
             if(need_update){
-                log.info("已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
+                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
+                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
+
                 web_model.update_app_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
@@ -1355,17 +1360,18 @@ function create_app_to_db(app_info, callback){
                             return;
                         }
     
-                        ret.msg = "已紀錄過此app，但檔名不同。DB更新檔名並重新下載 ...";
+                        ret.msg = "DB已紀錄過此app，但檔名不同。DB更新檔名並重新下載 ...";
                         callback(ret);
                         return;
                     });
                 })
             }else{
-                log.info("已紀錄過此app，且版本相同，不需更新 ...");
+                log.info("DB已紀錄過此app，且版本相同，不需更新 ...");
+                logger.debug("DB已紀錄過此app，且版本相同，不需更新 ...");
                 
                 var ret = {};
                 ret.status = Response.OK;
-                ret.msg = "已紀錄過此app，且版本相同，不需更新 ...";
+                ret.msg = "DB已紀錄過此app，且版本相同，不需更新 ...";
                 callback(ret);
             }
         }
@@ -1541,6 +1547,7 @@ function schedule_to_check_resign_queue(){
 
 setTimeout(function(){
     log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
+    logger.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
     schedule_to_check_resign_queue();
 }, 5000);
 

@@ -18,12 +18,12 @@
         <string>DEVICE_NAME</string>
       </array>
       <key>Challenge</key>
-      <string>dev188</string>
+      <string>devDBP</string>
     </dict>
     <key>PayloadOrganization</key>
     <string>授权安装APP进入下一步</string>
     <key>PayloadDisplayName</key>
-    <string>SPORT--【点击安装】</string>
+    <string>devDBP--【点击安装】</string>
     <key>PayloadVersion</key>
     <integer>1</integer>
     <key>PayloadUUID</key>

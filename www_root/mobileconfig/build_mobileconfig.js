@@ -8,14 +8,21 @@ var utils = require("../../utils/utils");
 
 // ipa包名稱
 var name = "APP_dbp_1604";
+var desc = "devDBP";
 
 log.info(utils.sha1(name));
 log.info(utils.md5(name));
 
 var xml = fs.readFileSync(__dirname + "/getudid.mobileconfig", "utf8");
 var json = plist.parse(xml);
+// log.info(json);
+
+// log.warn(json.PayloadDisplayName);
 
 json.PayloadContent.URL = "https://kritars.com/submit?params=" + utils.sha1(name);
+json.PayloadContent.Challenge = desc;
+json.PayloadDisplayName = "" + desc + "--【点击安装】";
+
 var newxml = plist.build(json);
 // var filename = "" + utils.md5(name) + ".mobileconfig";
 var file_path = __dirname + "/" + utils.md5(name) + ".mobileconfig";
