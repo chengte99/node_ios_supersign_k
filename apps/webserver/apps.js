@@ -1,5 +1,7 @@
 var express = require("express");
 var plist = require('plist');
+var multer = require("multer");
+var upload = multer();
 
 var web_service = require("./web_service");
 var log = require("../../utils/log");
@@ -240,7 +242,7 @@ router.post("/action_sigh", function(req, res, next){
         "APP_VER": "1234",
     }
 */
-router.post("/test_post_api", function(req, res, next){
+router.post("/test_post_api", upload.array(), function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
     log.info(req.body);
@@ -249,8 +251,7 @@ router.post("/test_post_api", function(req, res, next){
         //能正确解析 json 格式的post参数
         log.info("正确解析");
 
-        res.send({"status":"success", "dinfo": req.body})
-
+        res.send({"status":"success", "dinfo": req.body});
     } else {
         //不能正确解析json 格式的post参数
         log.info("不正确解析");

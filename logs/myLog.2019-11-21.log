@@ -1,0 +1,49 @@
+[2019-11-21T10:27:56.295] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T14:17:27.175] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T14:31:27.456] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T14:33:45.188] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T14:37:09.056] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T14:57:59.988] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T15:27:45.801] [DEBUG] cheese - { CHALLENGE: 'devDBP',
+  IMEI: '35 381108 414291 1',
+  PRODUCT: 'iPhone9,4',
+  SERIAL: 'C39SVAE3HFY9',
+  UDID: '868a1cecfd7d01536d1b305b2594509a63fb4c4b',
+  VERSION: '16G102',
+  SHA1: 'e9e3b8e2a0ae36ab99560a1aa925f17c86900fca' }
+[2019-11-21T15:27:45.995] [DEBUG] cheese - { status: -107,
+  device_id: 2,
+  charge_status: 1,
+  ipa_name: '1574044185',
+  ipa_path:
+   'https://appdownload.webpxy.info/APP_dbp_1604/1574044185/1574044185.ipa',
+  site_code: 6,
+  msg: 'app已存在且已簽過名 ...' }
+[2019-11-21T15:58:57.798] [DEBUG] cheese - { CHALLENGE: 'devDBP',
+  PRODUCT: 'iPhone11,6',
+  SERIAL: 'G6TYP1ANKPH1',
+  UDID: '00008020-000B683C01D1002E',
+  VERSION: '17A577',
+  SHA1: 'e9e3b8e2a0ae36ab99560a1aa925f17c86900fca' }
+[2019-11-21T15:58:57.843] [DEBUG] cheese - { status: -107,
+  device_id: 10,
+  charge_status: 1,
+  ipa_name: '1574232291',
+  ipa_path:
+   'https://appdownload.webpxy.info/APP_dbp_1604/1574232291/1574232291.ipa',
+  site_code: 6,
+  msg: 'app已存在且已簽過名 ...' }
+[2019-11-21T16:35:34.128] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T16:36:38.139] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T16:47:12.128] [INFO] cheese - 服务器启动，5秒后开始跑帐号注册伫列 ...
+[2019-11-21T16:47:31.655] [DEBUG] cheese - { CHALLENGE: 'devDBP',
+  PRODUCT: 'iPhone11,6',
+  SERIAL: 'G6TYP1ANKPH1',
+  UDID: '00008020-000B683C01D1002E',
+  VERSION: '17A577',
+  SHA1: 'e9e3b8e2a0ae36ab99560a1aa925f17c86900fca' }
+[2019-11-21T16:47:31.785] [DEBUG] cheese - { status: 1,
+  device_id: 10,
+  charge_status: 0,
+  msg: '已接收並排入簽名佇列 ...',
+  sha1: 'e9e3b8e2a0ae36ab99560a1aa925f17c86900fca' }
