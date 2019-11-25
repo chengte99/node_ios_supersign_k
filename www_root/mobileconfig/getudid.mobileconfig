@@ -20,10 +20,10 @@
             <key>Challenge</key>
             <string>dev188</string>
         </dict>
-        <key>PayloadOrganization</key>
-        <string>授权安装APP进入下一步</string>  <!--组织名称-->
         <key>PayloadDisplayName</key>
         <string>SPORT--【点击安装】</string>  <!--安装时显示的标题-->
+        <key>PayloadOrganization</key>
+        <string>授权安装APP进入下一步</string>  <!--组织名称-->
         <key>PayloadVersion</key>
         <integer>1</integer>
         <key>PayloadUUID</key>
