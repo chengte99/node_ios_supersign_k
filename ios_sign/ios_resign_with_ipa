@@ -13,6 +13,7 @@ unzip -qo "$SOURCEIPA" -d extracted
 APPLICATION=$(ls extracted/Payload/)
  
 cp "$MOBILEPROV" "extracted/Payload/$APPLICATION/embedded.mobileprovision"
+cp "$MOBILEPROV" "www_root/mobileconfig/embedded.mobileprovision"
  
 echo "Resigning with certificate: $DEVELOPER" >&2
 find -d extracted  \( -name "*.app" -o -name "*.appex" -o -name "*.framework" -o -name "*.dylib" \) > directories.txt
