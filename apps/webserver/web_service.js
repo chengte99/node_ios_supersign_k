@@ -186,6 +186,49 @@ function ready_to_upload(ret, local_plist_path){
     });
 }
 
+function upload_mobileprovision(local_file_path){
+    // ftp
+    var remote_file_path = "/appfile/embedded.mobileprovision";
+
+    var ftp_client = new Client();
+    ftp_client.on("ready", function(){    
+        log.info("ftp connection 已連線 ...");
+
+        ftp_client.put(local_file_path, remote_file_path, function(err){
+            if(err){
+                log.error("put error: ", err);
+                return;
+            }
+    
+            log.info("上傳file成功 ...");
+            ftp_client.end();
+        });
+    });
+
+    ftp_client.on("end", function(){
+        log.info("ftp connection 已斷開 ...");
+    });
+
+    ftp_client.on("close", function(hadErr){
+        if(hadErr){
+            log.warn("ftp connection close ...", hadErr);
+        }
+    });
+
+    ftp_client.on("error", function(err){
+        if(err){
+            log.error("ftp connection error ...", err);
+        }
+    });
+
+    ftp_client.connect({
+        host: ftp_config.host,
+        port: ftp_config.port,
+        user: ftp_config.username,
+        password: ftp_config.password,
+    });
+}
+
 function remove_udid_from_cache_area(udid){
     // 將該udid請求從快取區清除
     udid_cache_area[udid] = null;
@@ -1483,7 +1526,6 @@ function schedule_to_action(){
         })
     });
 
-
     var rule2 = new schedule.RecurrenceRule();
     // 每天2時執行
     rule2.hour = 2;
@@ -1510,6 +1552,18 @@ function schedule_to_action(){
                 update_days_account_info(acc_list);
             }
         })
+    });
+
+    var rule3 = new schedule.RecurrenceRule();
+    // 每天4時執行
+    rule3.hour = 4;
+    rule3.minute = 0;
+    rule3.second = 0;
+
+    var j3 = schedule.scheduleJob(rule3, function(){
+        // 將.mobileprovision 上傳
+        var file_path = "" + __dirname + "/../../www_root/mobileconfig/embedded.mobileprovision";
+        upload_mobileprovision(file_path);
     });
 }
 
