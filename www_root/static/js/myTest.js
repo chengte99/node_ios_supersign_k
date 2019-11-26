@@ -147,10 +147,14 @@ function setStepClass() {
     }
 }
 function bindInstallBtnEvent(stepNum) {
+    console.log("stepNum = ", stepNum);
     if (/(iPhone|iPad|iPod|iOS)/i.test(ua) || (/Macintosh/i.test(ua) && ua.toLocaleLowerCase().indexOf('chrome') === -1)) {
         if ((/Safari/.test(ua) && !/Chrome/.test(ua) && !/baidubrowser/.test(ua) && !/MQQBrowser/.test(ua) && !/CriOS/.test(ua))) {
             var ver = (navigator.appVersion).match(/Version\/(\d+)?/);
             ver = parseInt(ver[1], 10);
+            if(ver >= 12){
+                version = '1';
+            }
             if (ver < 10 && stepNum == '0') {
                 $('.low-versition').show();
                 $('.low-versition .next-btn').on('click', function() {
@@ -166,14 +170,16 @@ function bindInstallBtnEvent(stepNum) {
             });
         }
     } else if (/(Android)/i.test(ua)) {
-        androidDownload();
+        console.log("androidDownload ...");
+        alert("androidDownload ...");
+        // androidDownload();
     }
 }
 function startStep(stepNum) {
     if (stepNum === '0') {
         describeFileStep();
-    } else if (stepNum === '2') {
-        downloadStep();
+    } else if (stepNum === '1' || stepNum === '2') {
+        downloadStep(stepNum);
     } else if (stepNum === '3') {
         payFn();
     } else if (stepNum === '4') {
@@ -182,10 +188,15 @@ function startStep(stepNum) {
 }
 function describeFileStep() {
     $('.step3').hide();
-    var loadxml = '/loadxml?params=' + appendParams + '&token=' + token;
-    $('.step1').show().attr('href', loadxml);
+    $('.step1').hide();
+    var loadxml = '/loadxml?params=' + down_session;
+    $('.step2').show().attr('href', loadxml);
+
+    // imgTime 每0.1s偵測圖片是否下載完成。2s後imgTime2直接關閉imgTime進行下載描述文件。
     var imgTime = setInterval(function() {
         if (imgDown && videoDown) {
+        // if (imgDown) {
+            // 如果img都下載完了
             clearInterval(imgTime);
             clearInterval(imgTime2);
             setTimeout(function() {
@@ -209,7 +220,7 @@ function describeFileStep() {
             }, 3000)
         }
     }, 2000);
-    $('.step1').on('click', function() {
+    $('.step2').on('click', function() {
         clearInterval(imgTime);
         clearInterval(imgTime2);
         if (version == 1) {
@@ -219,83 +230,107 @@ function describeFileStep() {
         }
     });
 }
-function downloadStep() {
+function downloadStep(stepNum) {
     $('.step1').hide();
     $('.step3 span').html(statePre);
     $('.step3').show();
-    $.ajax({
-        url: '/downloadApp?taskId=' + getUrlParam('taskId') + '&down_session=' + down_session,
-        success: function(rs) {
-            if (rs.code == 1) {
-                $('.step3').attr('href', rs.url);
-                location.href = rs.url;
-                var fileSize, downloadPercentage, installTime;
-                $.ajax({
-                    url: progress_url,
-                    dataType: 'jsonp',
-                    success: function(rs) {
-                        fileSize = rs.total;
-                        installTime = Math.ceil(parseInt(fileSize) * 0.000024414 * 2);
-                        if (installTime < 10) {
-                            installTime = 10
-                        } else if (installTime > 150) {
-                            installTime = 150
-                        }
+
+    if(stepNum === '1'){
+        var waitResignTime = setInterval(function(){
+            $.ajax({
+                url: "/get_resign_status?dID=" + getUrlParam("dID") + "&fid=" + getUrlParam("fid"),
+                success: function(rs){
+                    if(rs.status == 1){
+                        clearInterval(waitResignTime);
+                        setTimeout(function(){
+                            location.href = rs.url;
+                        }, 2000);
                     }
-                });
-                var countDownTime = 150;
-                i = setInterval(function() {
-                    $.ajax({
-                        url: progress_url,
-                        dataType: 'jsonp',
-                        success: function(rs) {
-                            downloadPercentage = rs.downRadio;
-                            if (downloadPercentage < 100 && downloadPercentage > 0) {
-                                $('.step3').attr('href', 'javascript:void(0)');
-                                $('.step3').addClass('download-loading');
-                                $('.step3 span').html(stateDown + ' <b>' + downloadPercentage + '%</b>')
-                                $('.download-loading em').css("width", downloadPercentage + '%');
-                            } else if (downloadPercentage == 100) {
-                                clearInterval(i);
-                                j = setInterval(function() {
-                                    $('.step3').removeClass('download-loading');
-                                    if (installTime > 0) {
-                                        $('.step3 span').html(stateIns + installTime + s);
-                                        installTime--
-                                    } else {
-                                        clearInterval(j);
-                                        if (urlschemes != '' && showOpen == 1) {
-                                            $('.step3 span').html(open);
-                                            $('.step3').attr('href', urlschemes + '://');
-                                        } else {
-                                            $('.step3 span').html(openDes);
-                                        }
-                                    }
-                                }, 1000)
-                            } else {
-                                if (countDownTime > 0) {
-                                    $('.step3 span').html(statePre + countDownTime + s);
-                                    countDownTime--;
-                                } else {
-                                    $('.step3').addClass('download-loading');
-                                    $('.step3 span').html(stateDown + ' <b>' + 1 + '%</b>')
-                                    $('.download-loading em').css("width", 1 + '%');
-                                }
-                            }
-                        },
-                        error: function() {}
-                    });
-                }, 1000);
-            } else {
+                },
+                error: function(rs) {
+                    clearInterval(waitResignTime);
+                    alert(faileTip);
+                    location.reload();
+                }
+            });
+        }, 10000);
+    }else if(stepNum === '2'){
+        $.ajax({
+            url: '/downloadApp?taskId=' + getUrlParam('taskId'),
+            success: function(rs) {
+                if (rs.status == 1) {
+                    $('.step3').attr('href', rs.url);
+                    location.href = rs.url;
+    
+                    // 以下為下載進度監控
+                    // var fileSize, downloadPercentage, installTime;
+                    // $.ajax({
+                    //     url: progress_url,
+                    //     dataType: 'jsonp',
+                    //     success: function(rs) {
+                    //         fileSize = rs.total;
+                    //         installTime = Math.ceil(parseInt(fileSize) * 0.000024414 * 2);
+                    //         if (installTime < 10) {
+                    //             installTime = 10
+                    //         } else if (installTime > 150) {
+                    //             installTime = 150
+                    //         }
+                    //     }
+                    // });
+                    // var countDownTime = 150;
+                    // i = setInterval(function() {
+                    //     $.ajax({
+                    //         url: progress_url,
+                    //         dataType: 'jsonp',
+                    //         success: function(rs) {
+                    //             downloadPercentage = rs.downRadio;
+                    //             if (downloadPercentage < 100 && downloadPercentage > 0) {
+                    //                 $('.step3').attr('href', 'javascript:void(0)');
+                    //                 $('.step3').addClass('download-loading');
+                    //                 $('.step3 span').html(stateDown + ' <b>' + downloadPercentage + '%</b>')
+                    //                 $('.download-loading em').css("width", downloadPercentage + '%');
+                    //             } else if (downloadPercentage == 100) {
+                    //                 clearInterval(i);
+                    //                 j = setInterval(function() {
+                    //                     $('.step3').removeClass('download-loading');
+                    //                     if (installTime > 0) {
+                    //                         $('.step3 span').html(stateIns + installTime + s);
+                    //                         installTime--
+                    //                     } else {
+                    //                         clearInterval(j);
+                    //                         if (urlschemes != '' && showOpen == 1) {
+                    //                             $('.step3 span').html(open);
+                    //                             $('.step3').attr('href', urlschemes + '://');
+                    //                         } else {
+                    //                             $('.step3 span').html(openDes);
+                    //                         }
+                    //                     }
+                    //                 }, 1000)
+                    //             } else {
+                    //                 if (countDownTime > 0) {
+                    //                     $('.step3 span').html(statePre + countDownTime + s);
+                    //                     countDownTime--;
+                    //                 } else {
+                    //                     $('.step3').addClass('download-loading');
+                    //                     $('.step3 span').html(stateDown + ' <b>' + 1 + '%</b>')
+                    //                     $('.download-loading em').css("width", 1 + '%');
+                    //                 }
+                    //             }
+                    //         },
+                    //         error: function() {}
+                    //     });
+                    // }, 1000);
+                } else {
+                    alert(faileTip);
+                    location.reload();
+                }
+            },
+            error: function(rs) {
                 alert(faileTip);
                 location.reload();
             }
-        },
-        error: function(rs) {
-            alert(faileTip);
-            location.reload();
-        }
-    })
+        })
+    }
 }
 function androidDownload() {
     $('.step1').attr('href', 'javascript:;');

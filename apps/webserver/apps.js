@@ -19,7 +19,7 @@ router.get("", function(req, res){
 
     // res.sendFile(process.cwd() + "/www_root/home.html");
     res.render("home", {
-        "title": "Hbs home title !",
+        "title": "Kevin 的超級簽名 XD",
         "h1": "Welcome Home, 自動安裝",
         "name": "kevin",
     })
@@ -36,16 +36,22 @@ router.get("/about", function(req, res){
     })
 })
 
+router.get("/r.json", function(req, res){
+    log.info(req.query);
+
+    res.send({"status":"success"})
+})
+
 // 前端ajax 傳tag_id來取得下載路徑
 router.get("/downloadApp", function(req, res){
     log.info(req.query);
 
-    if(req.query.tagID == null || req.query.tagID == ""){
-        log.info("tagID = null or empty !!")
+    if(req.query.taskId == null || req.query.taskId == ""){
+        log.info("taskId = null or empty !!")
         return;
     }
 
-    web_service.get_downloadApp_url(req.query.tagID, function(ret){
+    web_service.get_downloadApp_url(req.query.taskId, function(ret){
         if(ret.status != Response.OK){
             log.error("downloadApp error ...", ret.status);
             res.send(ret);
@@ -136,7 +142,7 @@ router.post("/submit", function(req, res, next){
             if(ret.status != Response.OK){
                 if(ret.status == Response.APP_IS_EXIST){
                     log.info("app已簽過，分發上次的檔案 ...");
-                    var r_url = "https://kritars.com?step=2&tagID=" + ret.ipa_name;
+                    var r_url = "https://kritars.com?step=2&taskId=" + ret.ipa_name;
                     res.redirect(301, r_url);
                     return;
                 }
