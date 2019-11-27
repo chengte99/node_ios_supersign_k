@@ -78,7 +78,7 @@ function write_err(status, ret_func){
 
 //callback = (ret)
 function get_loadxml(md5, callback){
-    if(md5 == null || md5 == ""){
+    if(typeof(md5) != "string" || md5 == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -97,7 +97,7 @@ function get_loadxml(md5, callback){
 
 //callback = (ret)
 function get_app_name_by_sha1(sha1, callback){
-    if(sha1 == null || sha1 == ""){
+    if(typeof(sha1) != "string" || sha1 == ""){
         callback(Response.INVAILD_PARAMS, null);
         return;
     }
@@ -286,14 +286,14 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                     "site_code": ret.site_code,
                 });
 
-                json.reg_acc_info = {
-                    "is_reg": 1,
-                    "acc_id": ret.account_info.acc_id,
-                    "reg_account": ret.account_info.account,
-                    "cert_name": ret.account_info.cert_name,
-                    "expired": ret.account_info.expired,
-                    "bundle_id": ret.account_info.bundle_id,
-                }
+                // json.reg_acc_info = {
+                //     "is_reg": 1,
+                //     "acc_id": ret.account_info.acc_id,
+                //     "reg_account": ret.account_info.account,
+                //     "cert_name": ret.account_info.cert_name,
+                //     "expired": ret.account_info.expired,
+                //     "bundle_id": ret.account_info.bundle_id,
+                // }
 
                 var jsonstr = JSON.stringify(json);
                 // 重簽名時間戳加上一年，app有效期限
@@ -505,7 +505,7 @@ function resign_ipa(dinfo, callback){
 }
 
 function get_downloadApp_url(tag, callback){
-    if(tag == null || tag == ""){
+    if(typeof(tag) != "string" || tag == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -531,7 +531,7 @@ function get_downloadApp_url(tag, callback){
 }
 
 function get_resign_status(dID, fid, callback){
-    if(dID == null || fid == null || fid == ""){
+    if(typeof(dID) != "number" || typeof(fid) != "string" || fid == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -592,7 +592,7 @@ function get_resign_status(dID, fid, callback){
 }
 
 function update_acc_devices(info, callback){
-    if(info == null || info.acc == null || info.acc == "" || info.devices == null){
+    if(info == null || typeof(info.acc) != "string" || info.acc == "" || typeof(info.devices) != "number"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1025,6 +1025,7 @@ function start_resign_on_app_queue(account_info, callback){
                 };
                 var json_data = JSON.stringify(data);
                 log.warn(json_data);
+                logger.debug(json_data);
 
                 // post到管理後台
                 /*
@@ -1074,6 +1075,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
 
     //進行重簽名，並部署到file server
     log.info("进入帐号注册udid流程 ...");
+    logger.debug("正在對 " + account_info.account + " 帳號組註冊udid ...");
 
     var sh = "ruby ios_sign/test_reg_to_apple.rb \"%s\" \"%s\" \"%s\" \"true\" ";
     var sh_cmd = util.format(sh, account_info.account, account_info.bundle_id, account_info.acc_md5);
@@ -1104,6 +1106,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                 log.info("正对帐号注册udid并下载描述文件中 ...");
             }else{
                 log.info("已下载完成描述文件，准备进入重签名app包流程 ...");
+                logger.debug("已完成 " + account_info.account + " 帳號的udid註冊，並下載完成描述文件 ...");
                 clearInterval(timer);
 
                 // 將設備批次文件刪除
@@ -1134,6 +1137,7 @@ function ready_to_reg_apple(account_info, callback){
     }
 
     log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
+    logger.debug("當前" + account_info.account + " 帳號有 " + queue.length + " 組註冊請求 ...");
     // log.info("目前佇列內資料: ", queue);
     
     // 加入帳號的md5到表內
@@ -1264,82 +1268,99 @@ function check_app_is_exist(app_info, callback){
     });
 }
 
+function check_local_folder_exist(local_path, callback){
+    fs.access(local_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
+        if(err){
+            log.error(err);
+
+            fs.mkdir(local_path, {recursive: true}, function(err){
+                if(err){
+                    log.error(err);
+                    write_err(Response.LOCAL_MKDIR_FAILED, callback);
+                    return;
+                }
+
+                var ret = {};
+                ret.status = Response.OK;
+                callback(ret);
+            });
+        }else{
+            var ret = {};
+            ret.status = Response.OK;
+            callback(ret);
+        }
+    });
+}   
+
 function download_ipa_to_local(app_name, callback){
-    if(app_name == null || app_name == ""){
+    if(typeof(app_name) != "string" || app_name == ""){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
     // fs 檢查本地目錄是否存在，無則創建目錄
     var local_dir_path = __dirname + "/../../ios_sign/app_resource/" + app_name;
-    fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
-        if(err){
-            log.error(err);
+    check_local_folder_exist(local_dir_path, function(result){
+        if(result.status != Response.OK){
+            write_err(result.status, callback);
+            return;
+        }
 
-            fs.mkdir(local_dir_path, {recursive: true}, function(err){
+        // ftp 下載至本地目錄
+        var local_ipa_path = local_dir_path + "/" + app_name + ".ipa";
+        var remote_dir_path = "/appfile/" + app_name;
+        var remote_ipa_path = remote_dir_path + "/" + app_name + ".ipa";
+
+        var ftp_client = new Client();
+
+        ftp_client.on("ready", function(){
+            log.info("ftp connection 已連線 ...");
+
+            ftp_client.get(remote_ipa_path, function(err, stream){
                 if(err){
                     log.error(err);
-                    write_err(Response.LOCAL_MKDIR_FAILED, callback);
+                    ftp_client.end();
+
+                    write_err(Response.GET_REMOTE_FAILED, callback);
                     return;
                 }
-            });
-        }
-    });
 
-    // ftp 下載至本地目錄
-    var local_ipa_path = local_dir_path + "/" + app_name + ".ipa";
-    var remote_dir_path = "/appfile/" + app_name;
-    var remote_ipa_path = remote_dir_path + "/" + app_name + ".ipa";
+                log.info("準備下載 ...");
+                stream.once('close', function(){
+                    log.info("下載完成 ...");
+                    ftp_client.end();
 
-    var ftp_client = new Client();
+                    var ret = {};
+                    ret.status = Response.OK;
+                    callback(ret);
+                });
+                stream.pipe(fs.createWriteStream(local_ipa_path));
+            })
+        });
 
-    ftp_client.on("ready", function(){
-        log.info("ftp connection 已連線 ...");
+        ftp_client.on("end", function(){
+            log.info("ftp connection 已斷開 ...");
+        });
 
-        ftp_client.get(remote_ipa_path, function(err, stream){
-            if(err){
-                log.error(err);
-                ftp_client.end();
-
-                write_err(Response.GET_REMOTE_FAILED, callback);
-                return;
+        ftp_client.on("close", function(hadErr){
+            if(hadErr){
+                log.warn("ftp connection close ...", hadErr);
             }
+        });
 
-            log.info("準備下載 ...");
-            stream.once('close', function(){
-                log.info("下載完成 ...");
-                ftp_client.end();
+        ftp_client.on("error", function(err){
+            if(err){
+                log.error("ftp connection error ...", err);
+            }
+        });
 
-                var ret = {};
-                ret.status = Response.OK;
-                callback(ret);
-            });
-            stream.pipe(fs.createWriteStream(local_ipa_path));
-        })
-    });
-
-    ftp_client.on("end", function(){
-        log.info("ftp connection 已斷開 ...");
-    });
-
-    ftp_client.on("close", function(hadErr){
-        if(hadErr){
-            log.warn("ftp connection close ...", hadErr);
-        }
-    });
-
-    ftp_client.on("error", function(err){
-        if(err){
-            log.error("ftp connection error ...", err);
-        }
-    });
-
-    ftp_client.connect({
-        host: ftp_config.host,
-        port: ftp_config.port,
-        user: ftp_config.username,
-        password: ftp_config.password,
-    });
+        ftp_client.connect({
+            host: ftp_config.host,
+            port: ftp_config.port,
+            user: ftp_config.username,
+            password: ftp_config.password,
+        });
+    })
 }
 
 function create_app_to_db(app_info, callback){
@@ -1369,11 +1390,27 @@ function create_app_to_db(app_info, callback){
             log.info("DB無紀錄此app，新增至DB並下載至本地 ...");
             logger.debug("DB無紀錄此app，新增至DB並下載至本地 ...");
 
-            web_model.add_new_to_app_info(app_info, function(status, result){
-                if(status != Response.OK){
-                    write_err(status, callback);
+            download_ipa_to_local(app_info.app_name, function(ret){
+                if(ret.status != Response.OK){
+                    write_err(ret.status, callback);
                     return;
                 }
+
+                web_model.add_new_to_app_info(app_info, function(status, result){
+                    if(status != Response.OK){
+                        write_err(status, callback);
+                        return;
+                    }
+
+                    ret.msg = "DB無紀錄此app，新增至DB並下載至本地 ...";
+                    callback(ret);
+                    return;
+                })
+            });
+        }else{
+            if(need_update){
+                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
+                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
 
                 download_ipa_to_local(app_info.app_name, function(ret){
                     if(ret.status != Response.OK){
@@ -1381,33 +1418,18 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    ret.msg = "DB無紀錄此app，新增至DB並下載至本地 ...";
-                    callback(ret);
-                    return;
-                });
-            })
-        }else{
-            if(need_update){
-                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
-                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
-
-                web_model.update_app_to_app_info(app_info, function(status, result){
-                    if(status != Response.OK){
-                        write_err(status, callback);
-                        return;
-                    }
-        
-                    download_ipa_to_local(app_info.app_name, function(ret){
-                        if(ret.status != Response.OK){
-                            write_err(ret.status, callback);
+                    web_model.update_app_to_app_info(app_info, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
                             return;
                         }
-    
+            
                         ret.msg = "DB已紀錄過此app，但檔名不同。DB更新檔名並重新下載 ...";
                         callback(ret);
                         return;
-                    });
-                })
+                    })
+                });
+                
             }else{
                 log.info("DB已紀錄過此app，且版本相同，不需更新 ...");
                 logger.debug("DB已紀錄過此app，且版本相同，不需更新 ...");
