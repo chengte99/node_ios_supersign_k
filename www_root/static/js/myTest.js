@@ -153,9 +153,15 @@ function bindInstallBtnEvent(stepNum) {
             var ver = (navigator.appVersion).match(/Version\/(\d+)?/);
 
             // 判斷iOS 12.2以上需要丟第二次的.mobileprovision跳轉至設置
-            var tmp = (navigator.appVersion).match(/Version\/(\d+\.\d+)?/);
-            var myfloat = parseFloat(tmp[1]);
-            if(myfloat >= 12.2){
+            var os_ver = (navigator.appVersion).match(/OS\s+(\d+)\_(\d+)/);
+            var m_ver = parseInt(os_ver[1]);
+            var s_ver = parseInt(os_ver[2]);
+            // console.log(m_ver, s_ver);
+            if(m_ver == 12){
+                if(s_ver >= 2){
+                    version = '1';
+                }
+            }else if(m_ver > 12){
                 version = '1';
             }
 

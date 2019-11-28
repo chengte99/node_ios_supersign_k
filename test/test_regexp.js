@@ -14,16 +14,20 @@ var str_2 = "5181c8b9b5bf98f2e417824aa4d2560c3fc61592";
 //     console.log("str_2 符合格式");
 // }
 
-var str_3 = "5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1";
+var str_3 = "5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1";
 
 // str_3.match(/Version\/(\d+)?/)
-console.log(str_3.match(/Version\/(\d+\.\d+)?/));
+// console.log(str_3.match(/OS\s+(\d+)\_(\d+)/));
+var os_ver = str_3.match(/OS\s+(\d+)\_(\d+)/);
+var m_ver = parseInt(os_ver[1]);
+var s_ver = parseInt(os_ver[2]);
+console.log(m_ver, s_ver);
 
-var tmp = str_3.match(/Version\/(\d+\.\d+)?/);
-var myfloat = parseFloat(tmp[1]);
-if(myfloat < 12.2){
-    console.log("需要一次");
-}else{
+if(m_ver == 12){
+    if(s_ver >= 2){
+        console.log("需要兩次");
+    }
+}else if(m_ver > 12){
     console.log("需要兩次");
 }
 
