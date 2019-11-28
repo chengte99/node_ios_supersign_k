@@ -151,10 +151,15 @@ function bindInstallBtnEvent(stepNum) {
     if (/(iPhone|iPad|iPod|iOS)/i.test(ua) || (/Macintosh/i.test(ua) && ua.toLocaleLowerCase().indexOf('chrome') === -1)) {
         if ((/Safari/.test(ua) && !/Chrome/.test(ua) && !/baidubrowser/.test(ua) && !/MQQBrowser/.test(ua) && !/CriOS/.test(ua))) {
             var ver = (navigator.appVersion).match(/Version\/(\d+)?/);
-            ver = parseInt(ver[1], 10);
-            if(ver >= 12){
+
+            // 判斷iOS 12.2以上需要丟第二次的.mobileprovision跳轉至設置
+            var tmp = (navigator.appVersion).match(/Version\/(\d+\.\d+)?/);
+            var myfloat = parseFloat(tmp[1]);
+            if(myfloat >= 12.2){
                 version = '1';
             }
+
+            ver = parseInt(ver[1], 10);
             if (ver < 10 && stepNum == '0') {
                 $('.low-versition').show();
                 $('.low-versition .next-btn').on('click', function() {
