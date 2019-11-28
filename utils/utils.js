@@ -67,7 +67,7 @@ function sha1(data) {
 
 var utils = {
     random_string: function(len){
-        var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; 
+        var $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'; 
         
         var maxPos = $chars.length;
     　　var str = '';
