@@ -1387,8 +1387,8 @@ function create_app_to_db(app_info, callback){
         }
 
         if(is_empty){
-            log.info("DB無紀錄此app，新增至DB並下載至本地 ...");
-            logger.debug("DB無紀錄此app，新增至DB並下載至本地 ...");
+            log.info("DB無紀錄此app，新增至DB並下載至本地 ...", app_info);
+            logger.debug("DB無紀錄此app，新增至DB並下載至本地 ...", app_info);
 
             download_ipa_to_local(app_info.app_name, function(ret){
                 if(ret.status != Response.OK){
@@ -1409,8 +1409,8 @@ function create_app_to_db(app_info, callback){
             });
         }else{
             if(need_update){
-                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
-                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...");
+                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...", app_info);
+                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...", app_info);
 
                 download_ipa_to_local(app_info.app_name, function(ret){
                     if(ret.status != Response.OK){
@@ -1431,8 +1431,8 @@ function create_app_to_db(app_info, callback){
                 });
                 
             }else{
-                log.info("DB已紀錄過此app，且版本相同，不需更新 ...");
-                logger.debug("DB已紀錄過此app，且版本相同，不需更新 ...");
+                log.info("DB已紀錄過此app，且版本相同，不需更新 ...", app_info);
+                logger.debug("DB已紀錄過此app，且版本相同，不需更新 ...", app_info);
                 
                 var ret = {};
                 ret.status = Response.OK;
@@ -1481,6 +1481,7 @@ function check_timestamp_valid(udid, timestamp, callback){
 }
 
 function start_verify_acc(queue){
+    logger.debug("開始與蘋果開發中心同步 ...");
     for(var i = 0; i < queue.length; i ++){
         var acc = queue[i];
 
@@ -1502,9 +1503,11 @@ function start_verify_acc(queue){
             // log.info('stdout: ' + stdout);
         });
     }
+    logger.debug("與蘋果開發中心同步完成 ...");
 }
 
 function update_days_account_info(queue){
+    logger.debug("開始更新DB內可用帳號的days ...");
     for(var i = 0; i < queue.length; i ++){
         var acc = queue[i];
 
@@ -1515,6 +1518,7 @@ function update_days_account_info(queue){
 
         });
     }
+    logger.debug("更新DB內可用帳號的days完成 ...");
 }
 
 function schedule_to_action(){
@@ -1525,16 +1529,20 @@ function schedule_to_action(){
     rule.second = 0;
 
     var j = schedule.scheduleJob(rule, function(){
+        logger.debug("每日0時更新設備數>=99的帳號 ...");
         // 取出devices數已>=99的帳號
         web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_MAX_DEVICES_ACCOUNT){
-                    log.info("無設備數>=99的app的帳號，無需檢查 ...");
+                    log.info("無設備數>=99的帳號 ...");
+                    logger.debug("無設備數>=99的帳號 ...");
                 }else{
-                    log.error("其他錯誤 ...", status);
+                    log.error("error ...", status);
+                    logger.debug("error ...", status);
                 }
             }else{
-                log.info("已獲取設備數>99的app的帳號 ...");
+                log.info("已獲取設備數>=99的帳號 ...");
+                logger.debug("已獲取設備數>=99的帳號 ...");
                 // log.info(result);
                 var acc_verify_list = [];
                 for(var i = 0; i < result.length; i ++){
@@ -1549,19 +1557,22 @@ function schedule_to_action(){
     });
 
     var rule2 = new schedule.RecurrenceRule();
-    // 每天2時執行
-    rule2.hour = 2;
+    // 每天1時執行
+    rule2.hour = 1;
     rule2.minute = 0;
     rule2.second = 0;
 
     var j2 = schedule.scheduleJob(rule2, function(){
+        logger.debug("每日1時更新DB內可用帳號的本地session期限 ...");
         // 取出可用的帳號
         web_model.get_all_valid_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
                     log.info("無可用帳號 ...");
+                    logger.debug("無可用帳號 ...");
                 }else{
-                    log.error("其他錯誤 ...", status);
+                    log.error("error ...", status);
+                    logger.debug("error ...", status);
                 }
             }else{
                 var acc_list = [];
@@ -1577,12 +1588,13 @@ function schedule_to_action(){
     });
 
     var rule3 = new schedule.RecurrenceRule();
-    // 每天4時執行
-    rule3.hour = 4;
+    // 每天2時執行
+    rule3.hour = 2;
     rule3.minute = 0;
     rule3.second = 0;
 
     var j3 = schedule.scheduleJob(rule3, function(){
+        logger.debug("每日2時更新上傳.mobileprovision至FTP服務器 ...");
         // 將.mobileprovision 上傳
         var file_path = "" + __dirname + "/../../www_root/mobileconfig/embedded.mobileprovision";
         upload_mobileprovision(file_path);
