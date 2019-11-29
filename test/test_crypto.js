@@ -24,7 +24,7 @@ function sha1(data) {
     return sha1.digest('hex'); 
 }
 
-var name = "my_518_1604";
+var name = "liaoyanchi3@gmail.com";
 
 console.log(sha1(name));
 console.log(md5(name));

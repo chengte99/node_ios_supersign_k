@@ -84,7 +84,7 @@ $(function() {
         swiperFn();
     });
     if (/(iPhone|iPad|iPod|iOS)/i.test(ua) || (/Macintosh/i.test(ua) && ua.toLocaleLowerCase().indexOf('chrome') === -1)) {
-        if ((/Safari/.test(ua) && !/Chrome/.test(ua) && !/baidubrowser/.test(ua) && !/MQQBrowser/.test(ua) && !/CriOS/.test(ua))) {} else {
+        if ((/Safari/.test(ua) && !/Chrome/.test(ua) && !/baidubrowser/.test(ua) && !/MQQBrowser/.test(ua) && !/CriOS/.test(ua) && !/Line/.test(ua))) {} else {
             if (isWx) {
                 $('.mask').show();
                 $("html").add("body").css({

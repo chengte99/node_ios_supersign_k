@@ -551,7 +551,7 @@ function resign_ipa(dinfo, callback){
     || typeof(dinfo.UDID) != "string" || dinfo.UDID == "" || (!dinfo.UDID.match(pattern_1) && !dinfo.UDID.match(pattern_2)) 
     || typeof(dinfo.PRODUCT) != "string" || dinfo.PRODUCT == "" 
     || typeof(dinfo.VERSION) != "string" || dinfo.VERSION == "" 
-    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" 
+    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" || dinfo.SERIAL == "SN1234567890"
     || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
@@ -1140,7 +1140,7 @@ function start_resign_on_app_queue(account_info, callback){
         }else{
             log.info("2秒后往下一个重签名伫列 ...");
             setTimeout(function(){
-                start_resign_on_app_queue();
+                start_resign_on_app_queue(account_info, callback);
             }, 2000);
         }
     });
@@ -1280,7 +1280,7 @@ function resign_ipa_via_api(dinfo, callback){
     || typeof(dinfo.UDID) != "string" || dinfo.UDID == "" || (!dinfo.UDID.match(pattern_1) && !dinfo.UDID.match(pattern_2)) 
     || typeof(dinfo.PRODUCT) != "string" || dinfo.PRODUCT == "" 
     || typeof(dinfo.VERSION) != "string" || dinfo.VERSION == "" 
-    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" 
+    || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" || dinfo.SERIAL == "SN1234567890"
     || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)
     || typeof(dinfo.APP_VER) != "string" || dinfo.APP_VER == "" || !dinfo.APP_VER.match(pattern_3)
     || typeof(dinfo.SITE_CODE) != "number"){

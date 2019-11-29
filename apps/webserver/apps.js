@@ -36,6 +36,17 @@ router.get("/about", function(req, res){
     })
 })
 
+router.get("/game", function(req, res){
+    log.info(req.query);
+
+    // res.sendFile(process.cwd() + "/www_root/home.html");
+    res.render("game", {
+        "title": "Kevin 的超級簽名2 XD",
+        "h1": "Welcome Home, 自動安裝",
+        "name": "kevin",
+    })
+})
+
 router.get("/r.json", function(req, res){
     log.info(req.query);
 
