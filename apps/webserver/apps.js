@@ -165,7 +165,12 @@ router.post("/submit", function(req, res, next){
             }
             
             // 排入佇列，返回device_id
-            var r_url = "https://kritars.com?step=1&dID=" + ret.device_id + "&fid=" + ret.sha1;
+            var r_url;
+            if(ret.sha1 == "dc404401f6ff8896374ba5da50f0fc13fe07e988"){
+                r_url = "https://kritars.com/game?step=1&dID=" + ret.device_id + "&fid=" + ret.sha1;
+            }else{
+                r_url = "https://kritars.com?step=1&dID=" + ret.device_id + "&fid=" + ret.sha1;
+            }
             res.redirect(301, r_url);
         })
     })

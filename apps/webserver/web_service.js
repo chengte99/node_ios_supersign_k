@@ -826,7 +826,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
             write_err(status, callback);
             return;
         }
-        log.warn(result);
+        // log.warn(result);
 
         var now_time = parseInt(utils.timestamp());
         // 判断该设备距离第一次签名是否已超过一年，超过则重新收取费用。0-新用户，1-重复下载，2-重新收费
@@ -1086,7 +1086,7 @@ function start_resign_app(account_info, app_info, callback){
     ready_to_sigh(ret, callback);
 }
 
-function start_resign_on_app_queue(account_info, callback){
+function start_resign_on_app_queue(account_info, mobileprovision_path, callback){
     // 判斷是否有acc佇列
     if(app_queue_list.length <= 0){
         // log.info("app 佇列為空, 直接返回 ...");
@@ -1135,18 +1135,28 @@ function start_resign_on_app_queue(account_info, callback){
         app_queue_index ++;
         if(app_queue_index >= app_queue_list.length){
             log.info("已无重签名伫列，回到帐号注册伫列流程 ...");
+
+            // 該次帳號佇列已全結束，刪除該次下載的.mobileprovision
+            fs.unlink(mobileprovision_path, function(err){
+                if(err){
+                    throw err;
+                }
+
+                log.info("該次帳號佇列已全結束，刪除該次下載的.mobileprovision ...");
+            });
+
             app_queue_index = 0;
             callback(ret);
         }else{
             log.info("2秒后往下一个重签名伫列 ...");
             setTimeout(function(){
-                start_resign_on_app_queue(account_info, callback);
+                start_resign_on_app_queue(account_info, mobileprovision_path, callback);
             }, 2000);
         }
     });
 }
 
-function sort_acc_req_queue_by_app(account_info, acc_req_queue, callback){
+function sort_acc_req_queue_by_app(account_info, acc_req_queue, mobileprovision_path, callback){
     log.info("分类不同app重签名伫列 ...");
     // 根據不同app 分類不同簽名佇列
     for(var i = 0; i < acc_req_queue.length; i ++){
@@ -1155,7 +1165,7 @@ function sort_acc_req_queue_by_app(account_info, acc_req_queue, callback){
     }
 
     // 開始跑app佇列 進行簽名
-    start_resign_on_app_queue(account_info, callback);
+    start_resign_on_app_queue(account_info, mobileprovision_path, callback);
 }
 
 function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
@@ -1210,7 +1220,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                     // log.info("设备批次文件已删除 ...");
                 });
 
-                sort_acc_req_queue_by_app(account_info, acc_req_queue, callback);
+                sort_acc_req_queue_by_app(account_info, acc_req_queue, mobileprovision_path, callback);
             }
         });
     }, 1000);

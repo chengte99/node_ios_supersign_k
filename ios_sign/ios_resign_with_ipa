@@ -42,5 +42,5 @@ rm t_entitlements_full.plist
 #rm t_entitlements_application-identifier
 #rm t_entitlements_com.apple.developer.team-identifier
 
-rm -rf "$MOBILEPROV"
+#rm -rf "$MOBILEPROV"
 echo "End resign ..." > ./ios_sign/app_resource/$APPNAME/$TAGNAME.txt
