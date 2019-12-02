@@ -243,8 +243,9 @@ function describeFileStep() {
 }
 function downloadStep(stepNum) {
     $('.step1').hide();
-    $('.step3 span').html(statePre);
-    $('.step3').show();
+    // $('.step3 span').html(statePre);
+    // $('.step3').show();
+    $('.myloading').show();
 
     if(stepNum === '1'){
         var waitResignTime = setInterval(function(){
@@ -254,6 +255,9 @@ function downloadStep(stepNum) {
                     if(rs.status == 1){
                         clearInterval(waitResignTime);
                         setTimeout(function(){
+                            $('.myloading').hide();
+                            $('.step3').show();
+                            $('.step3 span').html(openDes);
                             location.href = rs.url;
                         }, 2000);
                     }
@@ -271,6 +275,9 @@ function downloadStep(stepNum) {
             success: function(rs) {
                 if (rs.status == 1) {
                     $('.step3').attr('href', rs.url);
+                    $('.myloading').hide();
+                    $('.step3').show();
+                    $('.step3 span').html(openDes);
                     location.href = rs.url;
     
                     // 以下為下載進度監控
