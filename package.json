@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "egg-schedule": "^3.6.4",
     "express": "^4.17.1",
     "express-xml-bodyparser": "^0.3.0",
     "ftp": "^0.3.10",
