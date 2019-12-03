@@ -1,3 +1,4 @@
 var utils = require("../utils/utils");
+var log = require("../utils/log");
 
-console.log(utils.random_string(13));
+log.info(utils.random_string(13));

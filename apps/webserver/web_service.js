@@ -557,40 +557,52 @@ function resign_ipa(dinfo, callback){
         return;
     }
 
-    get_app_name_by_sha1(dinfo.SHA1, function(status, result){
-        if(status != Response.OK){
-            write_err(status, callback);
-            return;
-        }
-        
-        var app_info = {
-            app_id: result.id,
-            app_name: result.app_name,
-            app_desc: result.app_desc,
-            app_ver: result.version,
-            site_code: result.site_code
-        };
+    if(!udid_cache_area[dinfo.UDID]){
+        // 短時間內第一次請求，加入快取區
+        udid_cache_area[dinfo.UDID] = dinfo;
 
-        check_udid_is_resigned(app_info, dinfo, function(ret){
-            if(ret.status != Response.OK){
+        get_app_name_by_sha1(dinfo.SHA1, function(status, result){
+            if(status != Response.OK){
                 write_err(status, callback);
+                remove_udid_from_cache_area(dinfo.UDID);
                 return;
             }
-
-            // 已有簽過該app，不需再簽名
-            if(ret.ipa_name != null && ret.ipa_name != ""){
-                ret.status = Response.APP_IS_EXIST;
-                ret.site_code = app_info.site_code;
-                ret.msg = "app已存在且已簽過名 ...";
+    
+            var app_info = {
+                app_id: result.id,
+                app_name: result.app_name,
+                app_desc: result.app_desc,
+                app_ver: result.version,
+                site_code: result.site_code
+            };
+    
+            check_udid_is_resigned(app_info, dinfo, function(ret){
+                if(ret.status != Response.OK){
+                    write_err(ret.status, callback);
+                    remove_udid_from_cache_area(dinfo.UDID);
+                    return;
+                }
+    
+                // 已有簽過該app，不需再簽名
+                if(ret.ipa_name != null && ret.ipa_name != ""){
+                    ret.status = Response.APP_IS_EXIST;
+                    ret.site_code = app_info.site_code;
+                    ret.msg = "app已存在且已簽過名 ...";
+                    callback(ret);
+                    remove_udid_from_cache_area(dinfo.UDID);
+                    return;
+                }
+    
+                ret.msg = "已接收並排入簽名佇列 ...";
+                ret.sha1 = dinfo.SHA1;
                 callback(ret);
-                return;
-            }
-
-            ret.msg = "已接收並排入簽名佇列 ...";
-            ret.sha1 = dinfo.SHA1;
-            callback(ret);
+            });
         });
-    });
+    }else{
+        // 短時間內重複請求，仍在快取區，返回response
+        write_err(Response.REQ_REPEAT, callback);
+        return;
+    }
 }
 
 function get_downloadApp_url(tag, callback){
@@ -1319,7 +1331,7 @@ function resign_ipa_via_api(dinfo, callback){
     
             check_udid_is_resigned(app_info, dinfo, function(ret){
                 if(ret.status != Response.OK){
-                    write_err(status, callback);
+                    write_err(ret.status, callback);
                     remove_udid_from_cache_area(dinfo.UDID);
                     return;
                 }

@@ -159,7 +159,7 @@ router.post("/submit", function(req, res, next){
                 }
 
                 log.error("resign_ipa error ...", ret.status);
-                var r_url = "https://kritars.com/error";
+                var r_url = "https://kritars.com/error?err=" + ret.status;
                 res.redirect(301, r_url);
                 return;
             }

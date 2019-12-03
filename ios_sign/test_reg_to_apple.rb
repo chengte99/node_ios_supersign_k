@@ -2,7 +2,7 @@ require "pathname"
 require "spaceship"
 require "credentials_manager"
 
-# ruby test_reg_to_apple.rb "liaoyanchi3@gmail.com" "new resign app 02" "uqwneuniqn32" "true"
+# ruby test_reg_to_apple.rb "estrelitali@aol.com" "com.ios.newsign04" "e48f8d4deb1b60d2e12acef4bcfe79b5" "true"
 
 acc = ARGV[0]
 appid = ARGV[1]

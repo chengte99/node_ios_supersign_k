@@ -137,8 +137,24 @@ $(function() {
     $('.copy-url input').val(location.href)
     if (status == 1) {
         setStepClass();
+    }else{
+        checkErrorClass();
     }
 });
+function checkErrorClass(){
+    var err_status = getUrlParam('err');
+    // if(typeof(err_status) == "undefined"){
+    //     alert("undefined");
+    // }else if(typeof(err_status) == "string"){
+    //     alert("string");
+    // }else if(typeof(err_status) == "number"){
+    //     alert("number");
+    // }
+
+    if(err_status != null && err_status != ""){
+        alert("连线异常，请联系在线客服\nCode: " + err_status);
+    }
+}
 function setStepClass() {
     if (stepNum) {
         bindInstallBtnEvent(stepNum);

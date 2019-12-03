@@ -2,10 +2,296 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     {{>header}}
     <body>
-        <h1>{{h1}}</h1>
-        <script src="/static/js/jquery-3.4.1.js"></script>
-        <script>
+        {{!-- <h1>{{h1}}</h1> --}}
+        <div class="contain-page">
+            <!-- info -->
+            <div class="app-info">
+                <div class="app-logo">
+                    <img src="/imgs/O1Marf4t8ae2P.png">
+                </div>
+                <div class="app-info-rig">
+                    <strong>SPORT</strong>
+                    <p>参考</p>
+                    <div class="clr">
+                        <a class="arouse" style="display: none"><b>?</b>安装教程</a>
+                        <a class="btn btn-mini step1 grey">已下架</a>
+                        <a class="btn btn-mini step2" style="display: none">免费安装</a>
+                        <a class="btn btn-mini step3" style="display: none"><span>等待下载</span><em></em></a>
+                        <a class="btn btn-mini step4" style="display: none">完成</a>
+                    </div>
+                    <div class="myloading" style="display: none"></div>
+                </div>
+            </div>
+            <!-- 评价 -->
+            <div class="app-show">
+                <div class="app-score">
+                    <strong>4.9</strong><img src="/imgs/star.png" alt="">
+                    <p><span class="down-count">999</span>个评分</p>
+                </div>
+                <div class="app-age">
+                    <strong>4+</strong>
+                    <p>年龄</p>
+                </div>
+            </div>
+            <!-- 图片展示 -->
 
+            <!-- intro -->
+            <div class="app-intro">
+                <h2 class="app-title">简介</h2>
+                <div class="app-intro-con" style="height: auto;">
+                    <p>十六大平台 一掌之间<br>游戏天地随你移动 无时无刻立即游玩</p>
+                    <span style="display: none;">更多</span>
+                </div>
+            </div>
+            <!-- 评分及评论 -->
+            <div class="comment-box">
+                <h2 class="app-title">评分及评论</h2>
+                <div class="comment-con">
+                    <div class="comment-left">
+                        <strong>4.9</strong>
+                        <p>满分 5 分</p>
+                    </div>
+                    <div class="comment-right">
+                        <ul class="comment-star-list">
+                            <li>
+                                <div class="comment-star">
+                                    <img src="/imgs/star.png" alt="">
+                                    <div></div>
+                                </div>
+                                <div class="comment-progress">
+                                    <div></div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="comment-star">
+                                    <img src="/imgs/star.png" alt="">
+                                    <div></div>
+                                </div>
+                                <div class="comment-progress">
+                                    <div></div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="comment-star">
+                                    <img src="/imgs/star.png" alt="">
+                                    <div></div>
+                                </div>
+                                <div class="comment-progress">
+                                    <div></div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="comment-star">
+                                    <img src="/imgs/star.png" alt="">
+                                    <div></div>
+                                </div>
+                                <div class="comment-progress">
+                                    <div></div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="comment-star">
+                                    <img src="/imgs/star.png" alt="">
+                                    <div></div>
+                                </div>
+                                <div class="comment-progress">
+                                    <div></div>
+                                </div>
+                            </li>
+                        </ul>
+                        <p><span class="down-count">999</span>个评分</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 版本号 -->
+            <div class="app-intro">
+                <h2 class="app-title">新功能</h2>
+                <div class="app-intro-con" style="height: auto;">
+                    <p>版本 1.6.0</p>
+                </div>
+            </div>
+            <!-- 信息 -->
+            <div class="information-box">
+                <h2 class="app-title">信息</h2>
+                <ul class="information-list">
+                    <li>
+                        <span class="l">销售商</span>
+                        <div class="r"></div>
+                    </li>
+                    <li>
+                        <span class="l">大小</span>
+                        <div class="r">11.2M</div>
+                    </li>
+                    <li>
+                        <span class="l">类别</span>
+                        <div class="r blue-color">参考</div>
+                    </li>
+                    <li>
+                        <span class="l">兼容性</span>
+                        <div class="r">
+                            <p>需要 iOS 10.0 或更高版本。与 iPhone、iPad 和 iPod touch 兼容。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="l">语言</span>
+                        <div class="r">简体中文</div>
+                    </li>
+                    <li>
+                        <span class="l">年龄分级</span>
+                        <div class="r">限4岁以上</div>
+                    </li>
+                    <li>
+                        <span class="l">价格</span>
+                        <div class="r">免费</div>
+                    </li>
+                    <li>
+                        <span class="l blue-color">隐私政策</span>
+                        <div class="r"></div>
+                    </li>
+                </ul>
+            </div>
+            <!-- 免责声明 -->
+            <div class="disclaimer">
+                免责声明：<br>
+                本网站仅提供下载托管，App内容相关事项由开发者负责，与本网站无关。
+            </div>
+            <!-- 蒙版 -->
+            <div class="mask">
+                <img src="/imgs/go-safari.png" alt="">
+            </div>
+            <!-- 流程图弹框 -->
+            {{!-- <div class="mask-box step-tips" style="display:none">
+                <div class="mask-bg"></div>
+                <div class="mask-pop video-pop">
+                    <span class="mask-colsed"><img src="/static/imgs/colsed.png" alt=""></span>
+                    <div class="ali-video">    
+                        <div class="prism-player" id="J_prismPlayer" x5-playsinline="" x-webkit-airplay="" playsinline="" webkit-playsinline="" style="width: 250px; height: 541.761px;"><video webkit-playsinline="" playsinline="" x-webkit-airplay="" x5-playsinline="" preload="preload" style="width: 100%; height: 100%;" src="https://vod.y1f1.cn/sv/14b45e8c-16b503055cb/14b45e8c-16b503055cb.mp4"></video>
+                            <div class="prism-big-play-btn" id="J_prismPlayer_component_AE2F319A-E2D4-4A90-AE26-B1B2B6F1EAAB" style="position: absolute; left: 30px; bottom: 80px; display: block;"><div class="outter"></div></div>
+                            <div class="center prism-hide" id="J_prismPlayer_component_E17453FA-08E8-47DF-A625-005CAF869FE4">
+                                <div class="circle"></div>
+                                <div class="circle1"></div>
+                            </div>
+                            <div class="prism-ErrorMessage" id="J_prismPlayer_component_B7B76F1A-A16E-4235-B751-7598F77D13EE" style="position: absolute; left: 0px; top: 0px;">
+                                <div class="prism-error-content"><p></p></div>
+                                <div class="prism-error-operation"><a class="prism-button prism-button-refresh">刷新</a><a class="prism-button prism-button-retry" target="_blank">重试</a><a class="prism-button prism-button-orange" target="_blank">诊断</a></div>
+                                <div class="prism-detect-info prism-center"><p class="errorCode"><span class="info-label">code：</span><span class="info-content"></span></p><p class="vid"><span class="info-label">vid:</span><span class="info-content"></span></p><p class="uuid"><span class="info-label">uuid:</span><span class="info-content"></span></p><p class="requestId"><span class="info-label">requestId:</span><span class="info-content"></span></p><p class="dateTime"><span class="info-label">播放时间：</span><span class="info-content"></span></p></div>
+                            </div>
+                            <p class="prism-info-display" id="J_prismPlayer_component_E715EF98-77FA-4528-B655-19E107408BD0" style="float: left; margin-left: 0px; margin-top: 0px;"></p><p class="prism-tooltip" id="J_prismPlayer_component_CB411CE1-78CA-4952-B94C-47B3C7AE04E3" style="position: absolute; left: 0px; bottom: 50px;">提示信息</p>
+                            <div class="prism-thumbnail" id="J_prismPlayer_component_F916016A-D0B5-4D82-BFF8-EEB6E4EF209E" style="float: left; margin-left: 0px; margin-top: 0px;"><img><span></span></div>
+                            <div class="prism-cc-selector prism-setting-selector" id="J_prismPlayer_component_72B5C570-C6D0-4E90-AE6E-0AA6D94B3DBD" style="float: right; margin-right: 15px; margin-top: 12px;"><div class="header"><div class="left-array"></div><span>字幕</span></div><ul class="selector-list"></ul></div><div class="prism-speed-selector prism-setting-selector" id="J_prismPlayer_component_7760E238-8CB5-4A87-AE1E-60A3BD2A0F6A" style="float: right; margin-right: 15px; margin-top: 12px;"><div class="header"><div class="left-array"></div><span>倍速</span></div><ul class="selector-list"></ul></div><div class="prism-quality-selector prism-setting-selector" id="J_prismPlayer_component_694254B9-DAB2-411A-B022-CB61A4876AEA" style="float: right; margin-right: 15px; margin-top: 12px;"><div class="header"><div class="left-array"></div><span>清晰度</span></div><ul class="selector-list"></ul></div><div class="prism-audio-selector prism-setting-selector" id="J_prismPlayer_component_23BD1237-73F0-4CF6-B051-7E7E9D38A7FF" style="float: right; margin-right: 15px; margin-top: 12px;"><div class="header"><div class="left-array"></div><span>音轨</span></div><ul class="selector-list"></ul></div><div class="prism-setting-list" id="J_prismPlayer_component_31BF0703-7FAC-431C-B7CD-E46B58FB0516" style="float: right; margin-right: 15px; margin-top: 12px;"><div class="prism-setting-item prism-setting-speed" type="speed"><div class="setting-content"><span class="setting-title">倍速</span><span class="array"></span><span class="current-setting">正常</span></div></div><div class="prism-setting-item prism-setting-cc" type="cc"><div class="setting-content"><span class="setting-title">字幕</span><span class="array"></span><span class="current-setting">Off</span></div></div><div class="prism-setting-item prism-setting-audio" type="audio"><div class="setting-content"><span class="setting-title">音轨</span><span class="array"></span><span class="current-setting"></span></div></div><div class="prism-setting-item prism-setting-quality" type="quality"><div class="setting-content"><span class="setting-title">清晰度</span><span class="array"></span><span class="current-setting"></span></div></div></div><div class="prism-volume-control" id="J_prismPlayer_component_520E3B6B-0CD1-4118-BC1E-775804E48C51" style="float: right; margin-right: 5px; margin-top: 10px;"><div class="volume-range"><div class="volume-value"></div><div class="volume-cursor"></div></div></div><div class="prism-controlbar" id="J_prismPlayer_component_670F1D3F-E5AA-4482-ACB5-AE50FB2DB105" style="display: none; position: absolute; left: 0px; bottom: 0px;"><div class="prism-controlbar-bg"></div><div class="prism-progress" id="J_prismPlayer_component_98AB0941-BC15-46CE-B0E2-50B930ACDD6C" style="position: absolute; left: 0px; bottom: 44px;"><div class="prism-progress-loaded" style="width: 5.81084%;"></div><div class="prism-progress-played"></div><div class="prism-progress-marker"></div><div class="prism-progress-cursor"><img src="https://g.alicdn.com/de/prismplayer/2.8.2/skins/default/img/dragcursor.png"></div><p class="prism-progress-time"></p></div><div class="prism-play-btn" id="J_prismPlayer_component_B521368C-EB83-4D28-BB52-CD65AD44DD28" style="float: left; margin-left: 15px; margin-top: 12px;"></div><div class="prism-time-display" id="J_prismPlayer_component_0750A12F-43F0-4CA2-8366-F4E1CEFB01A0" style="float: left; margin-left: 10px; margin-top: 5px;"><span class="current-time">00:00</span> <span class="time-bound" style="display: inline;">/</span> <span class="duration" style="display: inline;">00:20</span></div><div class="prism-fullscreen-btn" id="J_prismPlayer_component_0F0F4BFF-FAC3-4BF0-9495-081A95C473BC" style="float: right; margin-right: 10px; margin-top: 12px;"></div><div class="prism-cc-btn" id="J_prismPlayer_component_5866081E-AA45-4CFF-B57D-99F607A8720B" style="float: right; margin-right: 15px; margin-top: 12px;"></div><div class="prism-setting-btn" id="J_prismPlayer_component_C6EE46A7-438B-400E-8028-48AA23AD017F" style="float: right; margin-right: 15px; margin-top: 12px;"></div><div class="prism-volume" id="J_prismPlayer_component_8FCE4100-04BD-4734-A216-3185704736BE" style="float: right; margin-right: 5px; margin-top: 10px;"><div class="volume-icon"><div class="short-horizontal"></div><div class="long-horizontal"></div></div></div></div><div class="prism-cover" id="J_prismPlayer_component_BF9F56AE-B517-48CE-BD3E-66A833B682C9" style="background-image: url(&quot;/static/imgs/cover.png&quot;); float: left; margin-left: 0px; margin-top: 0px;"></div><div class="prism-animation" id="J_prismPlayer_component_FD1AC50B-157D-4928-8504-E06749DC08E1" style="float: left; margin-left: 0px; margin-top: 0px;"></div><div class="prism-auto-stream-selector" id="J_prismPlayer_component_39E0108E-2E6B-4F03-A27E-9FC48E6F0CC5" style="float: left; margin-left: 0px; margin-top: 0px;"><div><p class="tip-text"></p></div><div class="operators"><a class="prism-button prism-button-ok" type="button">确认</a><a class="prism-button prism-button-cancel" target="_blank">取消</a></div></div><div class="prism-marker-text" id="J_prismPlayer_component_1AF80B55-0FED-4BB2-80B6-0B77A6FA3B69" style="float: left; margin-left: 0px; margin-top: 0px;"><p></p></div>
+                        </div>
+                        <script>
+                            var player = new Aliplayer({
+                            id: 'J_prismPlayer',
+                            width: '250px',
+                            height:'541.761px',
+                            autoplay: false,
+                            //播放方式二：点播用户推荐
+                            vid : '8947480e3f4e4db2ac6505e2ea86c6df',
+                            playauth : 'eyJTZWN1cml0eVRva2VuIjoiQ0FJUzN3SjFxNkZ0NUIyeWZTaklyNG5UTFk3WG9lNU85SnZlWUZ6SXNtOHhXcmwrdG9EeDBEejJJSDlJZEhWb0FPOGZ2dlUwbTJ0WTdQc1psck1xRjhNWkdoR2JNSnNnc3M4SnIxcjdKcExGc3QySjZyOEpqc1ZLbi8wcnNsdXBzdlhKYXNEVkVma3VFNVhFTWlJNS8wMGU2TC8rY2lyWVhEN0JHSmFWaUpsaFE4MEtWdzJqRjFSdkQ4dFhJUTBRazYxOUszemRaOW1nTGlidWkzdnhDa1J2MkhCaWptOHR4cW1qL015UTV4MzFpMXYweStCM3dZSHRPY3FjYThCOU1ZMVdUc3Uxdm9oemFyR1Q2Q3BaK2psTStxQVU2cWxZNG1YcnM5cUhFa0ZOd0JpWFNaMjJsT2RpTndoa2ZLTTNOcmRacGZ6bjc1MUN0L2ZVaXA3OHhtUW1YNGdYY1Z5R0ZkN3drWk9aUXJ6emJZMWtMdTZpQVJtWGpJRFRiS3VTbWhnL2ZIY1dPRGxOZjljY01YSnFBWFF1TUdxRmR2LzdvQW1WTzFmeUVQZmVnUHRyaW9BSjVsSHA3TWVNR1YrRGVMeVF5aDBFSWFVN2EwNDRtc0dVYjlOZnBjUWFnQUZqdXNremI0STc0clZiMHoxcEFlRUhYbFY3Q0toQjFERkFWMVFtdStlTVJhNWZyanh3SytVWFJRbG4yTFBjZ0pmVk81RUtOYmtha0tva1VaeUI2QndYQVRvc0hPNC9JZld0bldrTmtNMWYxaGxqQ25yTGtZR1oyNGVXcnEyRkh6UUQ1cWJNU2JCWjl0SkhrZC81TTAvNDBHSmdaTG83OVRaaEJoRkl5cllOVXc9PSIsIkF1dGhJbmZvIjoie1wiQ0lcIjpcIjZUOGVhTVE4ZzZSUjNGRXdkeXBPWkV2NnlrcHVHWVhNZGxuL0pSTVpXNnMvaHpsak1ZbG5Remd2bzFBdWNoTk9cXHJcXG5cIixcIkNhbGxlclwiOlwiMUZFcEhZSGJkazBSVG1kSVd5ZTFDSzFYK1ErRzlybU1DSUlIZUhiVXZQOD1cXHJcXG5cIixcIkV4cGlyZVRpbWVcIjpcIjIwMTktMDktMTBUMDY6NDU6MTVaXCIsXCJNZWRpYUlkXCI6XCI4OTQ3NDgwZTNmNGU0ZGIyYWM2NTA1ZTJlYTg2YzZkZlwiLFwiUGxheURvbWFpblwiOlwidm9kLnkxZjEuY25cIixcIlNpZ25hdHVyZVwiOlwiOXc1Qy9ZR21iSDRTWi9MWTlVU25UUDNOL2swPVwifSIsIlZpZGVvTWV0YSI6eyJTdGF0dXMiOiJOb3JtYWwiLCJWaWRlb0lkIjoiODk0NzQ4MGUzZjRlNGRiMmFjNjUwNWUyZWE4NmM2ZGYiLCJUaXRsZSI6ImFhLm1wNCIsIkNvdmVyVVJMIjoiaHR0cHM6Ly92b2QueTFmMS5jbi84OTQ3NDgwZTNmNGU0ZGIyYWM2NTA1ZTJlYTg2YzZkZi9zbmFwc2hvdHMvMWY3ZmU1Y2M0OWVjNDFlNzkyNTU3MTNlMzZiZjAxNjUtMDAwMDEuanBnIiwiRHVyYXRpb24iOjIwLjA1MzN9LCJBY2Nlc3NLZXlJZCI6IlNUUy5OSmZmNGNMMW9DWTVienlWb2RWNlJZRVoyIiwiUGxheURvbWFpbiI6InZvZC55MWYxLmNuIiwiQWNjZXNzS2V5U2VjcmV0IjoiNzI0WjRKWXRvSlBIeFRhYUZKaGV2V2toQ1oyVVp3WlBIUnR0bndadFNmV1YiLCJSZWdpb24iOiJjbi1zaGFuZ2hhaSIsIkN1c3RvbWVySWQiOjE0NDQ3NTc1ODg0MzY2MTJ9',
+                            cover: '/static/imgs/cover.png',
+                            region:'cn-shanghai',//eu-central-1,ap-southeast-1
+                            },function(player){
+                                console.log('播放器创建好了。')
+                        });
+                        </script>
+                    </div>
+                </div>
+            </div> --}}
+            <!-- safari提示框 -->
+            <div class="mask-box safari-tips">
+                <div class="mask-bg"></div>
+                <div class="mask-pop">
+                    <span class="mask-colsed"><img src="/imgs/colsed.png" alt=""></span>
+                    <img class="copy-url-img" src="/imgs/safari-tip.png" alt="">
+                    <div class="copy-url">
+                        <input id="foo" type="text">
+                        <button data-clipboard-target="#foo">复制</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="/js/jquery-3.4.1.js"></script>
+        <script>
+            var version = '0', //ios 12以上設為'1'，以下設為'0'，預設'0'
+                status = '0', //狀態為1才會進入下載流程，研判由下載開關來控制
+                urlschemes = '',
+                showOpen = '0',
+                down_session = "48381d4eaea7a782d88b1d7f95c6c005", //app名稱的md5
+                progress_url = "https://d-hkws.ggonet.cn/progress.php?s=cd9447ad40b515444f03ee7eb2b3546a",
+                qrCode = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAADnAQMAAADfOtNjAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPklEQVRYhe2YMZaDMAxEh0eRMkfgKBzNHI2jcISUFDy0GtnOOvvYarcZnlUE29/NRPIgA/To0eM/4mmM/bkhnaPZNsd8U6YcjLtvWuzw2bzURV062znugD/weGFesvo7UBf68AzehbI0b0MRNemnDDmDuKhYKVp9Y14o+zdXEaJtIhuhwpQWOFh1QkxG+2j/DTnqkYZYjk2+PBzalKkbogoT9YKzT1dRo9TLn2kFfcMfVA9hSmneHPlycvtoFmUphUYrAWSaPk6ZIC2+wSGPl70PmyylQjtYjCn2rulnxapRzqMzX5lBvo1LPmVp3eQdRTH1q9ewEi09EsICo4+VpxxEBtNbb5NfSZpvT1NtlSwuujegvNpmwzjxHcK03DWy7Pa7iiJFuQ/Cl1/x/m31CtJ6H6z0ygmlaI8ePf4WX3SdNOrrmFt9AAAAAElFTkSuQmCC",
+                appendParams = "eyJjaGFubmVsIjoiIiwidWRpZDEiOiIiLCJ1ZGlkMiI6IiIsInVhIjoiTW96aWxsYVwvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE0XzYpIEFwcGxlV2ViS2l0XC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWVcLzc2LjAuMzgwOS4xMzIgU2FmYXJpXC81MzcuMzYiLCJhcHBlbmRkYXRhIjoiIn0*",
+                androidUrl='/index/downAndroid.json?path=/5d4d27f61ebe9.apk';
+            // console.log(androidUrl);
+            // 检测图片是否加载完成
+            var img = [],
+                flag = 0,
+                mulitImg = [],
+                imgDown = false,
+                allImg = $('img');
+            for (var i = 0; i < allImg.length; i++) {
+                if(allImg.eq(i).attr('src')){
+                    mulitImg.push(allImg.eq(i).attr('src'))
+                }
+            }
+            var imgTotal = mulitImg.length;
+            for (var i = 0; i < imgTotal; i++) {
+                img[i] = new Image();
+                img[i].src = mulitImg[i];
+                img[i].onload = function () {
+                    //第i张图片加载完成
+                    flag++
+                    if (flag == imgTotal) {
+                        imgDown = true;
+                    }
+                }
+            }
+            // PV,UV
+            /*
+            $.ajax({
+                type: 'GET',
+                url: '/r.json',
+                data: {
+                    'app_id': '2e3ehf42zhwg',
+                    'v': (new Date()).getTime(),
+                    'cn_id': '',
+                    'ud_id1': '',
+                    'ud_id2': ''
+                }
+            });
+            */
+            // 看视频是否加载完成
+            var videoDown = false;
+            $('#video').on('canplaythrough', function () {
+                videoDown = true;
+            })
         </script>
+        <script type="text/javascript" src="/js/fingerprint2.min.js"></script>
+        {{!-- 原先的 --}}
+        {{!-- <script>document.write('<script src="/static/js/download.js?t=' + new Date().getTime() + '"><\/script>')</script><script src="/static/js/download.js?t=1568097816428"></script> --}}
+        <!-- <script type="text/javascript" src="/static/js/download.js"></script> -->
+
+        {{!-- 自己寫的 --}}
+        {{!-- <script>document.write('<script src="/js/myDownload.js?t=' + new Date().getTime() + '"><\/script>')</script> --}}
+        <!-- <script src="/js/myDownload.js"></script> -->
+
+        {{!-- 測試 --}}
+        <script>document.write('<script src="/js/myTest.js?t=' + new Date().getTime() + '"><\/script>')</script>
+
+        <!-- 内容触摸滑动 -->
+        <script type="text/javascript" src="/js/swiper.min.js"></script> 
+        <!-- 複製到剪貼簿 -->
+        <script type="text/javascript" src="/js/clipboard.min.js"></script>
+
+        {{!-- <script>
+            //
+            var swiper = new Swiper('.imgs-box', {
+                scrollbar: '.imgs-box .swiper-scrollbar',
+                scrollbarHide: true,
+                slidesPerView: 'auto',
+                grabCursor: true
+            });
+            //
+        </script> --}}
     </body>
 </html>
