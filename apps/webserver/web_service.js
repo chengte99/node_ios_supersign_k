@@ -105,6 +105,23 @@ function get_app_name_by_sha1(sha1, callback){
     web_model.get_app_info_by_sha1(sha1, callback);
 }
 
+function remove_local_files(local_plist_path, local_ipa_path){
+    fs.unlink(local_plist_path, function(err){
+        if(err){
+            log.error(err);
+        }
+
+        log.info("刪除本地plist成功 ...");
+        fs.unlink(local_ipa_path, function(err){
+            if(err){
+                log.error(err);
+            }
+
+            log.info("刪除本地ipa成功 ...");
+        })
+    })
+}
+
 function ready_to_upload(ret, local_plist_path){
     // ftp
     var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
@@ -164,6 +181,8 @@ function ready_to_upload(ret, local_plist_path){
 
     ftp_client.on("end", function(){
         log.info("ftp connection 已斷開 ...");
+        
+        remove_local_files(local_plist_path, local_ipa_path);
     });
 
     ftp_client.on("close", function(hadErr){
