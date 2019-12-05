@@ -143,6 +143,7 @@ router.post("/submit", function(req, res, next){
         // log.info(t2);
         var plist2json = plist.parse(t2);
         plist2json.SHA1 = sha1;
+        // plist2json.RESIGN_FORCE = true; // 強制重簽名開關
         log.warn(plist2json);
         logger.debug(plist2json);
 
@@ -187,6 +188,7 @@ router.post("/submit", function(req, res, next){
         "SHA1": "123123123123",
         "APP_VER": "1234",
         "SITE_CODE": 0,
+        "NOTIFY_URL": "http://......"
     }
 */
 router.post("/action_sigh", function(req, res, next){
@@ -242,6 +244,77 @@ router.post("/action_sigh", function(req, res, next){
 
                 if(ret.status != Response.OK){
                     log.error("resign_ipa_via_api error ...", ret.status);
+                    res.send(ret);
+                    return;
+                }
+        
+                res.send(ret);
+            });
+        });
+    }
+})
+
+/* 
+    var dinfo = {
+        "ACCOUNT": "",
+        // 自定義
+        "SITE_CODE": 0,
+    }
+*/
+// 將有使用該帳號超級簽名的所有設備，清除簽名紀錄。
+router.post("/sigh/reset_sigh_record", function(req, res, next){
+    // log.info(req.headers);
+    // log.info(req.query);
+    // log.info(req.body);
+
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        var dinfo;
+        dinfo = req.body;
+
+        log.warn(dinfo);
+        logger.debug(dinfo);
+        // res.send({"status":"success", "dinfo": req.body})
+
+        web_service.reset_sigh_record(dinfo, function(ret){
+            log.warn(ret);
+            logger.debug(ret);
+
+            if(ret.status != Response.OK){
+                log.error("reset_sigh_record error ...", ret.status);
+                res.send(ret);
+                return;
+            }
+    
+            res.send(ret);
+        });
+
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', dinfo;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                dinfo = JSON.parse(body);
+            } catch (err) {
+                dinfo = null;
+            }
+            // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
+
+            log.warn(dinfo);
+            logger.debug(dinfo);
+
+            web_service.reset_sigh_record(dinfo, function(ret){
+                log.warn(ret);
+                logger.debug(ret);
+
+                if(ret.status != Response.OK){
+                    log.error("reset_sigh_record error ...", ret.status);
                     res.send(ret);
                     return;
                 }

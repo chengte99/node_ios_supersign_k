@@ -95,9 +95,9 @@ function get_uinfo_by_id(id, callback){
     })
 }
 
-function add_uinfo_by_udid(udid, model, version, callback){
-    var sql = "insert into device_info (`model`, `udid`, `version`) values (\"%s\", \"%s\", \"%s\")";
-    var sql_cmd = util.format(sql, model, udid, version);
+function add_uinfo_by_udid(udid, serial, model, version, callback){
+    var sql = "insert into device_info (`model`, `udid`, `serial`, `version`) values (\"%s\", \"%s\", \"%s\", \"%s\")";
+    var sql_cmd = util.format(sql, model, udid, serial, version);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){

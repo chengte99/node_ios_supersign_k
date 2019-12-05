@@ -44,7 +44,7 @@ function get_app_info_by_sitecode(site_code, ret_func){
     })
 }
 
-function get_uinfo_by_udid(udid, model, version, ret_func){
+function get_uinfo_by_udid(udid, serial, model, version, ret_func){
     mysql_supersign.get_uinfo_by_udid(udid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
@@ -52,13 +52,13 @@ function get_uinfo_by_udid(udid, model, version, ret_func){
         }
 
         if(sql_result.length <= 0){
-            mysql_supersign.add_uinfo_by_udid(udid, model, version, function(status, sql_result){
+            mysql_supersign.add_uinfo_by_udid(udid, serial, model, version, function(status, sql_result){
                 if(status != Response.OK){
                     ret_func(status, null);
                     return;
                 }
 
-                get_uinfo_by_udid(udid, model, version, ret_func);
+                get_uinfo_by_udid(udid, serial, model, version, ret_func);
             });
         }else{
             ret_func(status, sql_result[0]);

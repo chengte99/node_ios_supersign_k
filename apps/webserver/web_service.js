@@ -289,7 +289,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
 
     if(cur_update_index < ret.app_req_queue.length){
         var udid = ret.app_req_queue[cur_update_index];
-        web_model.get_uinfo_by_udid(udid, null, null, function(status, result){
+        web_model.get_uinfo_by_udid(udid, null, null, null, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
                 return;
@@ -767,7 +767,7 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_
 
 function check_udid_is_resigned(ainfo, dinfo, callback){
     // 判斷該dinfo 是否已存在db，是否已有簽過該app
-    web_model.get_uinfo_by_udid(dinfo.UDID, dinfo.PRODUCT, dinfo.VERSION, function(status, result){
+    web_model.get_uinfo_by_udid(dinfo.UDID, dinfo.SERIAL, dinfo.PRODUCT, dinfo.VERSION, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
@@ -922,16 +922,31 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                     bundle_id: result.bundle_id,
                 }
 
-                // 將該帳號設備數+1，以防滿了被其他請求取得
-                web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
+                // 將該帳號已註冊udid的內容取出，再新增該設備的id
+                log.info(result.reg_content);
+                var acc_content_json = JSON.parse(result.reg_content);
+                log.info(acc_content_json);
+                acc_content_json.udids.push(device_id);
+                var acc_content_str = JSON.stringify(acc_content_json);
+                log.info(acc_content_str);
+
+                web_model.update_reg_content_on_account_info(device_acc_info.acc_id, acc_content_str, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
                         return;
                     }
 
-                    // 加入acc佇列
-                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
-                })
+                    // 將該帳號設備數+1，以防滿了被其他請求取得
+                    web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
+                            return;
+                        }
+
+                        // 加入acc佇列
+                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                    })
+                });
             });
         }
     });
@@ -1241,7 +1256,8 @@ function resign_ipa_via_api(dinfo, callback){
     || typeof(dinfo.SERIAL) != "string" || dinfo.SERIAL == "" || dinfo.SERIAL == "SN1234567890"
     || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)
     || typeof(dinfo.APP_VER) != "string" || dinfo.APP_VER == "" || !dinfo.APP_VER.match(pattern_3)
-    || typeof(dinfo.SITE_CODE) != "number"){
+    || typeof(dinfo.SITE_CODE) != "number"
+    || typeof(dinfo.NOTIFY_URL) != "string"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1411,6 +1427,15 @@ function download_ipa_to_local(app_name, callback){
             password: ftp_config.password,
         });
     })
+}
+
+function reset_sigh_record(info, callback){
+    if(info == null || typeof(info.ACCOUNT) != "string"){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    
 }
 
 function create_app_to_db(app_info, callback){
@@ -1702,6 +1727,7 @@ module.exports = {
 
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,
+    reset_sigh_record: reset_sigh_record,
 
     check_timestamp_valid: check_timestamp_valid,
     get_resign_status: get_resign_status,
