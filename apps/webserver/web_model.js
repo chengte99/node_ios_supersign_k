@@ -205,13 +205,13 @@ function update_jsonstr_by_id_multi(values, ret_func){
     })
 }
 
-function clean_sigh_by_udid(udid, ret_func){
-    if(typeof(udid) != "string"){
+function clean_sigh_by_udids_multi(udids, ret_func){
+    if(typeof(udids) != "object"){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
-    mysql_supersign.clean_sigh_by_udid(udid, function(status, sql_result){
+    mysql_supersign.clean_sigh_by_udids_multi(udids, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -366,7 +366,7 @@ module.exports = {
     get_all_valid_accounts: get_all_valid_accounts,
     update_devices_by_id: update_devices_by_id,
     update_jsonstr_by_id_multi: update_jsonstr_by_id_multi,
-    clean_sigh_by_udid: clean_sigh_by_udid,
+    clean_sigh_by_udids_multi: clean_sigh_by_udids_multi,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
     add_new_resign_info: add_new_resign_info,

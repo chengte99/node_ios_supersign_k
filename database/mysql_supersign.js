@@ -211,9 +211,12 @@ function update_jsonstr_by_id_multi(values, callback){
     })
 }
 
-function clean_sigh_by_udid(udid, callback){
-    var sql = "update device_info set jsonstr = \"''\", time_valid = 0 where udid = \"%s\"";
-    var sql_cmd = util.format(sql, udid);
+function clean_sigh_by_udids_multi(udids, callback){
+    var sql_cmd = "";
+    udids.forEach(function (item) {
+        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = \"''\", time_valid = 0 WHERE udid = ?; ", item);
+    });
+    
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -222,7 +225,7 @@ function clean_sigh_by_udid(udid, callback){
         }
 
         callback(Response.OK, null);
-    })
+    });
 }
 
 function get_downloadApp_url(tag, callback){
@@ -355,7 +358,7 @@ module.exports = {
     get_all_valid_accounts: get_all_valid_accounts,
     update_devices_by_id: update_devices_by_id,
     update_jsonstr_by_id_multi: update_jsonstr_by_id_multi,
-    clean_sigh_by_udid: clean_sigh_by_udid,
+    clean_sigh_by_udids_multi: clean_sigh_by_udids_multi,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
     add_new_resign_info: add_new_resign_info,

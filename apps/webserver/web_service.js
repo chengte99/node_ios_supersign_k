@@ -1455,12 +1455,12 @@ function reset_sigh_record(info, callback){
 }
 
 function clean_sigh_by_udid(info, callback){
-    if(typeof(info) != "object" || typeof(info.UDID) != "string"){
+    if(typeof(info) != "object" || typeof(info.UDID) != "object"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
-    web_model.clean_sigh_by_udid(info.UDID, function(status, result){
+    web_model.clean_sigh_by_udids_multi(info.UDID, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
@@ -1468,7 +1468,7 @@ function clean_sigh_by_udid(info, callback){
 
         var ret = {};
         ret.status = Response.OK;
-        ret.msg = "已清除該udid簽名紀錄 ...";
+        ret.msg = "已清除udid的簽名紀錄 ...";
         callback(ret);
     })
 }

@@ -327,7 +327,7 @@ router.post("/sigh/reset_sigh_record", function(req, res, next){
 
 /* 
     {
-        "UDID": "sijri3jij34i23ji4ji234j"
+        "UDID": ["sijri3jij34i23ji4ji234j", "weij3j4i3jij4i34", ...]
     }
 */
 // 將有使用該帳號超級簽名的所有設備，清除簽名紀錄。
