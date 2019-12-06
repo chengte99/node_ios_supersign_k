@@ -385,14 +385,7 @@ function update_all_info(ret, callback){
         }
         
         update_each_device_info_from_app_req_queue(ret, callback);
-    })
-
-    // web_model.add_device_count_on_account_info(ret.account_info.account, ret.app_req_queue.length, function(status, result){
-    //     if(status != Response.OK){
-    //         write_err(status, callback);
-    //         return;
-    //     }
-    // });
+    });
 }
 
 var global_upload_list = {}
@@ -822,7 +815,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                             }
 
                             // 將該帳號設備數+1，以防滿了被其他請求取得
-                            web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
+                            web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
                                 if(status != Response.OK){
                                     write_err(status, callback);
                                     return;
@@ -930,22 +923,23 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                 var acc_content_str = JSON.stringify(acc_content_json);
                 log.info(acc_content_str);
 
-                web_model.update_reg_content_on_account_info(device_acc_info.acc_id, acc_content_str, function(status, result){
+                // 更新reg_content, devices on account_info
+                web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
                         return;
                     }
 
-                    // 將該帳號設備數+1，以防滿了被其他請求取得
-                    web_model.add_device_count_on_account_info(device_acc_info.account, 1, function(status, result){
-                        if(status != Response.OK){
-                            write_err(status, callback);
-                            return;
-                        }
+                    // 加入acc佇列
+                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
 
-                        // 加入acc佇列
-                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
-                    })
+                    // 將該帳號設備數+1，以防滿了被其他請求取得
+                    // web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                    //     if(status != Response.OK){
+                    //         write_err(status, callback);
+                    //         return;
+                    //     }
+                    // })
                 });
             });
         }
@@ -1083,7 +1077,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
 
                 // post到管理後台
                 /*
-                https://api-518.webpxy.info/api/v1/request/sign_complete
+                https://api-518.webpxy.info/api/v2/request/sign_complete
                 */
                 var api_with_system_config = server_config.rundown_config.api_with_system_config;
                 https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
@@ -1430,12 +1424,53 @@ function download_ipa_to_local(app_name, callback){
 }
 
 function reset_sigh_record(info, callback){
-    if(info == null || typeof(info.ACCOUNT) != "string"){
+    if(typeof(info) != "object" || typeof(info.ACCOUNT) != "string"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
-    
+    web_model.get_info_by_account(info.ACCOUNT, function(status, result){
+        if(status != Response.OK){
+            write_err(status, callback);
+            return;
+        }
+
+        log.info(result[0].reg_content);
+        var json_content = JSON.parse(result[0].reg_content);
+        log.info(json_content);
+        
+        // 依據content內的設備id，將設備的jsonstr 清空
+        web_model.update_jsonstr_by_id_multi(json_content.udids, function(status, result){
+            if(status != Response.OK){
+                write_err(status, callback);
+                return;
+            }
+
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "已清除該帳號的所有設備簽名紀錄 ...";
+            callback(ret);
+        })
+    })
+}
+
+function clean_sigh_by_udid(info, callback){
+    if(typeof(info) != "object" || typeof(info.UDID) != "string"){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    web_model.clean_sigh_by_udid(info.UDID, function(status, result){
+        if(status != Response.OK){
+            write_err(status, callback);
+            return;
+        }
+
+        var ret = {};
+        ret.status = Response.OK;
+        ret.msg = "已清除該udid簽名紀錄 ...";
+        callback(ret);
+    })
 }
 
 function create_app_to_db(app_info, callback){
@@ -1536,7 +1571,7 @@ function check_timestamp_valid(udid, timestamp, callback){
         if(timestamp > time_valid){
             // 已超過一年，更新db內該udid跟app_name, ipa_name 為空
             log.info("已超過一年，更新db內該udid跟app_name, ipa_name 為空 ...");
-            web_model.clear_appinfo_on_device_info(udid, function(status, result){
+            web_model.clean_sigh_by_udid(udid, function(status, result){
                 if(status != Response.OK){
                     write_err(status, callback);
                     return;
@@ -1728,6 +1763,7 @@ module.exports = {
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,
     reset_sigh_record: reset_sigh_record,
+    clean_sigh_by_udid: clean_sigh_by_udid,
 
     check_timestamp_valid: check_timestamp_valid,
     get_resign_status: get_resign_status,

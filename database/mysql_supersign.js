@@ -11,7 +11,8 @@ function connect_to_server(host, port, db_name, user, password){
         port: port,
         database: db_name,
         user: user,
-        password: password
+        password: password,
+        multipleStatements: true
     });
 }
 
@@ -109,6 +110,20 @@ function add_uinfo_by_udid(udid, serial, model, version, callback){
     })
 }
 
+function get_info_by_account(acc, callback){
+    var sql = "select * from account_info where account = \"%s\" ";
+    var sql_cmd = util.format(sql, acc);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, sql_result);
+    })
+}
+
 function get_valid_account(callback){
     var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0 limit 1";
     // var sql_cmd = util.format(sql, udid);
@@ -151,9 +166,9 @@ function get_max_devices_accounts(callback){
     })
 }
 
-function add_device_count_on_account_info(account, reg_count, callback){
-    var sql = "update account_info set devices = devices+%d where account = \"%s\"";
-    var sql_cmd = util.format(sql, reg_count, account);
+function update_multi_value_by_id(id, reg_content, count, callback){
+    var sql = "update account_info set reg_content = \"%s\", devices = devices+%d where id = %d ";
+    var sql_cmd = util.format(sql, reg_content, count, id);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -165,7 +180,38 @@ function add_device_count_on_account_info(account, reg_count, callback){
     })
 }
 
-function clear_appinfo_on_device_info(udid, callback){
+function update_devices_by_id(id, count, callback){
+    var sql = "update account_info set devices = devices+%d where id = %d ";
+    var sql_cmd = util.format(sql, count, id);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
+function update_jsonstr_by_id_multi(values, callback){
+    var sql_cmd = "";
+    values.forEach(function (item) {
+        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = \"''\", time_valid = 0 WHERE id = ?; ", item);
+    });
+    
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
+function clean_sigh_by_udid(udid, callback){
     var sql = "update device_info set jsonstr = \"''\", time_valid = 0 where udid = \"%s\"";
     var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
@@ -304,10 +350,12 @@ module.exports = {
     get_app_info_by_sitecode: get_app_info_by_sitecode,
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
+    get_info_by_account: get_info_by_account,
     get_valid_account: get_valid_account,
     get_all_valid_accounts: get_all_valid_accounts,
-    add_device_count_on_account_info: add_device_count_on_account_info,
-    clear_appinfo_on_device_info: clear_appinfo_on_device_info,
+    update_devices_by_id: update_devices_by_id,
+    update_jsonstr_by_id_multi: update_jsonstr_by_id_multi,
+    clean_sigh_by_udid: clean_sigh_by_udid,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
     add_new_resign_info: add_new_resign_info,
@@ -318,4 +366,5 @@ module.exports = {
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
+    update_multi_value_by_id: update_multi_value_by_id,
 }

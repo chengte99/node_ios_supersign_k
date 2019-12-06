@@ -137,12 +137,33 @@ function get_max_devices_accounts(ret_func){
     })
 }
 
-function add_device_count_on_account_info(account, reg_count, ret_func){
-    if(!account || account == "" || !reg_count){
+function get_info_by_account(acc, ret_func){
+    if(typeof(acc) != "string" || acc == ""){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
-    mysql_supersign.add_device_count_on_account_info(account, reg_count, function(status, sql_result){
+
+    mysql_supersign.get_info_by_account(acc, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        if(sql_result.length <= 0){
+            ret_func(Response.NO_VALID_ACCOUNT, null);
+        }else{
+            ret_func(status, sql_result);
+        }
+    })
+}
+
+function update_multi_value_by_id(id, reg_content, count, ret_func){
+    if(typeof(id) != "number" || typeof(reg_content) != "string" || reg_content == "" || typeof(count) != "number"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.update_multi_value_by_id(id, reg_content, count, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -152,13 +173,45 @@ function add_device_count_on_account_info(account, reg_count, ret_func){
     })
 }
 
-function clear_appinfo_on_device_info(udid, ret_func){
-    if(!udid || udid == ""){
+function update_devices_by_id(id, count, ret_func){
+    if(typeof(id) != "number" || typeof(count) != "number"){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
-    mysql_supersign.clear_appinfo_on_device_info(udid, function(status, sql_result){
+    mysql_supersign.update_devices_by_id(id, count, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
+function update_jsonstr_by_id_multi(values, ret_func){
+    if(typeof(values) != "object"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.update_jsonstr_by_id_multi(values, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
+function clean_sigh_by_udid(udid, ret_func){
+    if(typeof(udid) != "string"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.clean_sigh_by_udid(udid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -309,9 +362,11 @@ module.exports = {
     get_app_info_by_sitecode: get_app_info_by_sitecode,
     get_uinfo_by_udid: get_uinfo_by_udid,
     get_valid_account: get_valid_account,
+    get_info_by_account: get_info_by_account,
     get_all_valid_accounts: get_all_valid_accounts,
-    add_device_count_on_account_info: add_device_count_on_account_info,
-    clear_appinfo_on_device_info: clear_appinfo_on_device_info,
+    update_devices_by_id: update_devices_by_id,
+    update_jsonstr_by_id_multi: update_jsonstr_by_id_multi,
+    clean_sigh_by_udid: clean_sigh_by_udid,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
     add_new_resign_info: add_new_resign_info,
@@ -322,4 +377,5 @@ module.exports = {
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
+    update_multi_value_by_id: update_multi_value_by_id,
 }
