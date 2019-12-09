@@ -44,11 +44,11 @@ function mysql_exec(sql, callback) {
 }
 
 function update_multi_rows(){
-    var values = [1, 3, 4];
+    var values = [2];
     var queries = '';
     
     values.forEach(function (item) {
-        queries += mysql.format("UPDATE device_info SET jsonstr = \"''\", time_valid = 0 WHERE id = ?; ", item);
+        queries += mysql.format("UPDATE device_info SET jsonstr = NULL, time_valid = 0 WHERE id = ?; ", item);
     });
     console.log(queries);
 

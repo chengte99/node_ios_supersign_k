@@ -95,16 +95,6 @@ function get_loadxml(md5, callback){
     callback(ret);
 }
 
-//callback = (ret)
-function get_app_name_by_sha1(sha1, callback){
-    if(typeof(sha1) != "string" || sha1 == ""){
-        callback(Response.INVAILD_PARAMS, null);
-        return;
-    }
-
-    web_model.get_app_info_by_sha1(sha1, callback);
-}
-
 function remove_local_files(local_plist_path, local_ipa_path){
     fs.unlink(local_plist_path, function(err){
         if(err){
@@ -488,7 +478,7 @@ function resign_ipa(dinfo, callback){
         // 短時間內第一次請求，加入快取區
         udid_cache_area[dinfo.UDID] = dinfo;
 
-        get_app_name_by_sha1(dinfo.SHA1, function(status, result){
+        web_model.get_app_info_by_sha1(dinfo.SHA1, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
                 remove_udid_from_cache_area(dinfo.UDID);
@@ -565,7 +555,7 @@ function get_resign_status(dID, fid, callback){
     }
 
     // 先判斷是哪個app，取出app_name
-    get_app_name_by_sha1(fid, function(status, result){
+    web_model.get_app_info_by_sha1(fid, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
@@ -616,7 +606,7 @@ function get_resign_status(dID, fid, callback){
                 return;
             }
         });
-    }) 
+    });
 }
 
 function update_acc_devices(info, callback){
@@ -779,9 +769,9 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
         }
 
         var device_id = result.id;
-        var json = JSON.parse(result.jsonstr);
-        if(json){
-            log.info("有簽名紀錄 ...");
+        if(result.jsonstr != null){
+            log.info("有簽名紀錄 ...", result.jsonstr);
+            var json = JSON.parse(result.jsonstr);
             var reg_acc_info = json.reg_acc_info;
 
             if(reg_acc_info.is_reg == 1 && reg_acc_info.acc_id != 0){
@@ -790,10 +780,10 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                 if(now_time > reg_acc_info.expired){
                     // 帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號
                     log.info("紀錄的帳號已超過一年未續費，清除該設備的簽名紀錄，重新抓取可用帳號進行簽名 ...");
-
-                    var jsonstr = '';
+                    
+                    var default_jsonstr = null;
                     var time_valid = 0;
-                    web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, time_valid, false, function(status, result){
+                    web_model.update_device_info_by_udid(dinfo.UDID, default_jsonstr, time_valid, false, function(status, result){
                         if(status != Response.OK){
                             write_err(status, callback);
                             return;
@@ -814,16 +804,34 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                                 bundle_id: result.bundle_id,
                             }
 
-                            // 將該帳號設備數+1，以防滿了被其他請求取得
-                            web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
-                                if(status != Response.OK){
-                                    write_err(status, callback);
-                                    return;
-                                }
+                            // 將該帳號已註冊udid的內容取出，再新增該設備的id
+                            var acc_content_json = JSON.parse(result.reg_content);
+                            if(acc_content_json.udids.indexOf(device_id) == -1){
+                                acc_content_json.udids.push(device_id);
 
-                                // 加入acc佇列
-                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
-                            })
+                                var acc_content_str = JSON.stringify(acc_content_json);
+                                // 更新reg_content, devices on account_info
+                                web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
+                                    if(status != Response.OK){
+                                        write_err(status, callback);
+                                        return;
+                                    }
+
+                                    // 加入acc佇列
+                                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                                });
+                            }else{
+                                // 將該帳號設備數+1，以防滿了被其他請求取得
+                                web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                                    if(status != Response.OK){
+                                        write_err(status, callback);
+                                        return;
+                                    }
+
+                                    // 加入acc佇列
+                                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                                });
+                            }
                         });
                     })
                     
@@ -916,31 +924,33 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                 }
 
                 // 將該帳號已註冊udid的內容取出，再新增該設備的id
-                log.info(result.reg_content);
                 var acc_content_json = JSON.parse(result.reg_content);
-                log.info(acc_content_json);
-                acc_content_json.udids.push(device_id);
-                var acc_content_str = JSON.stringify(acc_content_json);
-                log.info(acc_content_str);
+                if(acc_content_json.udids.indexOf(device_id) == -1){
+                    acc_content_json.udids.push(device_id);
 
-                // 更新reg_content, devices on account_info
-                web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
-                    if(status != Response.OK){
-                        write_err(status, callback);
-                        return;
-                    }
+                    var acc_content_str = JSON.stringify(acc_content_json);
+                    // 更新reg_content, devices on account_info
+                    web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
+                            return;
+                        }
 
-                    // 加入acc佇列
-                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
-
+                        // 加入acc佇列
+                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                    });
+                }else{
                     // 將該帳號設備數+1，以防滿了被其他請求取得
-                    // web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
-                    //     if(status != Response.OK){
-                    //         write_err(status, callback);
-                    //         return;
-                    //     }
-                    // })
-                });
+                    web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
+                            return;
+                        }
+
+                        // 加入acc佇列
+                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, charge_status, callback);
+                    });
+                }
             });
         }
     });
@@ -1064,28 +1074,41 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
             // 判斷是否與內部組對接
             if(server_config.rundown_config.api_with_system){
                 // 簽名完成且上傳，通知管理後台
-                var data = {
-                    udid_list: ret.app_req_queue,
-                    // file_path: ret.path,
-                    ipa_path: ret.ipa_path,
-                    app_name: ret.app_name,
-                    site_code: ret.site_code,
-                };
-                var json_data = JSON.stringify(data);
-                log.warn(json_data);
-                logger.debug("通知管理后台: \n", json_data);
-
-                // post到管理後台
-                /*
-                https://api-518.webpxy.info/api/v2/request/sign_complete
-                */
-                var api_with_system_config = server_config.rundown_config.api_with_system_config;
-                https.https_post(api_with_system_config.hostname, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
-                    if(is_ok){
-                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                        log.warn("管理后台incoming_msg.statusCode = 200");
+                web_model.get_devices_by_id(account_info.acc_id, function(status, result){
+                    if(status != Response.OK){
+                        write_err(status, callback);
+                        return;
                     }
-                })
+
+                    // log.info(result.devices);
+                    var data = {
+                        udid_list: ret.app_req_queue,
+                        // file_path: ret.path,
+                        ipa_path: ret.ipa_path,
+                        app_name: ret.app_name,
+                        site_code: ret.site_code,
+                        sign_account: account_info.account,
+                        device_num: result.devices
+                    };
+                    var json_data = JSON.stringify(data);
+                    log.warn(json_data);
+                    logger.debug("通知管理后台: \n", json_data);
+    
+                    // post到管理後台
+                    // https://api-518.webpxy.info/api/v2/request/sign_complete
+    
+                    var api_with_system_config = server_config.rundown_config.api_with_system_config;
+                    if(global_notify_url == ""){
+                        global_notify_url = api_with_system_config.hostname;
+                    }
+                    
+                    https.https_post(global_notify_url, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
+                        if(is_ok){
+                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                            log.warn("管理后台incoming_msg.statusCode = 200");
+                        }
+                    })
+                });
             }
         };
         
@@ -1238,6 +1261,8 @@ var udid_cache_area = {};
 }
 */
 
+var global_notify_url = "";
+
 function resign_ipa_via_api(dinfo, callback){
     var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
@@ -1256,11 +1281,16 @@ function resign_ipa_via_api(dinfo, callback){
         return;
     }
 
+    // 第一次為空時寫入通知網址。
+    if(global_notify_url == ""){
+        global_notify_url = dinfo.NOTIFY_URL;
+    }
+
     if(!udid_cache_area[dinfo.UDID]){
         // 短時間內第一次請求，加入快取區
         udid_cache_area[dinfo.UDID] = dinfo;
 
-        get_app_name_by_sha1(dinfo.SHA1, function(status, result){
+        web_model.get_app_info_by_sha1(dinfo.SHA1, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
                 remove_udid_from_cache_area(dinfo.UDID);
@@ -1435,9 +1465,9 @@ function reset_sigh_record(info, callback){
             return;
         }
 
-        log.info(result[0].reg_content);
+        // log.info(result[0].reg_content);
         var json_content = JSON.parse(result[0].reg_content);
-        log.info(json_content);
+        // log.info(json_content);
         
         // 依據content內的設備id，將設備的jsonstr 清空
         web_model.update_jsonstr_by_id_multi(json_content.udids, function(status, result){

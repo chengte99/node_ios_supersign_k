@@ -124,6 +124,20 @@ function get_info_by_account(acc, callback){
     })
 }
 
+function get_devices_by_id(id, callback){
+    var sql = "select devices from account_info where id = %d";
+    var sql_cmd = util.format(sql, id);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, sql_result);
+    })
+}
+
 function get_valid_account(callback){
     var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0 limit 1";
     // var sql_cmd = util.format(sql, udid);
@@ -167,7 +181,7 @@ function get_max_devices_accounts(callback){
 }
 
 function update_multi_value_by_id(id, reg_content, count, callback){
-    var sql = "update account_info set reg_content = \"%s\", devices = devices+%d where id = %d ";
+    var sql = "update account_info set reg_content = \'%s\', devices = devices+%d where id = %d ";
     var sql_cmd = util.format(sql, reg_content, count, id);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -197,7 +211,7 @@ function update_devices_by_id(id, count, callback){
 function update_jsonstr_by_id_multi(values, callback){
     var sql_cmd = "";
     values.forEach(function (item) {
-        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = \"''\", time_valid = 0 WHERE id = ?; ", item);
+        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = NULL, time_valid = 0 WHERE id = ?; ", item);
     });
     
     log.info(sql_cmd);
@@ -214,7 +228,7 @@ function update_jsonstr_by_id_multi(values, callback){
 function clean_sigh_by_udids_multi(udids, callback){
     var sql_cmd = "";
     udids.forEach(function (item) {
-        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = \"''\", time_valid = 0 WHERE udid = ?; ", item);
+        sql_cmd += mysql.format("UPDATE device_info SET jsonstr = NULL, time_valid = 0 WHERE udid = ?; ", item);
     });
     
     log.info(sql_cmd);
@@ -312,6 +326,21 @@ function update_app_to_app_info(info, callback){
     })
 }
 
+function clean_jsonstr_by_udid(udid, callback){
+    var sql = "update device_info set jsonstr = NULL where udid = \"%s\" ";
+    var sql_cmd = util.format(sql, udid);
+    log.info(sql_cmd);
+
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+    })
+
+    callback(Response.OK, null);
+}
+
 function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, callback){
     var sql, sql_cmd;
     if(need_update_time){
@@ -354,6 +383,7 @@ module.exports = {
     get_uinfo_by_udid: get_uinfo_by_udid,
     add_uinfo_by_udid: add_uinfo_by_udid,
     get_info_by_account: get_info_by_account,
+    get_devices_by_id: get_devices_by_id,
     get_valid_account: get_valid_account,
     get_all_valid_accounts: get_all_valid_accounts,
     update_devices_by_id: update_devices_by_id,
@@ -364,6 +394,7 @@ module.exports = {
     add_new_resign_info: add_new_resign_info,
     add_new_to_app_info: add_new_to_app_info,
     update_app_to_app_info: update_app_to_app_info,
+    clean_jsonstr_by_udid: clean_jsonstr_by_udid,
     update_device_info_by_udid: update_device_info_by_udid,
     get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
     get_uinfo_by_id: get_uinfo_by_id,
