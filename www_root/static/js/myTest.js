@@ -1,4 +1,5 @@
 var stepNum;
+var sid;
 var ua = navigator.userAgent;
 var unfold = '更多';
 var packUp = '收起';
@@ -139,6 +140,12 @@ $(function() {
         setStepClass();
     }else{
         checkErrorClass();
+    }
+
+    sid = getUrlParam('sid');
+    if(sid){
+        var obj = {"serial": sid};
+        localStorage.setItem("device_obj", JSON.stringify(obj));
     }
 });
 function checkErrorClass(){

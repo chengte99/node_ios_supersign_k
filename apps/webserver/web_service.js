@@ -500,6 +500,7 @@ function resign_ipa(dinfo, callback){
                     return;
                 }
     
+                ret.sid = dinfo.SERIAL;
                 // 已有簽過該app，不需再簽名
                 if(ret.ipa_name != null && ret.ipa_name != ""){
                     ret.status = Response.APP_IS_EXIST;
@@ -1312,6 +1313,7 @@ function resign_ipa_via_api(dinfo, callback){
                     return;
                 }
     
+                ret.sid = dinfo.SERIAL;
                 // 已有簽過該app，不需再簽名
                 if(ret.ipa_name != null && ret.ipa_name != ""){
                     ret.status = Response.APP_IS_EXIST;

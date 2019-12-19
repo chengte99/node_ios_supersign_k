@@ -5,7 +5,17 @@
         <h1>{{h1}}</h1>
         <script src="/static/js/jquery-3.4.1.js"></script>
         <script>
+            
+            var obj = localStorage.getItem("device_obj");
+            if(obj){
+                var json = JSON.parse(obj);
+                console.log(json);
+                console.log(json.serial);
 
+                location.href = "myApp518Scheme://serial?" + json.serial;
+            }
+            
+            // location.href = "myApp518Scheme://serial?12345";
         </script>
     </body>
 </html>
