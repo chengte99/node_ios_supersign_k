@@ -1,6 +1,8 @@
 require "pathname"
 require "spaceship"
 require "credentials_manager"
+# require "json"
+# require 'rubygems'
 
 # ruby check2FA_valid.rb "liaoyanchi3@gmail.com"
 
@@ -13,15 +15,26 @@ cwd_path = Pathname.new(File.dirname(__FILE__)).realpath
 
 puts "帳戶: #{acc}"
 
-credentials = CredentialsManager::AccountManager.new(user: acc)
-is_login = Spaceship::Portal.login(credentials.user, credentials.password)
+begin
+    credentials = CredentialsManager::AccountManager.new(user: acc)
+    Spaceship::Portal.login(credentials.user, credentials.password)
+    Spaceship::Portal.select_team
 
-if is_login != nil
     puts "login success"
-else
-    puts "login fail"
+rescue Exception => e  
+    puts "login error"
+
+    # p e.message.instance_of? Hash
+    # p e.message.instance_of? String
+    myHash = JSON.parse e.message.gsub('=>', ':')
+    # p myHash.instance_of? Hash
+    # p myHash.instance_of? String
+
+    # p myHash
+    # p myHash.keys
+    p myHash['resultCode']
+    p myHash['resultString']
 end
-# Spaceship::Portal.select_team
 
 # devices = Spaceship::Portal.device.all
 # puts devices.count
