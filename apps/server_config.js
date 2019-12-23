@@ -60,7 +60,7 @@ var server_config = {
         api_with_system_config: {
             hostname: "api-518.webpxy.info",
             port: 443,
-            url: "/api/v2/request/sign_complete",
+            url: "/api/v1/request/sign_complete",
         },
         appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
     },

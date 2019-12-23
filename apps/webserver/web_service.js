@@ -1127,11 +1127,17 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     // https://api-518.webpxy.info/api/v2/request/sign_complete
     
                     var api_with_system_config = server_config.rundown_config.api_with_system_config;
+                    var hostname, path;
                     if(global_notify_url == ""){
-                        global_notify_url = api_with_system_config.hostname;
+                        hostname = api_with_system_config.hostname;
+                        path = api_with_system_config.url;
+                    }else{
+                        var n_url = new URL(global_notify_url);
+                        hostname = n_url.hostname;
+                        path = n_url.pathname;
                     }
                     
-                    https.https_post(global_notify_url, api_with_system_config.port, api_with_system_config.url, null, json_data, function(is_ok, data){
+                    https.https_post(hostname, api_with_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("管理后台incoming_msg.statusCode = 200");
