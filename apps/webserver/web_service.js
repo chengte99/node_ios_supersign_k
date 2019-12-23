@@ -28,13 +28,13 @@ function write_err(status, ret_func){
     ret.status = status;
     switch(status){
         case Response.INVAILD_PARAMS:
-            ret.msg = "參數錯誤 ...";
+            ret.msg = "請求參數錯誤 ...";
             break;
         case Response.SYS_ERROR:
-            ret.msg = "系統錯誤 ...";
+            ret.msg = "服務器系統錯誤 ...";
             break;
         case Response.DB_SEARCH_EMPTY:
-            ret.msg = "db找不到資料 ...";
+            ret.msg = "DB查無資料 ...";
             break;
         case Response.FILE_NOT_EXIST:
             ret.msg = "檔案不存在 ...";
@@ -1557,8 +1557,8 @@ function create_app_to_db(app_info, callback){
         }
 
         if(is_empty){
-            log.info("DB無紀錄此app，新增至DB並下載至本地 ...", app_info);
-            logger.debug("DB無紀錄此app，新增至DB並下載至本地 ...", app_info);
+            log.info("無紀錄過此app，下載至簽名服務器本地端 ...", app_info);
+            logger.debug("無紀錄過此app，下載至簽名服務器本地端 ...", app_info);
 
             download_ipa_to_local(app_info.app_name, function(ret){
                 if(ret.status != Response.OK){
@@ -1572,15 +1572,15 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    ret.msg = "DB無紀錄此app，新增至DB並下載至本地 ...";
+                    ret.msg = "無紀錄過此app，已下載至簽名服務器本地端 ...";
                     callback(ret);
                     return;
                 })
             });
         }else{
             if(need_update){
-                log.info("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...", app_info);
-                logger.debug("DB已紀錄過此app，但版本不同。DB更新檔名並重新下載 ...", app_info);
+                log.info("已紀錄過此app，但版本不同。重新下載至簽名服務器本地端 ...", app_info);
+                logger.debug("已紀錄過此app，但版本不同。重新下載至簽名服務器本地端 ...", app_info);
 
                 download_ipa_to_local(app_info.app_name, function(ret){
                     if(ret.status != Response.OK){
@@ -1594,19 +1594,19 @@ function create_app_to_db(app_info, callback){
                             return;
                         }
             
-                        ret.msg = "DB已紀錄過此app，但檔名不同。DB更新檔名並重新下載 ...";
+                        ret.msg = "已紀錄過此app，但版本不同。已重新下載至簽名服務器本地端 ...";
                         callback(ret);
                         return;
                     })
                 });
                 
             }else{
-                log.info("DB已紀錄過此app，且版本相同，不需更新 ...", app_info);
-                logger.debug("DB已紀錄過此app，且版本相同，不需更新 ...", app_info);
+                log.info("已紀錄過此app，且版本相同，不需更新簽名服務器本地端檔案 ...", app_info);
+                logger.debug("已紀錄過此app，且版本相同，不需更新簽名服務器本地端檔案 ...", app_info);
                 
                 var ret = {};
                 ret.status = Response.OK;
-                ret.msg = "DB已紀錄過此app，且版本相同，不需更新 ...";
+                ret.msg = "已紀錄過此app，且版本相同，不需更新簽名服務器本地端檔案 ...";
                 callback(ret);
             }
         }
