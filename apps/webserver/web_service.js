@@ -644,7 +644,7 @@ function acc_login_return(info, callback){
         }
         
         var objStr = JSON.stringify({"resultCode": info.resultCode, "resultString": info.resultString});
-        web_model.update_err_content_by_acc(info.acc, objStr, function(status, result){
+        web_model.disable_acc_by_acc(info.acc, objStr, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
                 return;
@@ -1827,6 +1827,7 @@ module.exports = {
     resign_ipa: resign_ipa,
     get_downloadApp_url: get_downloadApp_url,
     update_acc_devices: update_acc_devices,
+    acc_login_return: acc_login_return,
 
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,

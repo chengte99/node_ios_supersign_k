@@ -294,6 +294,22 @@ function update_days_on_account_info(acc, ret_func){
     })
 }
 
+function disable_acc_by_acc(acc, objStr, ret_func){
+    if(typeof(acc) != "string" || acc == "" || typeof(objStr) != "string" || objStr == ""){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.disable_acc_and_record_err_by_acc(acc, objStr, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
 function add_new_resign_info(tag, path, ret_func){
     if(typeof(tag) != "string" || tag == "" || typeof(path) != "string" || path == ""){
         ret_func(Response.INVAILD_PARAMS, null);
