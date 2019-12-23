@@ -629,6 +629,42 @@ function update_acc_devices(info, callback){
     })
 }
 
+function acc_login_return(info, callback){
+    if(typeof(info) != "object" || typeof(info.status) != "number" 
+    || typeof(info.msg) != "string" || typeof(info.acc) != "string"){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    if(info.status != Response.OK){
+        // 登入失敗，修改該帳號的DB紀錄，in_enable 設為 0
+        if(typeof(info.resultCode) != "number" || typeof(info.resultString) != "string"){
+            write_err(Response.INVAILD_PARAMS, callback);
+            return;
+        }
+        
+        var objStr = JSON.stringify({"resultCode": info.resultCode, "resultString": info.resultString});
+        web_model.disable_acc_by_acc(info.acc, objStr, function(status, result){
+            if(status != Response.OK){
+                write_err(status, callback);
+                return;
+            }
+    
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "帳號登入失敗，已調整完DB ...";
+            callback(ret);
+        })
+    }else{
+        // 登入成功
+
+        var ret = {};
+        ret.status = Response.OK;
+        ret.msg = "帳號登入成功，無需調整DB ...";
+        callback(ret);
+    }
+}
+
 // acc佇列
 var acc_queue_list = [];
 var acc_queue_index = 0;
@@ -1791,6 +1827,7 @@ module.exports = {
     resign_ipa: resign_ipa,
     get_downloadApp_url: get_downloadApp_url,
     update_acc_devices: update_acc_devices,
+    acc_login_return: acc_login_return,
 
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,

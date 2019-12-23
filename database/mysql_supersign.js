@@ -284,6 +284,20 @@ function update_days_on_account_info(acc, callback){
     })
 }
 
+function disable_acc_and_record_err_by_acc(acc, objStr, callback){
+    var sql = "update account_info set is_enable = 0, err_record = \"%s\" where account = \"%s\"";
+    var sql_cmd = util.format(sql, objStr, acc);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
 function add_new_resign_info(tag, path, callback){
     var sql = "insert into resign_ipa_info (`ipa_name`, `download_path`) values (\"%s\", \"%s\")";
     var sql_cmd = util.format(sql, tag, path);

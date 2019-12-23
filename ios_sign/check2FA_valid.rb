@@ -1,8 +1,11 @@
 require "pathname"
 require "spaceship"
 require "credentials_manager"
-# require "json"
+
 # require 'rubygems'
+require 'net/http' #net/https does not have to be required anymore
+require 'json'
+require 'uri'
 
 # ruby check2FA_valid.rb "liaoyanchi3@gmail.com"
 
@@ -20,9 +23,15 @@ begin
     Spaceship::Portal.login(credentials.user, credentials.password)
     Spaceship::Portal.select_team
 
-    puts "login success"
+    puts "#{acc} login success ..."
+    
+    dic = {
+        "status" => 1,
+        "msg" => "#{acc} login success ...",
+        "acc" => "#{acc}"
+    }
 rescue Exception => e  
-    puts "login error"
+    puts "#{acc} login failed ..."
 
     # p e.message.instance_of? Hash
     # p e.message.instance_of? String
@@ -32,8 +41,30 @@ rescue Exception => e
 
     # p myHash
     # p myHash.keys
-    p myHash['resultCode']
-    p myHash['resultString']
+    # p myHash['resultCode']
+    # p myHash['resultString']
+
+    dic = {
+        "status" => -104,
+        "msg" => "#{acc} login failed ...",
+        "acc" => "#{acc}",
+        "resultCode" => myHash['resultCode'],
+        "resultString" => myHash['resultString']
+    }
+
+ensure
+
+    jsonStr = JSON[dic]
+    # puts jsonStr
+
+    uri = URI('https://kritars.com/acc_login_return')
+    # uri = URI('http://10.159.5.141/acc_login_return')
+    Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+    request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+    request.body = jsonStr
+    response = http.request request # Net::HTTPResponse object
+    puts "#{response.body}"
+    end
 end
 
 # devices = Spaceship::Portal.device.all
