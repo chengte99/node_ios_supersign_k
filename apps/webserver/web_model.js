@@ -427,4 +427,5 @@ module.exports = {
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
     update_multi_value_by_id: update_multi_value_by_id,
+    disable_acc_by_acc: disable_acc_by_acc,
 }

@@ -610,25 +610,6 @@ function get_resign_status(dID, fid, callback){
     });
 }
 
-function update_acc_devices(info, callback){
-    if(info == null || typeof(info.acc) != "string" || info.acc == "" || typeof(info.devices) != "number"){
-        write_err(Response.INVAILD_PARAMS, callback);
-        return;
-    }
-
-    web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
-        if(status != Response.OK){
-            write_err(status, callback);
-            return;
-        }
-
-        var ret = {};
-        ret.status = Response.OK;
-        ret.msg = "更新設備數成功 ...";
-        callback(ret);
-    })
-}
-
 function acc_login_return(info, callback){
     if(typeof(info) != "object" || typeof(info.status) != "number" 
     || typeof(info.msg) != "string" || typeof(info.acc) != "string"){
@@ -652,16 +633,27 @@ function acc_login_return(info, callback){
     
             var ret = {};
             ret.status = Response.OK;
-            ret.msg = "帳號登入失敗，已調整完DB ...";
+            ret.msg = "帳號登入失敗，更新帳號紀錄 ...";
             callback(ret);
         })
     }else{
         // 登入成功
+        if(typeof(info.devices) != "number"){
+            write_err(Response.INVAILD_PARAMS, callback);
+            return;
+        }
 
-        var ret = {};
-        ret.status = Response.OK;
-        ret.msg = "帳號登入成功，無需調整DB ...";
-        callback(ret);
+        web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
+            if(status != Response.OK){
+                write_err(status, callback);
+                return;
+            }
+    
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "帳號登入成功, 更新設備數 ...";
+            callback(ret);
+        });
     }
 }
 
@@ -1658,13 +1650,13 @@ function check_timestamp_valid(udid, timestamp, callback){
     });
 }
 
-function start_verify_acc(queue){
+function start_verify_acc_state(queue){
     logger.debug("開始與蘋果開發中心同步 ...");
     for(var i = 0; i < queue.length; i ++){
         var acc = queue[i];
 
-        // ruby update_acc_devices.rb "liaoyanchi3@gmail.com"
-        var sh = "ruby ios_sign/update_acc_devices.rb \"%s\" ";
+        // ruby check2FA_valid.rb "liaoyanchi3@gmail.com"
+        var sh = "ruby ios_sign/check2FA_valid.rb \"%s\" ";
         var sh_cmd = util.format(sh, acc);
         log.info(sh_cmd);
 
@@ -1700,36 +1692,35 @@ function update_days_account_info(queue){
 }
 
 function schedule_to_action(){
-    var rule = new schedule.RecurrenceRule();
+    var rule1 = new schedule.RecurrenceRule();
     // 每天0時執行
-    rule.hour = 0;
-    rule.minute = 0;
-    rule.second = 0;
+    rule1.hour = 0;
+    rule1.minute = 0;
+    rule1.second = 0;
 
-    var j = schedule.scheduleJob(rule, function(){
-        logger.debug("每日0時更新設備數>=99的帳號 ...");
-        // 取出devices數已>=99的帳號
-        web_model.get_max_devices_accounts(function(status, result){
+    var j1 = schedule.scheduleJob(rule1, function(){
+        logger.debug("每日0時檢查設備數<99的帳號是否登入正常，有被封號並更新設備數...");
+        // 取出可用的帳號
+        web_model.get_all_valid_accounts(function(status, result){
             if(status != Response.OK){
-                if(status == Response.NO_MAX_DEVICES_ACCOUNT){
-                    log.info("無設備數>=99的帳號，不需更新 ...");
-                    logger.debug("無設備數>=99的帳號，不需更新 ...");
+                if(status == Response.NO_VALID_ACCOUNT){
+                    log.info("無可用帳號，不需更新 ...");
+                    logger.debug("無可用帳號，不需更新 ...");
                 }else{
-                    log.error("get_max_devices_accounts error ...", status);
-                    logger.debug("get_max_devices_accounts error ...", status);
+                    log.error("get_all_valid_accounts error ...", status);
+                    logger.debug("get_all_valid_accounts error ...", status);
                 }
             }else{
-                log.info("已獲取設備數>=99的帳號，進行更新 ...");
-                logger.debug("已獲取設備數>=99的帳號，進行更新 ...");
-                // log.info(result);
-                var acc_verify_list = [];
+                log.info("已獲取可用的帳號，進行更新 ...");
+                logger.debug("已獲取可用的帳號，進行更新 ...");
+                var acc_list = [];
                 for(var i = 0; i < result.length; i ++){
                     // console.log(result[i].account);
-                    acc_verify_list.push(result[i].account);
+                    acc_list.push(result[i].account);
                 }
 
-                // 與蘋果驗證設備數
-                start_verify_acc(acc_verify_list);
+                // 檢查帳號登入是否正常
+                start_verify_acc_state(acc_list);
             }
         })
     });
@@ -1766,19 +1757,6 @@ function schedule_to_action(){
             }
         })
     });
-
-    // var rule3 = new schedule.RecurrenceRule();
-    // // 每天2時執行
-    // rule3.hour = 2;
-    // rule3.minute = 0;
-    // rule3.second = 0;
-
-    // var j3 = schedule.scheduleJob(rule3, function(){
-    //     logger.debug("每日2時更新上傳.mobileprovision至FTP服務器 ...");
-    //     // 將.mobileprovision 上傳
-    //     var file_path = "" + __dirname + "/../../www_root/mobileconfig/embedded.mobileprovision";
-    //     upload_mobileprovision(file_path);
-    // });
 }
 
 function schedule_to_check_resign_queue(){
@@ -1826,7 +1804,6 @@ module.exports = {
     get_loadxml: get_loadxml,
     resign_ipa: resign_ipa,
     get_downloadApp_url: get_downloadApp_url,
-    update_acc_devices: update_acc_devices,
     acc_login_return: acc_login_return,
 
     resign_ipa_via_api: resign_ipa_via_api,
