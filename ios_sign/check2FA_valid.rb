@@ -25,10 +25,13 @@ begin
 
     puts "#{acc} login success ..."
     
+    devices = Spaceship::Portal.device.all
+
     dic = {
         "status" => 1,
         "msg" => "#{acc} login success ...",
-        "acc" => "#{acc}"
+        "acc" => "#{acc}",
+        "devices" => devices.count
     }
 rescue Exception => e  
     puts "#{acc} login failed ..."
@@ -57,8 +60,8 @@ ensure
     jsonStr = JSON[dic]
     # puts jsonStr
 
-    uri = URI('https://kritars.com/acc_login_return')
-    # uri = URI('http://10.159.5.141/acc_login_return')
+    # uri = URI('https://kritars.com/acc_login_return')
+    uri = URI('http://10.159.5.141/acc_login_return')
     Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
     request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
     request.body = jsonStr

@@ -285,7 +285,7 @@ function update_days_on_account_info(acc, callback){
 }
 
 function disable_acc_and_record_err_by_acc(acc, objStr, callback){
-    var sql = "update account_info set is_enable = 0, err_record = \"%s\" where account = \"%s\"";
+    var sql = "update account_info set is_enable = 0, err_record = \'%s\' where account = \"%s\"";
     var sql_cmd = util.format(sql, objStr, acc);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -415,4 +415,5 @@ module.exports = {
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
     update_multi_value_by_id: update_multi_value_by_id,
+    disable_acc_and_record_err_by_acc: disable_acc_and_record_err_by_acc
 }
