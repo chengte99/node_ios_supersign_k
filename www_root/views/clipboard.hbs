@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0,user-scalable=no" name="viewport" id="viewport" />
+        <title>获取您的UDID</title>
+    </head>
+    <body>
+        <h1>自動安裝</h1>
+        
+        <input value="填入要複製的字串 例如 1234569999999" style="display:none;"/>
+        <button class="copy_coupon">【123456】點擊複製數字</button>
+
+        <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>
+        <script>
+            window.Clipboard = (function(window, document, navigator) {
+                var textArea,
+                copy;
+
+                function isOS() {
+                    return navigator.userAgent.match(/ipad|iphone/i);
+                }
+
+                function createTextArea(text) {
+                    textArea = document.createElement('textArea');
+                    textArea.value = text;
+                    console.log("textArea.value ...", textArea.value);
+                    document.body.appendChild(textArea);
+                }
+
+                function selectText() {
+                    var range,
+                    selection;
+
+                    if (isOS()) {
+                        range = document.createRange();
+                        range.selectNodeContents(textArea);
+                        selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        textArea.setSelectionRange(0, 999999);
+                    } else {
+                        textArea.select();
+                    }
+                }
+
+                function copyToClipboard() {
+                    document.execCommand("Copy");
+                    document.body.removeChild(textArea);
+                }
+
+                copy = function(text) {
+                    createTextArea(text);
+                    selectText();
+                    copyToClipboard();
+                };
+
+                return {
+                    copy: copy
+                };
+            })(window, document, navigator);
+
+            $(".copy_coupon").on("click", function() {
+                var $this = $(this),
+                value = $this.prev("input").val();
+                window.Clipboard.copy(value);
+                console.log("begin copy ...");
+            });
+        </script>
+        <script>
+            /*
+            window.onload = function(){
+                $(".copy_coupon").trigger('click')
+            }
+            */
+
+            window.Clipboard.copy("abc123 kevinifaiefaefowef");
+        </script>
+    </body>
+</html>

@@ -25,6 +25,17 @@ router.get("", function(req, res){
     })
 })
 
+router.get("/clipboard", function(req, res){
+    log.info(req.query);
+
+    // res.sendFile(process.cwd() + "/www_root/home.html");
+    res.render("clipboard", {
+        "title": "Kevin 的剪貼簿測試 XD",
+        "h1": "Welcome Home, 自動安裝",
+        "name": "kevin",
+    })
+})
+
 router.get("/about", function(req, res){
     log.info(req.query);
 
