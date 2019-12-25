@@ -781,6 +781,68 @@ em {
     border-radius: 0 18px 18px 0;
 }
 
+.maskDark {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.7);
+    display: none;
+}
+.maskClick-box {
+    z-index: 2;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 40vh;
+    background: #fff;
+    border-radius: 5vmin;
+    overflow: hidden;
+    text-align: center;
+}
+.maskClick-box .msg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    height: 70%;
+    width: 100%;
+    align-items:center;
+    justify-content:center;
+    font-size: 1.3rem;
+    color: rgb(67, 67, 67)
+}
+.maskClick-box .msg .article > * {
+    margin: 0;
+    padding: 2vmin 5vmin;
+    word-break: break-all;
+}
+.maskClick-box .msg h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+.maskClick-box .msg h2 {
+    font-weight: 500;
+    font-size: 1.0rem;
+}  
+.copy-mytext {
+    display: flex;
+    height: 30%;
+    align-items:center;
+    justify-content:center;
+    border-top: 1px solid #ddd;  
+    text-align: center;
+}
+.copy-mytext input {
+    display: none;
+}
+.copy_coupon {  
+    font-size: 1.2rem;
+    color: #30a4fc;
+}
+
 /*  */
 .file-info {
     display: block;

@@ -24,7 +24,34 @@ function sha1(data) {
     return sha1.digest('hex'); 
 }
 
-var name = "estrelitali@aol.com";
+var name = "C38SHLVVHFY7";
 
 console.log(sha1(name));
 console.log(md5(name));
+
+var encryptAES = function (key, iv, data) {
+    var cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+    var crypted = cipher.update(data, 'utf8', 'binary');
+    crypted += cipher.final('binary');
+    // crypted = new Buffer(crypted, 'binary').toString('base64');
+    crypted = Buffer.from(crypted, 'binary').toString('base64');
+    return crypted;
+};
+ 
+var decryptAES = function (key, iv, crypted) {
+    // crypted = new Buffer(crypted, 'base64').toString('binary');
+    crypted = Buffer.from(crypted, 'base64').toString('binary');
+    var decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    var decoded = decipher.update(crypted, 'binary', 'utf8');
+    decoded += decipher.final('utf8');
+    return decoded;
+};
+ 
+var key = 'touchapp20180914';
+console.log('加密的key:', key.toString('hex'));
+var iv = '8105547186756005';
+console.log('加密的iv:', iv);
+var crypted = encryptAES(key, iv, name);
+console.log("数据加密后:", crypted);
+var dec = decryptAES(key, iv, crypted);
+console.log("数据解密后:", dec);

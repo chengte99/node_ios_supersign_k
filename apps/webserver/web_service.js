@@ -1619,25 +1619,28 @@ function create_app_to_db(app_info, callback){
     });
 }
 
-function check_timestamp_valid(udid, timestamp, callback){
-    if(udid == null || udid == "" || timestamp == null){
+function check_timestamp_valid(sid, timestamp, callback){
+    if(typeof(sid) != "string" || sid == "" || typeof(timestamp) != "number"){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
 
-    // 根據udid 找出 當時寫入的期限 (timestamp += 31536000)
-    web_model.get_timestamp_valid_by_udid(udid, function(status, result){
+    // 根據sid 找出 當時寫入的期限 (timestamp += 31536000)
+    web_model.get_timestamp_valid_by_sid(sid, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;
         }
         
+        // log.info(result);
+        // log.info(result.udid);
+        // log.info(result.time_valid);
         var time_valid = result.time_valid;
         // log.info("time_valid = " + time_valid + ", timestamp = " + timestamp);
         if(timestamp > time_valid){
-            // 已超過一年，更新db內該udid跟app_name, ipa_name 為空
-            log.info("已超過一年，更新db內該udid跟app_name, ipa_name 為空 ...");
-            web_model.clean_sigh_by_udid(udid, function(status, result){
+            // 已超過一年，更新db內該sid跟app_name, ipa_name 為空
+            log.info("已超過一年，更新db內該sid跟app_name, ipa_name 為空 ...");
+            web_model.clear_record_by_sid(sid, function(status, result){
                 if(status != Response.OK){
                     write_err(status, callback);
                     return;
@@ -1651,6 +1654,7 @@ function check_timestamp_valid(udid, timestamp, callback){
             var ret = {};
             ret.status = Response.OK;
             ret.msg = "設備期限仍在一年內 ...";
+            ret.udid = result.udid;
             callback(ret);
         }
     });

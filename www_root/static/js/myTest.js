@@ -147,6 +147,16 @@ $(function() {
         var obj = {"serial": sid};
         localStorage.setItem("device_obj", JSON.stringify(obj));
     }
+
+    // 顯示剪貼簿授權提示框
+    $('.copy_coupon').on("click", function() {
+        window.Clipboard.copy(sid);
+        $('html,body').animate({scrollTop:0}, 333);
+        $('.maskDark').hide();
+        downloadStep(stepNum);
+        console.log("begin copy ...");
+    });
+    // end
 });
 function checkErrorClass(){
     var err_status = getUrlParam('err');
@@ -213,7 +223,7 @@ function startStep(stepNum) {
     if (stepNum === '0') {
         describeFileStep();
     } else if (stepNum === '1' || stepNum === '2') {
-        downloadStep(stepNum);
+        showMaskStep();
     } else if (stepNum === '3') {
         payFn();
     } else if (stepNum === '4') {
@@ -264,11 +274,14 @@ function describeFileStep() {
         }
     });
 }
-function downloadStep(stepNum) {
+function showMaskStep(){
+    $('.maskDark').show();
     $('.step1').hide();
+    $('.myloading').show();
+}
+function downloadStep(stepNum) {
     // $('.step3 span').html(statePre);
     // $('.step3').show();
-    $('.myloading').show();
 
     if(stepNum === '1'){
         var waitResignTime = setInterval(function(){

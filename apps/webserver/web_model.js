@@ -242,6 +242,22 @@ function clean_sigh_by_udids_multi(udids, ret_func){
     })
 }
 
+function clear_record_by_sid(serial, ret_func){
+    if(typeof(serial) != "string"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.clear_record_by_sid(serial, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
 function get_downloadApp_url(tag, ret_func){
     if(typeof(tag) != "string" || tag == ""){
         ret_func(Response.INVAILD_PARAMS, null);
@@ -385,13 +401,13 @@ function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time,
     }
 }
 
-function get_timestamp_valid_by_udid(udid, ret_func){
-    if(typeof(udid) != "string" || udid == ""){
+function get_timestamp_valid_by_sid(sid, ret_func){
+    if(typeof(sid) != "string" || sid == ""){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
-    mysql_supersign.get_timestamp_valid_by_udid(udid, function(status, sql_result){
+    mysql_supersign.get_timestamp_valid_by_sid(sid, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -422,10 +438,11 @@ module.exports = {
     add_new_to_app_info: add_new_to_app_info,
     update_app_to_app_info: update_app_to_app_info,
     update_device_info_by_udid: update_device_info_by_udid,
-    get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
+    get_timestamp_valid_by_sid: get_timestamp_valid_by_sid,
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
     update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_by_acc: disable_acc_by_acc,
+    clear_record_by_sid: clear_record_by_sid,
 }

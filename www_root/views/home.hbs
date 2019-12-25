@@ -210,10 +210,24 @@
                     </div>
                 </div>
             </div>
-        </div>
+            <!-- 授權剪貼簿提示框 -->
+            <div class="maskDark">
+                <div class="maskClick-box">
+                    <div class="msg">
+                        <div class="article">
+                            <h1>免责声明</h1>
+                            <h2>用户明确并同意其使用该APP网络服务所存在的风险将完全由其本人承担;因其使用该APP网络服务而产生的一切后果也由其本人承担，该APP对此不承担任何责任。</h2>
+                        </div>
+                    </div>
+                    <div class="copy-mytext">
+                        <input id="foo" type="text">
+                        <button class="copy_coupon">确认</button>
+                    </div>
+                </div>
+            </div>
         <script src="/js/jquery-3.4.1.js"></script>
         <script>
-            var version = '0', //ios 12以上設為'1'，以下設為'0'，預設'0'
+            var version = '0', //ios 12.2以上設為'1'，以下設為'0'，預設'0'
                 status = '1', //狀態為1才會進入下載流程，研判由下載開關來控制
                 urlschemes = '',
                 showOpen = '0',
@@ -265,6 +279,53 @@
             $('#video').on('canplaythrough', function () {
                 videoDown = true;
             })
+
+            // 測試剪貼簿
+            window.Clipboard = (function(window, document, navigator) {
+                var textArea,
+                copy;
+
+                function isOS() {
+                    return navigator.userAgent.match(/ipad|iphone/i);
+                }
+
+                function createTextArea(text) {
+                    textArea = document.createElement('textArea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                }
+
+                function selectText() {
+                    var range,
+                    selection;
+
+                    if (isOS()) {
+                        range = document.createRange();
+                        range.selectNodeContents(textArea);
+                        selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        textArea.setSelectionRange(0, 999999);
+                    } else {
+                        textArea.select();
+                    }
+                }
+
+                function copyToClipboard() {
+                    document.execCommand("Copy");
+                    document.body.removeChild(textArea);
+                }
+
+                copy = function(text) {
+                    createTextArea(text);
+                    selectText();
+                    copyToClipboard();
+                };
+
+                return {
+                    copy: copy
+                };
+            })(window, document, navigator);
         </script>
         <script type="text/javascript" src="/js/fingerprint2.min.js"></script>
         {{!-- 原先的 --}}

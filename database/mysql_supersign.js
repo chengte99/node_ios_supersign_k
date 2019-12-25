@@ -242,6 +242,20 @@ function clean_sigh_by_udids_multi(udids, callback){
     });
 }
 
+function clear_record_by_sid(serial, callback){
+    var sql = "update device_info set jsonstr = NULL, time_valid = 0 where serial = \"%s\" ";
+    var sql_cmd = util.format(sql, serial);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
 function get_downloadApp_url(tag, callback){
     var sql = "select download_path from resign_ipa_info where ipa_name = \"%s\"";
     var sql_cmd = util.format(sql, tag);
@@ -376,9 +390,9 @@ function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time,
     callback(Response.OK, null);
 }
 
-function get_timestamp_valid_by_udid(udid, callback){
-    var sql = "select time_valid from device_info where udid = \"%s\"";
-    var sql_cmd = util.format(sql, udid);
+function get_timestamp_valid_by_sid(sid, callback){
+    var sql = "select udid, time_valid from device_info where serial = \"%s\"";
+    var sql_cmd = util.format(sql, sid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -410,10 +424,11 @@ module.exports = {
     update_app_to_app_info: update_app_to_app_info,
     clean_jsonstr_by_udid: clean_jsonstr_by_udid,
     update_device_info_by_udid: update_device_info_by_udid,
-    get_timestamp_valid_by_udid: get_timestamp_valid_by_udid,
+    get_timestamp_valid_by_sid: get_timestamp_valid_by_sid,
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info: update_days_on_account_info,
     update_multi_value_by_id: update_multi_value_by_id,
-    disable_acc_and_record_err_by_acc: disable_acc_and_record_err_by_acc
+    disable_acc_and_record_err_by_acc: disable_acc_and_record_err_by_acc,
+    clear_record_by_sid: clear_record_by_sid,
 }

@@ -65,6 +65,22 @@ function sha1(data) {
     return sha1.digest('hex'); 
 }
 
+var encryptAES = function (key, iv, data) {
+    var cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+    var crypted = cipher.update(data, 'utf8', 'binary');
+    crypted += cipher.final('binary');
+    crypted = Buffer.from(crypted, 'binary').toString('base64');
+    return crypted;
+};
+ 
+var decryptAES = function (key, iv, crypted) {
+    crypted = Buffer.from(crypted, 'base64').toString('binary');
+    var decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    var decoded = decipher.update(crypted, 'binary', 'utf8');
+    decoded += decipher.final('utf8');
+    return decoded;
+};
+
 var utils = {
     random_string: function(len){
         var $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
@@ -107,7 +123,10 @@ var utils = {
     base64_encode: base64_encode,
     base64_decode: base64_decode,
     md5: md5,
-    sha1: sha1,            
+    sha1: sha1,
+    
+    encryptAES: encryptAES,
+    decryptAES: decryptAES,
 };
 
 module.exports = utils

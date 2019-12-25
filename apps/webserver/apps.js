@@ -568,6 +568,13 @@ router.post("/create_app", function(req, res, next){
     }
 })
 
+// app開啟後將serial通知後台並驗證是否過期
+/* 
+   {
+       "sid": "j2oi3jj12diom3f",
+       "timestamp": 123912938
+   }
+*/
 router.post("/valid_timestamp", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
@@ -579,7 +586,7 @@ router.post("/valid_timestamp", function(req, res, next){
         var jsonStr;
         jsonStr = req.body;
         // res.send({"status":"success", "jsonStr": req.body})
-        web_service.check_timestamp_valid(jsonStr.udid, jsonStr.timestamp, function(ret){
+        web_service.check_timestamp_valid(jsonStr.sid, jsonStr.timestamp, function(ret){
             if(ret.status != Response.OK){
                 log.error("check_timestamp_valid error ...", ret.status);
                 res.send(ret);
@@ -603,7 +610,7 @@ router.post("/valid_timestamp", function(req, res, next){
                 jsonStr = null;
             }
             // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
-            web_service.check_timestamp_valid(jsonStr.udid, jsonStr.timestamp, function(ret){
+            web_service.check_timestamp_valid(jsonStr.sid, jsonStr.timestamp, function(ret){
                 if(ret.status != Response.OK){
                     log.error("check_timestamp_valid error ...", ret.status);
                     res.send(ret);
