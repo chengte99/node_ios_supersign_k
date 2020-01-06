@@ -11,7 +11,6 @@ var web_model = require("./web_model");
 var utils = require("../../utils/utils");
 var http = require("../../netbus/http");
 var https = require("../../netbus/https");
-var logger = require("../../utils/logger");
 
 // ftp
 var Client = require("ftp");
@@ -410,7 +409,6 @@ function ready_to_sigh(ret, callback){
                 log.info("正在重签名app包 ...");
             }else{
                 log.info("已完成 " + ret.app_name + " 包的重签名作业，准备上传与更新数据库 ...");
-                logger.debug("已完成 " + ret.app_name + " 包的重签名作业，准备上传与更新数据库 ...");
 
                 clearInterval(timer);
 
@@ -1043,11 +1041,8 @@ function start_resign_app(account_info, app_info, callback){
 
     log.info("当前重签名伫列: " + app_info.app_name + "，app_id = " + app_info.app_id);
     log.info("当前 " + app_info.app_name + " 该重簽名佇列内的请求: ", queue);
-    logger.debug("当前重签名伫列: " + app_info.app_name + "，app_id = " + app_info.app_id);
-    logger.debug("当前 " + app_info.app_name + " 该重簽名佇列内的请求: ", queue);
 
     log.info("正对 " + app_info.app_name + " 执行重签名打包 ...");
-    logger.debug("正对 " + app_info.app_name + " 执行重签名打包 ...");
     var resigned_app_name = "" + utils.timestamp();
     // 執行重簽名並上傳腳本
     var sh = "sh ios_sign/resign_ipa_new.sh \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" ";
@@ -1121,7 +1116,6 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     };
                     var json_data = JSON.stringify(data);
                     log.warn(json_data);
-                    logger.debug("通知管理后台: \n", json_data);
     
                     // post到管理後台
                     // https://api-518.webpxy.info/api/v2/request/sign_complete
@@ -1191,7 +1185,6 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
 
     //進行重簽名，並部署到file server
     log.info("正在对 " + account_info.account + " 帐号注册udid ...");
-    logger.debug("正在对 " + account_info.account + " 帐号注册udid ...");
 
     var sh = "ruby ios_sign/test_reg_to_apple.rb \"%s\" \"%s\" \"%s\" \"true\" ";
     var sh_cmd = util.format(sh, account_info.account, account_info.bundle_id, account_info.acc_md5);
@@ -1222,7 +1215,6 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                 log.info("正对 " + account_info.account + " 帐号注册udid ...");
             }else{
                 log.info("已完成 " + account_info.account + " 帐号的udid注册并下载.mobileprovision ...");
-                logger.debug("已完成 " + account_info.account + " 帐号的udid注册并下载.mobileprovision ...");
                 clearInterval(timer);
 
                 // 將設備批次文件刪除
@@ -1254,8 +1246,6 @@ function ready_to_reg_apple(account_info, callback){
 
     log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
     log.info("当前" + account_info.account + " 该帐号注册佇列内的请求: ", queue);
-    logger.debug("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
-    logger.debug("当前" + account_info.account + " 该帐号注册佇列内的请求: ", queue);
     
     // 加入帳號的md5到表內
     account_info.acc_md5 = utils.md5(account_info.account);
@@ -1564,7 +1554,6 @@ function create_app_to_db(app_info, callback){
 
         if(is_empty){
             log.info("無紀錄過此app，下載至簽名服務器本地端 ...", app_info);
-            logger.debug("無紀錄過此app，下載至簽名服務器本地端 ...", app_info);
 
             download_ipa_to_local(app_info.app_name, function(ret){
                 if(ret.status != Response.OK){
@@ -1586,7 +1575,6 @@ function create_app_to_db(app_info, callback){
         }else{
             if(need_update){
                 log.info("已紀錄過此app，但版本不同。重新下載至簽名服務器本地端 ...", app_info);
-                logger.debug("已紀錄過此app，但版本不同。重新下載至簽名服務器本地端 ...", app_info);
 
                 download_ipa_to_local(app_info.app_name, function(ret){
                     if(ret.status != Response.OK){
@@ -1608,7 +1596,6 @@ function create_app_to_db(app_info, callback){
                 
             }else{
                 log.info("已紀錄過此app，且版本相同，不需更新簽名服務器本地端檔案 ...", app_info);
-                logger.debug("已紀錄過此app，且版本相同，不需更新簽名服務器本地端檔案 ...", app_info);
                 
                 var ret = {};
                 ret.status = Response.OK;
@@ -1661,7 +1648,6 @@ function check_timestamp_valid(sid, timestamp, callback){
 }
 
 function start_verify_acc_state(queue){
-    logger.debug("開始與蘋果開發中心同步 ...");
     for(var i = 0; i < queue.length; i ++){
         var acc = queue[i];
 
@@ -1683,22 +1669,6 @@ function start_verify_acc_state(queue){
             // log.info('stdout: ' + stdout);
         });
     }
-    logger.debug("與蘋果開發中心同步完成 ...");
-}
-
-function update_days_account_info(queue){
-    logger.debug("開始更新DB內可用帳號的days ...");
-    for(var i = 0; i < queue.length; i ++){
-        var acc = queue[i];
-
-        web_model.update_days_on_account_info(acc, function(status, result){
-            if(status != Response.OK){
-                log.error("其他錯誤 ...", status);
-            }
-
-        });
-    }
-    logger.debug("更新DB內可用帳號的days完成 ...");
 }
 
 function schedule_to_action(){
@@ -1709,20 +1679,17 @@ function schedule_to_action(){
     rule1.second = 0;
 
     var j1 = schedule.scheduleJob(rule1, function(){
-        logger.debug("每日0時檢查設備數<99的帳號是否登入正常，有被封號並更新設備數...");
+        log.info("每日0時確認帳號狀態並更新設備數 ...");
         // 取出可用的帳號
         web_model.get_all_valid_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
-                    log.info("無可用帳號，不需更新 ...");
-                    logger.debug("無可用帳號，不需更新 ...");
+                    log.info("已無可用帳號 ...");
                 }else{
                     log.error("get_all_valid_accounts error ...", status);
-                    logger.debug("get_all_valid_accounts error ...", status);
                 }
             }else{
                 log.info("已獲取可用的帳號，進行更新 ...");
-                logger.debug("已獲取可用的帳號，進行更新 ...");
                 var acc_list = [];
                 for(var i = 0; i < result.length; i ++){
                     // console.log(result[i].account);
@@ -1742,28 +1709,29 @@ function schedule_to_action(){
     rule2.second = 0;
 
     var j2 = schedule.scheduleJob(rule2, function(){
-        logger.debug("每日1時更新DB內可用帳號的本地session期限 ...");
+        log.info("每日1時更新帳號在本地端的session 天數 ...");
         // 取出可用的帳號
         web_model.get_all_valid_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
-                    log.info("無可用帳號，不需更新 ...");
-                    logger.debug("無可用帳號，不需更新 ...");
+                    log.info("已無可用帳號 ...");
                 }else{
                     log.error("get_all_valid_accounts error ...", status);
-                    logger.debug("get_all_valid_accounts error ...", status);
                 }
             }else{
                 log.info("已獲取可用的帳號，進行更新 ...");
-                logger.debug("已獲取可用的帳號，進行更新 ...");
-                var acc_list = [];
+                var acc_id_list = [];
                 for(var i = 0; i < result.length; i ++){
-                    // console.log(result[i].account);
-                    acc_list.push(result[i].account);
+                    // console.log(result[i].id);
+                    acc_id_list.push(result[i].id);
                 }
 
                 // 更新本地帳號session 期限
-                update_days_account_info(acc_list);
+                web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
+                    if(status != Response.OK){
+                        log.error("update_days_on_account_info_multi error ...", status);
+                    }
+                })
             }
         })
     });
@@ -1803,7 +1771,6 @@ function schedule_to_check_resign_queue(){
 
 setTimeout(function(){
     log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
-    logger.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
     schedule_to_check_resign_queue();
 }, 5000);
 

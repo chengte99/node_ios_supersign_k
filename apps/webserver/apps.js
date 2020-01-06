@@ -6,7 +6,6 @@ var upload = multer();
 var web_service = require("./web_service");
 var log = require("../../utils/log");
 var Response = require("../Response");
-var logger = require("../../utils/logger");
 
 var router = express.Router();
 router.use(function timelog(req, res, next){
@@ -156,11 +155,9 @@ router.post("/submit", function(req, res, next){
         plist2json.SHA1 = sha1;
         // plist2json.RESIGN_FORCE = true; // 強制重簽名開關
         log.warn(plist2json);
-        logger.debug(plist2json);
 
         web_service.resign_ipa(plist2json, function(ret){
             log.warn(ret);
-            logger.debug(ret);
 
             if(ret.status != Response.OK){
                 if(ret.status == Response.APP_IS_EXIST){
@@ -214,12 +211,10 @@ router.post("/action_sigh", function(req, res, next){
         dinfo = req.body;
 
         log.warn(dinfo);
-        logger.debug(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
 
         web_service.resign_ipa_via_api(dinfo, function(ret){
             log.warn(ret);
-            logger.debug(ret);
 
             if(ret.status != Response.OK){
                 log.error("resign_ipa_via_api error ...", ret.status);
@@ -247,11 +242,9 @@ router.post("/action_sigh", function(req, res, next){
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
 
             log.warn(dinfo);
-            logger.debug(dinfo);
 
             web_service.resign_ipa_via_api(dinfo, function(ret){
                 log.warn(ret);
-                logger.debug(ret);
 
                 if(ret.status != Response.OK){
                     log.error("resign_ipa_via_api error ...", ret.status);
@@ -285,12 +278,10 @@ router.post("/sigh/reset_sigh_record", function(req, res, next){
         dinfo = req.body;
 
         log.warn(dinfo);
-        logger.debug(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
 
         web_service.reset_sigh_record(dinfo, function(ret){
             log.warn(ret);
-            logger.debug(ret);
 
             if(ret.status != Response.OK){
                 log.error("reset_sigh_record error ...", ret.status);
@@ -318,11 +309,9 @@ router.post("/sigh/reset_sigh_record", function(req, res, next){
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
 
             log.warn(dinfo);
-            logger.debug(dinfo);
 
             web_service.reset_sigh_record(dinfo, function(ret){
                 log.warn(ret);
-                logger.debug(ret);
 
                 if(ret.status != Response.OK){
                     log.error("reset_sigh_record error ...", ret.status);
@@ -354,12 +343,10 @@ router.post("/sigh/clean_sigh", function(req, res, next){
         dinfo = req.body;
 
         log.warn(dinfo);
-        logger.debug(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
 
         web_service.clean_sigh_by_udid(dinfo, function(ret){
             log.warn(ret);
-            logger.debug(ret);
 
             if(ret.status != Response.OK){
                 log.error("reset_sigh_record error ...", ret.status);
@@ -387,11 +374,9 @@ router.post("/sigh/clean_sigh", function(req, res, next){
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
 
             log.warn(dinfo);
-            logger.debug(dinfo);
 
             web_service.clean_sigh_by_udid(dinfo, function(ret){
                 log.warn(ret);
-                logger.debug(ret);
 
                 if(ret.status != Response.OK){
                     log.error("reset_sigh_record error ...", ret.status);
@@ -518,12 +503,10 @@ router.post("/create_app", function(req, res, next){
         dinfo = req.body;
 
         log.warn(dinfo);
-        logger.debug(dinfo);
         // res.send({"status":"success", "dinfo": req.body})
 
         web_service.create_app_to_db(dinfo, function(ret){
             log.warn(ret);
-            logger.debug(ret);
 
             if(ret.status != Response.OK){
                 log.error("create_app_to_db error ...", ret.status);
@@ -549,12 +532,10 @@ router.post("/create_app", function(req, res, next){
             }
 
             log.warn(dinfo);
-            logger.debug(dinfo);
             // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
 
             web_service.create_app_to_db(dinfo, function(ret){
                 log.warn(ret);
-                logger.debug(ret);
 
                 if(ret.status != Response.OK){
                     log.error("create_app_to_db error ...", ret.status);

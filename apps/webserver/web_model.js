@@ -294,13 +294,13 @@ function update_device_count_on_account_info(acc, devices, ret_func){
     })
 }
 
-function update_days_on_account_info(acc, ret_func){
-    if(typeof(acc) != "string" || acc == ""){
+function update_days_on_account_info_multi(id_list, ret_func){
+    if(typeof(id_list) != "object"){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
 
-    mysql_supersign.update_days_on_account_info(acc, function(status, sql_result){
+    mysql_supersign.update_days_on_account_info_multi(id_list, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -441,7 +441,7 @@ module.exports = {
     get_timestamp_valid_by_sid: get_timestamp_valid_by_sid,
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
-    update_days_on_account_info: update_days_on_account_info,
+    update_days_on_account_info_multi: update_days_on_account_info_multi,
     update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_by_acc: disable_acc_by_acc,
     clear_record_by_sid: clear_record_by_sid,

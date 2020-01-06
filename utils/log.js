@@ -1,5 +1,7 @@
 var util = require('util');
 
+var logger = require("./logger");
+
 // log level
 var LEVEL = {
     ALL: Infinity,
@@ -89,16 +91,20 @@ function log(level, message) {
     );
     if (!coloredOutput) {
         process.stdout.write(output + '\n');
+        logger.debug(output);
     } else {
         switch (level) {
             case LEVEL.INFO:
                 process.stdout.write(COLOR.INFO + output + COLOR.RESET + '\n');
+                logger.debug(output);
                 break;
             case LEVEL.WARN:
                 process.stdout.write(COLOR.WARN + output + COLOR.RESET + '\n');
+                logger.debug(output);
                 break;
             case LEVEL.ERROR:
                 process.stdout.write(COLOR.ERROR + output + COLOR.RESET + '\n');
+                logger.debug(output);
                 break;
             default:
                 break;
