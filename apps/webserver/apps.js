@@ -480,6 +480,55 @@ router.post("/acc_login_return", function(req, res, next){
     }
 })
 
+// 透過執行ruby check2FA_bef_reg.rb 檢查註冊前帳號是否正常
+router.post("/check2FA_bef_reg_return", function(req, res, next){
+    // log.info(req.headers);
+    // log.info(req.query);
+    log.info(req.body);
+
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        var jsonStr;
+        jsonStr = req.body;
+        // res.send({"status":"success", "jsonStr": req.body})
+        web_service.check2FA_bef_reg_return(jsonStr, function(ret){
+            if(ret.status != Response.OK){
+                log.error("check2FA_bef_reg_return ...", ret.status);
+                res.send(ret);
+                return;
+            }
+    
+            res.send(ret);
+        });
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', jsonStr;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                jsonStr = JSON.parse(body);
+            } catch (err) {
+                jsonStr = null;
+            }
+            // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
+            web_service.check2FA_bef_reg_return(jsonStr, function(ret){
+                if(ret.status != Response.OK){
+                    log.error("check2FA_bef_reg_return ...", ret.status);
+                    res.send(ret);
+                    return;
+                }
+        
+                res.send(ret);
+            });
+        });
+    }
+})
+
 // 管理後台上傳app後，透過api post json傳過來給重簽名後台新增到DB
 /* 
    {

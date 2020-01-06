@@ -655,6 +655,53 @@ function acc_login_return(info, callback){
     }
 }
 
+function check2FA_bef_reg_return(info, callback){
+    if(typeof(info) != "object" || typeof(info.status) != "number" 
+    || typeof(info.msg) != "string" || typeof(info.acc) != "string"){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    if(info.status != Response.OK){
+        // 登入失敗，修改該帳號的DB紀錄，in_enable 設為 0
+        if(typeof(info.resultCode) != "number" || typeof(info.resultString) != "string"){
+            write_err(Response.INVAILD_PARAMS, callback);
+            return;
+        }
+        
+        var objStr = JSON.stringify({"resultCode": info.resultCode, "resultString": info.resultString});
+        web_model.disable_acc_by_acc(info.acc, objStr, function(status, result){
+            if(status != Response.OK){
+                write_err(status, callback);
+                return;
+            }
+    
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "帳號登入失敗，更新帳號紀錄 ...";
+            callback(ret);
+        })
+    }else{
+        // 登入成功
+        if(typeof(info.devices) != "number"){
+            write_err(Response.INVAILD_PARAMS, callback);
+            return;
+        }
+
+        web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
+            if(status != Response.OK){
+                write_err(status, callback);
+                return;
+            }
+    
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "帳號登入成功, 更新設備數 ...";
+            callback(ret);
+        });
+    }
+}
+
 // acc佇列
 var acc_queue_list = [];
 var acc_queue_index = 0;
@@ -1232,7 +1279,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
     }, 1000);
 }
 
-function ready_to_reg_apple(account_info, callback){
+function write_devices_txt(account_info, callback){
     // 將佇列內容儲存
     var queue = acc_req_queue_list[account_info.acc_id];
     // 將原有佇列刪除
@@ -1244,9 +1291,6 @@ function ready_to_reg_apple(account_info, callback){
         return;
     }
 
-    log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
-    log.info("当前" + account_info.account + " 该帐号注册佇列内的请求: ", queue);
-    
     // 加入帳號的md5到表內
     account_info.acc_md5 = utils.md5(account_info.account);
 
@@ -1273,7 +1317,45 @@ function ready_to_reg_apple(account_info, callback){
         // log.info("udid列表寫入錯誤。");
         write_err(Response.WRITESTREAM_ERROR, callback);
         return;
-    });  
+    });
+}
+
+function ready_to_reg_apple(account_info, callback){
+    // 將佇列內容儲存
+    var queue = acc_req_queue_list[account_info.acc_id];
+    // // 將原有佇列刪除
+    // acc_req_queue_list[account_info.acc_id] = null;
+    // delete acc_req_queue_list[account_info.acc_id];
+    
+    if(!queue || queue.length <= 0){
+        write_err(Response.RESIGN_QUEUE_IS_EMPTY, callback);
+        return;
+    }
+
+    log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
+    log.info("当前" + account_info.account + " 该帐号注册佇列内的请求: ", queue);
+
+    var sh = "ruby ios_sign/check2FA_bef_reg.rb \"%s\" ";
+    var sh_cmd = util.format(sh, account_info.account);
+    log.info(sh_cmd);
+
+    //运行spaceship 脚本
+    exec(sh_cmd, function(error, stdout, stderr){
+        // if(error){
+        //     log.info('error: ' + error);
+        // }
+
+        // if(stderr){
+        //     log.info('stderr: ' + stderr);
+        // }
+
+        // log.info('stdout: ' + stdout);
+    });
+
+    var ret = {};
+    ret.status = Response.OK;
+    ret.msg = "已執行check2FA_bef_reg.rb 驗證帳號 ...";
+    callback(ret);
 }
 
 // udid請求暫存區，避免短時間重複請求
@@ -1756,6 +1838,8 @@ function schedule_to_check_resign_queue(){
                 // log.info("" + account_info.account + " 帐号注册伫列为空 ...");
             }
         }
+
+        // 收到已執行驗證帳號的通知後，setinterval 判斷是否正常而開始跑流程....
         
         acc_queue_index ++;
         if(acc_queue_index >= acc_queue_list.length){
