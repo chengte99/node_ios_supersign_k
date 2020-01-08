@@ -431,7 +431,17 @@ router.post("/test_post_api", upload.array(), function(req, res, next){
     }
 })
 
-// 透過執行ruby check2FA_valids.rb or test_reg_to_apple.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
+/*
+info = {
+    "status" => 1 or -104,
+    "msg" => "#{acc} login success(failed) ...",
+    "acc" => "#{acc}",
+    "devices" => devices.count,
+    "resultCode" => myHash['resultCode'],
+    "resultString" => myHash['resultString']
+}
+*/
+// 透過執行ruby check2FA_valids.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
 router.post("/acc_login_return", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
@@ -480,8 +490,18 @@ router.post("/acc_login_return", function(req, res, next){
     }
 })
 
-// 透過執行ruby check2FA_bef_reg.rb 檢查註冊前帳號是否正常
-router.post("/check2FA_bef_reg_return", function(req, res, next){
+/*
+info = {
+    "status" => 1 or -104,
+    "msg" => "#{acc} login success(failed) ...",
+    "acc" => "#{acc}",
+    "devices" => devices.count,
+    "resultCode" => myHash['resultCode'],
+    "resultString" => myHash['resultString']
+}
+*/
+// 透過執行ruby ret_to_acc.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
+router.post("/reg_to_acc_return", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
     log.info(req.body);
@@ -492,9 +512,9 @@ router.post("/check2FA_bef_reg_return", function(req, res, next){
         var jsonStr;
         jsonStr = req.body;
         // res.send({"status":"success", "jsonStr": req.body})
-        web_service.check2FA_bef_reg_return(jsonStr, function(ret){
+        web_service.reg_to_acc_return(jsonStr, function(ret){
             if(ret.status != Response.OK){
-                log.error("check2FA_bef_reg_return ...", ret.status);
+                log.error("reg_to_acc_return ...", ret.status);
                 res.send(ret);
                 return;
             }
@@ -516,9 +536,9 @@ router.post("/check2FA_bef_reg_return", function(req, res, next){
                 jsonStr = null;
             }
             // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
-            web_service.check2FA_bef_reg_return(jsonStr, function(ret){
+            web_service.reg_to_acc_return(jsonStr, function(ret){
                 if(ret.status != Response.OK){
-                    log.error("check2FA_bef_reg_return ...", ret.status);
+                    log.error("reg_to_acc_return ...", ret.status);
                     res.send(ret);
                     return;
                 }

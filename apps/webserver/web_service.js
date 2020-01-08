@@ -71,6 +71,9 @@ function write_err(status, ret_func){
         case Response.REQ_REPEAT:
             ret.msg = "短時間內請求重複 ...";
             break;
+        case Response.MOPROVISION_DOWNLOAD_FAILED:
+            ret.msg = "描述文件下載錯誤 ...";
+            break;
     }
     ret_func(ret);
 }
@@ -622,7 +625,10 @@ function acc_login_return(info, callback){
             return;
         }
         
-        var objStr = JSON.stringify({"resultCode": info.resultCode, "resultString": info.resultString});
+        var obj = {"resultCode": info.resultCode, "resultString": info.resultString};
+        log.info("acc_login_return 帳號登入失敗", obj);
+        
+        var objStr = JSON.stringify(obj);
         web_model.disable_acc_by_acc(info.acc, objStr, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
@@ -641,6 +647,8 @@ function acc_login_return(info, callback){
             return;
         }
 
+        log.info("acc_login_return 帳號登入正常");
+        
         web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
@@ -655,7 +663,7 @@ function acc_login_return(info, callback){
     }
 }
 
-function check2FA_bef_reg_return(info, callback){
+function reg_to_acc_return(info, callback){
     if(typeof(info) != "object" || typeof(info.status) != "number" 
     || typeof(info.msg) != "string" || typeof(info.acc) != "string"){
         write_err(Response.INVAILD_PARAMS, callback);
@@ -664,12 +672,19 @@ function check2FA_bef_reg_return(info, callback){
 
     if(info.status != Response.OK){
         // 登入失敗，修改該帳號的DB紀錄，in_enable 設為 0
+
+        // global_reg_to_acc 設為-1
+        global_reg_to_acc = -1;
+
         if(typeof(info.resultCode) != "number" || typeof(info.resultString) != "string"){
             write_err(Response.INVAILD_PARAMS, callback);
             return;
         }
         
-        var objStr = JSON.stringify({"resultCode": info.resultCode, "resultString": info.resultString});
+        var obj = {"resultCode": info.resultCode, "resultString": info.resultString};
+        log.info("reg_to_acc_return 帳號登入失敗", obj);
+        
+        var objStr = JSON.stringify(obj);
         web_model.disable_acc_by_acc(info.acc, objStr, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
@@ -683,10 +698,16 @@ function check2FA_bef_reg_return(info, callback){
         })
     }else{
         // 登入成功
+
+        // global_reg_to_acc 設為1
+        global_reg_to_acc = 1;
+
         if(typeof(info.devices) != "number"){
             write_err(Response.INVAILD_PARAMS, callback);
             return;
         }
+
+        log.info("reg_to_acc_return 帳號登入正常");
 
         web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
             if(status != Response.OK){
@@ -1224,16 +1245,11 @@ function sort_acc_req_queue_by_app(account_info, acc_req_queue, mobileprovision_
     start_resign_on_app_queue(account_info, mobileprovision_path, callback);
 }
 
-function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
-    if(file_path == null || file_path == ""){
-        write_err(Response.INVAILD_PARAMS, callback);
-        return;
-    }
-
+function reg_to_acc(account_info, callback){
     //進行重簽名，並部署到file server
-    log.info("正在对 " + account_info.account + " 帐号注册udid ...");
+    log.info("執行reg_to_acc.rb，对 " + account_info.account + " 帐号注册udid ...");
 
-    var sh = "ruby ios_sign/test_reg_to_apple.rb \"%s\" \"%s\" \"%s\" \"true\" ";
+    var sh = "ruby ios_sign/reg_to_acc.rb \"%s\" \"%s\" \"%s\" \"true\" ";
     var sh_cmd = util.format(sh, account_info.account, account_info.bundle_id, account_info.acc_md5);
     log.info(sh_cmd);
 
@@ -1250,19 +1266,88 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
         // log.info('stdout: ' + stdout);
     });
 
-    //每秒检查provisioning file是否下载完毕
-    var sec = 0;
-    var timer = setInterval(function(){
-        log.info("in setInterval ...", sec);
-        sec ++;
+    var ret = {};
+    ret.status = Response.OK;
+    ret.msg = "已執行reg_to_acc.rb 註冊udid中 ...";
+    callback(ret);
+}
 
-        var mobileprovision_path = __dirname + "/../../ios_sign/account/" + account_info.acc_md5 + ".mobileprovision";
-        fs.access(mobileprovision_path, fs.constants.F_OK, function(err){
-            if(err){
-                log.info("正对 " + account_info.account + " 帐号注册udid ...");
-            }else{
-                log.info("已完成 " + account_info.account + " 帐号的udid注册并下载.mobileprovision ...");
-                clearInterval(timer);
+var global_reg_to_acc = 0; // 0->初始值，1->正常，-1->不正常
+
+function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
+    if(file_path == null || file_path == ""){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    reg_to_acc(account_info, function(ret){
+        if(ret.status != Response.OK){
+            // 非Response.OK
+            write_err(ret.status, callback);
+            return;
+        }
+
+        // Response.OK
+        var b_interval = setInterval(function(){
+            if(global_reg_to_acc == 1){
+                // 檢查正常，開始簽名流程
+                clearInterval(b_interval);
+
+                var mobileprovision_path = __dirname + "/../../ios_sign/account/" + account_info.acc_md5 + ".mobileprovision";
+                var c_interval = setInterval(function(){
+                    var fail_counts = 0;
+                    fs.access(mobileprovision_path, fs.constants.F_OK, function(err){
+                        if(err){
+                            if(fail_counts == 3){
+                                // 失敗錯誤達3次
+                                log.warn(".mobileprovision 不存在 fail_counts 已達3次 ...");
+
+                                clearInterval(c_interval);
+
+                                // 將設備批次文件刪除
+                                fs.unlink(file_path, function(err){
+                                    if(err){
+                                        throw err;
+                                    }
+        
+                                    log.info("删除" + file_path);
+                                });
+
+                                write_err(Response.MOPROVISION_DOWNLOAD_FAILED, callback);
+                                return;
+                            }
+
+                            log.info(account_info.acc_md5 + ".mobileprovision 不存在 ...");
+                            fail_counts ++;
+                        }else{
+                            clearInterval(c_interval);
+                            log.info(account_info.acc_md5 + ".mobileprovision 已下載至本地端 ...");
+                            log.info(mobileprovision_path);
+    
+                            // 將設備批次文件刪除
+                            fs.unlink(file_path, function(err){
+                                if(err){
+                                    throw err;
+                                }
+    
+                                log.info("删除" + file_path);
+                            });
+    
+                            sort_acc_req_queue_by_app(account_info, acc_req_queue, mobileprovision_path, callback);
+                        }
+                    });
+                }, 1000);
+
+            }else if (global_reg_to_acc == -1){
+                // 檢查不正常，該帳號不可用
+                clearInterval(b_interval);
+
+                log.error("帳號異常 error ...", account_info.account);
+                log.warn(account_info);
+                log.warn(acc_req_queue);
+                // 將acc_queue_list內該帳號移除
+                acc_queue_list[acc_queue_index] = null;
+                acc_queue_list.splice(acc_queue_index, 1);
 
                 // 將設備批次文件刪除
                 fs.unlink(file_path, function(err){
@@ -1270,26 +1355,34 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                         throw err;
                     }
 
-                    // log.info("设备批次文件已删除 ...");
+                    log.info("删除" + file_path);
                 });
+    
+                reinsert_to_new_acc_queue(acc_req_queue, function(ret){
+                    if(ret.status != Response.OK){
+                        log.error("reinsert_to_new_acc_queue error ...", ret.status);
+                        write_err(status, callback);
+                        return;
+                    }
 
-                sort_acc_req_queue_by_app(account_info, acc_req_queue, mobileprovision_path, callback);
+                    callback(ret);
+                });
             }
-        });
-    }, 1000);
+        }, 1000);
+    });
 }
 
-function write_devices_txt(account_info, callback){
-    // 將佇列內容儲存
-    var queue = acc_req_queue_list[account_info.acc_id];
-    // 將原有佇列刪除
-    acc_req_queue_list[account_info.acc_id] = null;
-    delete acc_req_queue_list[account_info.acc_id];
-    
-    if(!queue || queue.length <= 0){
+function ready_to_reg_apple(account_info, callback){
+    if(!acc_req_queue_list[account_info.acc_id] || acc_req_queue_list[account_info.acc_id].length <= 0){
         write_err(Response.RESIGN_QUEUE_IS_EMPTY, callback);
         return;
     }
+
+    // 將佇列內容另存
+    var queue = acc_req_queue_list[account_info.acc_id];
+    // 將原有佇列內容刪除
+    acc_req_queue_list[account_info.acc_id] = null;
+    delete acc_req_queue_list[account_info.acc_id];
 
     // 加入帳號的md5到表內
     account_info.acc_md5 = utils.md5(account_info.account);
@@ -1318,44 +1411,6 @@ function write_devices_txt(account_info, callback){
         write_err(Response.WRITESTREAM_ERROR, callback);
         return;
     });
-}
-
-function ready_to_reg_apple(account_info, callback){
-    // 將佇列內容儲存
-    var queue = acc_req_queue_list[account_info.acc_id];
-    // // 將原有佇列刪除
-    // acc_req_queue_list[account_info.acc_id] = null;
-    // delete acc_req_queue_list[account_info.acc_id];
-    
-    if(!queue || queue.length <= 0){
-        write_err(Response.RESIGN_QUEUE_IS_EMPTY, callback);
-        return;
-    }
-
-    log.info("当前为帐号注册伫列: " + account_info.account + "，acc_id = " + account_info.acc_id);
-    log.info("当前" + account_info.account + " 该帐号注册佇列内的请求: ", queue);
-
-    var sh = "ruby ios_sign/check2FA_bef_reg.rb \"%s\" ";
-    var sh_cmd = util.format(sh, account_info.account);
-    log.info(sh_cmd);
-
-    //运行spaceship 脚本
-    exec(sh_cmd, function(error, stdout, stderr){
-        // if(error){
-        //     log.info('error: ' + error);
-        // }
-
-        // if(stderr){
-        //     log.info('stderr: ' + stderr);
-        // }
-
-        // log.info('stdout: ' + stdout);
-    });
-
-    var ret = {};
-    ret.status = Response.OK;
-    ret.msg = "已執行check2FA_bef_reg.rb 驗證帳號 ...";
-    callback(ret);
 }
 
 // udid請求暫存區，避免短時間重複請求
@@ -1819,6 +1874,88 @@ function schedule_to_action(){
     });
 }
 
+function reinsert_to_new_acc_queue(device_queue, callback){
+    log.info("待轉移佇列： ", device_queue);
+
+    web_model.get_valid_account(function(status, result){
+        if(status != Response.OK){
+            write_err(status, callback);
+            return;
+        }
+
+        var new_acc_info = {
+            acc_id: result.id,
+            account: result.account,
+            cert_name: result.cert_name,
+            expired: result.expired,
+            bundle_id: result.bundle_id,
+        }
+
+        log.info("取得帳號： ", new_acc_info.account);
+
+        // 確認該帳號是否已在acc_queue_list 內
+        var acc_queue_is_exist = false;
+        for(var i = 0; i < acc_queue_list.length; i ++){
+            var id = acc_queue_list[i].acc_id;
+            if(id == new_acc_info.acc_id){
+                acc_queue_is_exist = true;
+            }
+        }
+        // 若無則加入acc_queue_list
+        if(!acc_queue_is_exist){
+            acc_queue_list.push(new_acc_info);
+        }
+
+        if(!acc_req_queue_list[new_acc_info.acc_id]){
+            acc_req_queue_list[new_acc_info.acc_id] = [];
+        }
+
+        // 計算剩餘可用設備數
+        var insert_index = 0;
+        var remain_number = 99 - result.devices;
+        for(var i = 0; i < remain_number; i ++){
+            if(i < device_queue.length){
+                // 小於device_queue.length
+
+                var acc_req_queue_is_exist = false;
+                var req_queue = acc_req_queue_list[new_acc_info.acc_id];
+                for(var i = 0; i < req_queue.length; i ++){
+                    var item = req_queue[i];
+                    if(item.udid == device_queue[i].udid){
+                        // 已經在該app queue內
+                        acc_req_queue_is_exist = true;
+                    }
+                }
+
+                if(!acc_req_queue_is_exist){
+                    req_queue.push(device_queue[i]);
+                }
+                insert_index = i + 1;
+            }
+        }
+
+        // 計算已加入到新帳號的數量，若小於device_queue.length 則從0開始去掉該數量
+        if(insert_index < device_queue.length){
+            device_queue.splice(0, insert_index);
+
+            setTimeout(function(){
+                log.info("該帳號可用設備數已滿，仍有未轉移設備資訊，0.5s後重新抓取");
+                reinsert_to_new_acc_queue(device_queue, callback);
+            }, 500);
+        }else{
+            // 非小於則為大於等於，均已加入新帳號佇列，將該device_queue 設為null
+            device_queue = null;
+
+            log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
+            var ret = {};
+            ret.status = Response.OK;
+            ret.msg = "待轉移佇列已全數轉移至新帳號佇列 ...";
+            callback(ret);
+        }
+    })
+    
+}
+
 function schedule_to_check_resign_queue(){
     // 判斷是否有acc佇列
     if(acc_queue_list.length <= 0){
@@ -1836,16 +1973,15 @@ function schedule_to_check_resign_queue(){
         if(ret.status != Response.OK){
             if(ret.status == Response.RESIGN_QUEUE_IS_EMPTY){
                 // log.info("" + account_info.account + " 帐号注册伫列为空 ...");
+            }else{
+                log.error("ready_to_reg_apple error ...", ret.status);
             }
         }
 
-        // 收到已執行驗證帳號的通知後，setinterval 判斷是否正常而開始跑流程....
-        
         acc_queue_index ++;
         if(acc_queue_index >= acc_queue_list.length){
             acc_queue_index = 0;
         }
-
         // log.info("3 秒后往下一个帐号注册伫列 ...");
         setTimeout(function(){
             schedule_to_check_resign_queue();
@@ -1866,6 +2002,7 @@ module.exports = {
     resign_ipa: resign_ipa,
     get_downloadApp_url: get_downloadApp_url,
     acc_login_return: acc_login_return,
+    reg_to_acc_return: reg_to_acc_return,
 
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,
