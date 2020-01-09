@@ -57,10 +57,15 @@ var server_config = {
 
     rundown_config: {
         api_with_system: true,
-        api_with_system_config: {
+        api_success_with_system_config: {
             hostname: "api-518.webpxy.info",
             port: 443,
             url: "/api/v1/request/sign_complete",
+        },
+        api_fail_with_system_config: {
+            hostname: "api-518.webpxy.info",
+            port: 443,
+            url: "/api/v1/request/sign_fail",
         },
         appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
     },

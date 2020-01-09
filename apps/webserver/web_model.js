@@ -15,7 +15,7 @@ function get_app_info_by_sha1(sha1, ret_func){
         }
 
         if(sql_result.length <= 0){
-            ret_func(Response.DB_SEARCH_EMPTY, null);
+            ret_func(Response.DB_SEARCH_EMPTY_OF_APP, null);
             return;
         }
 
@@ -36,7 +36,7 @@ function get_app_info_by_sitecode(site_code, ret_func){
         }
 
         if(sql_result.length <= 0){
-            ret_func(Response.DB_SEARCH_EMPTY, null);
+            ret_func(Response.DB_SEARCH_EMPTY_OF_APP, null);
             return;
         }
 
@@ -374,8 +374,8 @@ function update_app_to_app_info(app_info, ret_func){
     });
 }
 
-function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, ret_func){
-    if(typeof(udid) != "string" || udid == "" || typeof(time_valid) != "number" || typeof(need_update_time) != "boolean"){
+function update_device_info_by_udid(udid, jsonstr, charge_status, ret_func){
+    if(typeof(udid) != "string" || udid == "" || typeof(charge_status) != "number"){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
@@ -390,7 +390,7 @@ function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time,
             ret_func(status, null);
         });
     }else{
-        mysql_supersign.update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, function(status, sql_result){
+        mysql_supersign.update_device_info_by_udid(udid, jsonstr, charge_status, function(status, sql_result){
             if(status != Response.OK){
                 ret_func(status, null);
                 return;
@@ -421,6 +421,43 @@ function get_timestamp_valid_by_sid(sid, ret_func){
     })
 }
 
+function update_acc_reg_content(acc_id, device_ids, ret_func){
+    if(typeof(acc_id) != "number" || typeof(device_ids) != "object"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.get_reg_content_by_id(acc_id, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        if(sql_result.length <= 0){
+            ret_func(Response.DB_SEARCH_EMPTY, null);
+            return;
+        }
+            
+        var reg_content = sql_result[0].reg_content;
+        var reg_content_json = JSON.parse(reg_content);
+        for(var i = 0; i < device_ids.length; i ++){
+            var id = device_ids[i];
+            if(reg_content_json.udids.indexOf(id) == -1){
+                reg_content_json.udids.push(id);
+            }
+        }
+        var reg_content_str = JSON.stringify(reg_content_json);
+        mysql_supersign.update_reg_content_by_id(acc_id, reg_content_str, function(status, sql_result){
+            if(status != Response.OK){
+                ret_func(status, null);
+                return;
+            }
+    
+            ret_func(status, null);
+        })
+    })
+}
+
 module.exports = {
     get_app_info_by_sha1: get_app_info_by_sha1,
     get_app_info_by_sitecode: get_app_info_by_sitecode,
@@ -445,4 +482,5 @@ module.exports = {
     update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_by_acc: disable_acc_by_acc,
     clear_record_by_sid: clear_record_by_sid,
+    update_acc_reg_content: update_acc_reg_content,
 }
