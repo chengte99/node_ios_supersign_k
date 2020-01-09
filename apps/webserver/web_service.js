@@ -289,7 +289,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                 var err_ret = {};
                 err_ret.status = status;
                 err_ret.msg = "get_uinfo_by_udid error ...";
-                err_ret.udid_queue = ret.app_req_queue;
+                err_ret.udid_list = ret.app_req_queue;
                 err_ret.site_code = ret.site_code;
                 callback(err_ret);
                 return;
@@ -336,7 +336,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                         var err_ret = {};
                         err_ret.status = status;
                         err_ret.msg = "update_device_info_by_udid error ...";
-                        err_ret.udid_queue = ret.app_req_queue;
+                        err_ret.udid_list = ret.app_req_queue;
                         err_ret.site_code = ret.site_code;
                         callback(err_ret);
                         return;
@@ -376,7 +376,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
                         var err_ret = {};
                         err_ret.status = status;
                         err_ret.msg = "update_device_info_by_udid error ...";
-                        err_ret.udid_queue = ret.app_req_queue;
+                        err_ret.udid_list = ret.app_req_queue;
                         err_ret.site_code = ret.site_code;
                         callback(err_ret);
                         return;
@@ -409,7 +409,7 @@ function update_all_info(ret, callback){
             var err_ret = {};
             err_ret.status = status;
             err_ret.msg = "add_new_resign_info error ...";
-            err_ret.udid_queue = ret.app_req_queue;
+            err_ret.udid_list = ret.app_req_queue;
             err_ret.site_code = ret.site_code;
             callback(err_ret);
             return;
@@ -424,7 +424,7 @@ function update_all_info(ret, callback){
                 var err_ret = {};
                 err_ret.status = status;
                 err_ret.msg = "update_acc_reg_content error ...";
-                err_ret.udid_queue = ret.app_req_queue;
+                err_ret.udid_list = ret.app_req_queue;
                 err_ret.site_code = ret.site_code;
                 callback(err_ret);
                 return;
@@ -469,7 +469,7 @@ function ready_to_sigh(ret, callback){
                     var err_ret = {};
                     err_ret.status = Response.RESIGN_COMPLETE_TXT_NOT_EXIST;
                     err_ret.msg = "重簽名完成.txt 不存在 簽名異常 ...";
-                    err_ret.udid_queue = ret.app_req_queue;
+                    err_ret.udid_list = ret.app_req_queue;
                     err_ret.site_code = ret.site_code;
                     callback(err_ret);
                     return;
@@ -1249,7 +1249,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                 ret = {
                     status: 
                     msg:
-                    udid_queue: 
+                    udid_list: 
                     site_code: 
                 }
                 */
@@ -1260,19 +1260,19 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     log.warn(json_data);
     
                     // post到管理後台
-                    // https://api-518.webpxy.info/api/v2/request/sign_fail
-                    var api_with_system_config = server_config.rundown_config.api_fail_with_system_config;
+                    // https://api-518.webpxy.info/api/v2/request/sign_notify
+                    var api_system_config = server_config.rundown_config.api_system_config;
                     var hostname, path;
                     if(global_notify_url == ""){
-                        hostname = api_with_system_config.hostname;
-                        path = api_with_system_config.url;
+                        hostname = api_system_config.hostname;
+                        path = api_system_config.url;
                     }else{
                         var n_url = new URL(global_notify_url);
                         hostname = n_url.hostname;
                         path = n_url.pathname;
                     }
                     
-                    https.https_post(hostname, api_with_system_config.port, path, null, json_data, function(is_ok, data){
+                    https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("管理后台incoming_msg.statusCode = 200");
@@ -1280,8 +1280,8 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     })
                 }
 
-                // 清掉udid_queue內的快取區紀錄
-                remove_udid_from_cache_area_by_array(ret.udid_queue);
+                // 清掉udid_list內的快取區紀錄
+                remove_udid_from_cache_area_by_array(ret.udid_list);
             }
         }else{
             // 判斷是否與內部組對接
@@ -1295,7 +1295,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
 
                     // log.info(result.devices);
                     var data = {
-                        udid_list: ret.app_req_queue,
+                        udid_list: ret.udid_list,
                         // file_path: ret.path,
                         ipa_path: ret.ipa_path,
                         app_name: ret.app_name,
@@ -1309,20 +1309,20 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     log.warn(json_data);
     
                     // post到管理後台
-                    // https://api-518.webpxy.info/api/v2/request/sign_complete
+                    // https://api-518.webpxy.info/api/v2/request/sign_notify
     
-                    var api_with_system_config = server_config.rundown_config.api_success_with_system_config;
+                    var api_system_config = server_config.rundown_config.api_system_config;
                     var hostname, path;
                     if(global_notify_url == ""){
-                        hostname = api_with_system_config.hostname;
-                        path = api_with_system_config.url;
+                        hostname = api_system_config.hostname;
+                        path = api_system_config.url;
                     }else{
                         var n_url = new URL(global_notify_url);
                         hostname = n_url.hostname;
                         path = n_url.pathname;
                     }
                     
-                    https.https_post(hostname, api_with_system_config.port, path, null, json_data, function(is_ok, data){
+                    https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("管理后台incoming_msg.statusCode = 200");
