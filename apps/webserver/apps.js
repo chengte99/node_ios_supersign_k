@@ -622,6 +622,8 @@ router.post("/create_app", function(req, res, next){
 /* 
    {
        "sid": "j2oi3jj12diom3f",
+       "radio": 4G(or WIFI),
+       "carrier": 中國移動,
        "timestamp": 123912938
    }
 */
