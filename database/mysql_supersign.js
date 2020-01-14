@@ -138,6 +138,34 @@ function get_devices_by_id(id, callback){
     })
 }
 
+function get_reg_content_by_id(id, callback){
+    var sql = "select reg_content from account_info where id = %d";
+    var sql_cmd = util.format(sql, id);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, sql_result);
+    })
+}
+
+function update_reg_content_by_id(id, reg_content, callback){
+    var sql = "update account_info set reg_content = \'%s\' where id = %d ";
+    var sql_cmd = util.format(sql, reg_content, id);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
 function get_valid_account(callback){
     var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0 limit 1";
     // var sql_cmd = util.format(sql, udid);
@@ -372,17 +400,10 @@ function clean_jsonstr_by_udid(udid, callback){
     callback(Response.OK, null);
 }
 
-function update_device_info_by_udid(udid, jsonstr, time_valid, need_update_time, callback){
-    var sql, sql_cmd;
-    if(need_update_time){
-        sql = "update device_info set jsonstr = \'%s\', time_valid = %d where udid = \"%s\" ";
-        sql_cmd = util.format(sql, jsonstr, time_valid, udid);
-    }else{
-        sql = "update device_info set jsonstr = \'%s\' where udid = \"%s\" ";
-        sql_cmd = util.format(sql, jsonstr, udid);
-    }
+function update_device_info_by_udid(udid, jsonstr, charge_status, callback){
+    var sql = "update device_info set jsonstr = \'%s\', charge_status = %d where udid = \"%s\" ";
+    var sql_cmd = util.format(sql, jsonstr, charge_status, udid);
     log.info(sql_cmd);
-
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
             callback(Response.SYS_ERROR, null);
@@ -434,4 +455,6 @@ module.exports = {
     update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_and_record_err_by_acc: disable_acc_and_record_err_by_acc,
     clear_record_by_sid: clear_record_by_sid,
+    get_reg_content_by_id: get_reg_content_by_id,
+    update_reg_content_by_id: update_reg_content_by_id,
 }

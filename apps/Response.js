@@ -17,6 +17,10 @@ var Response = {
     LOCAL_MKDIR_FAILED: -112, //本地創建目錄失敗
     NO_MAX_DEVICES_ACCOUNT: -113, // 無設備數達100的app帳號
     REQ_REPEAT: -114, // 短時間內請求重複
+
+    MOPROVISION_DOWNLOAD_FAILED: -115, // mobileprovision 下載異常
+    DB_SEARCH_EMPTY_OF_APP: -116, // db找不到app資料
+    RESIGN_COMPLETE_TXT_NOT_EXIST: -117, // 重簽名完成.txt 不存在 簽名異常
 };
 
 module.exports = Response;

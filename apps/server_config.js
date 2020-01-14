@@ -50,6 +50,10 @@ var server_config = {
         password: "8yxRPG7C5k"
     },
 
+    local_mac_config: {
+        acc_group: 0,
+    },
+
     appfile_config: {
         appfile_download_scheme: "itms-services://?action=download-manifest&url=",
         appfile_domain: "https://apple.bckappgs.info/", // kritars 自己測試用的ftp server
@@ -57,10 +61,10 @@ var server_config = {
 
     rundown_config: {
         api_with_system: true,
-        api_with_system_config: {
+        api_system_config: {
             hostname: "api-518.webpxy.info",
             port: 443,
-            url: "/api/v1/request/sign_complete",
+            url: "/api/v1/request/sign_notify",
         },
         appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
     },

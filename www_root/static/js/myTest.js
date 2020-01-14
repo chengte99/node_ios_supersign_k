@@ -151,7 +151,10 @@ $(function() {
     // 顯示剪貼簿授權提示框
     $('.copy_coupon').on("click", function() {
         window.Clipboard.copy(sid);
-        $('html,body').animate({scrollTop:0}, 333);
+        // $('html,body').animate({scrollTop:0}, 333);
+        $(".mybody").css({
+            'position': 'relative',
+        });
         $('.maskDark').hide();
         downloadStep(stepNum);
         console.log("begin copy ...");
@@ -275,6 +278,9 @@ function describeFileStep() {
     });
 }
 function showMaskStep(){
+    $(".mybody").css({
+        'position': 'fixed',
+    });
     $('.maskDark').show();
     $('.step1').hide();
     $('.myloading').show();

@@ -431,7 +431,17 @@ router.post("/test_post_api", upload.array(), function(req, res, next){
     }
 })
 
-// 透過執行ruby check2FA_valids.rb or test_reg_to_apple.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
+/*
+info = {
+    "status" => 1 or -104,
+    "msg" => "#{acc} login success(failed) ...",
+    "acc" => "#{acc}",
+    "devices" => devices.count,
+    "resultCode" => myHash['resultCode'],
+    "resultString" => myHash['resultString']
+}
+*/
+// 透過執行ruby check2FA_valids.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
 router.post("/acc_login_return", function(req, res, next){
     // log.info(req.headers);
     // log.info(req.query);
@@ -470,6 +480,65 @@ router.post("/acc_login_return", function(req, res, next){
             web_service.acc_login_return(jsonStr, function(ret){
                 if(ret.status != Response.OK){
                     log.error("acc_login_return ...", ret.status);
+                    res.send(ret);
+                    return;
+                }
+        
+                res.send(ret);
+            });
+        });
+    }
+})
+
+/*
+info = {
+    "status" => 1 or -104,
+    "msg" => "#{acc} login success(failed) ...",
+    "acc" => "#{acc}",
+    "devices" => devices.count,
+    "resultCode" => myHash['resultCode'],
+    "resultString" => myHash['resultString']
+}
+*/
+// 透過執行ruby ret_to_acc.rb 獲取是否正確登入蘋果開發者中心的狀態並更新設備數
+router.post("/reg_to_acc_return", function(req, res, next){
+    // log.info(req.headers);
+    // log.info(req.query);
+    log.info(req.body);
+
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        var jsonStr;
+        jsonStr = req.body;
+        // res.send({"status":"success", "jsonStr": req.body})
+        web_service.reg_to_acc_return(jsonStr, function(ret){
+            if(ret.status != Response.OK){
+                log.error("reg_to_acc_return ...", ret.status);
+                res.send(ret);
+                return;
+            }
+    
+            res.send(ret);
+        });
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', jsonStr;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                jsonStr = JSON.parse(body);
+            } catch (err) {
+                jsonStr = null;
+            }
+            // jsonStr ? res.send({"status":"success", "jsonStr": jsonStr}) : res.send({"status":"error"});
+            web_service.reg_to_acc_return(jsonStr, function(ret){
+                if(ret.status != Response.OK){
+                    log.error("reg_to_acc_return ...", ret.status);
                     res.send(ret);
                     return;
                 }
@@ -553,6 +622,8 @@ router.post("/create_app", function(req, res, next){
 /* 
    {
        "sid": "j2oi3jj12diom3f",
+       "radio": 4G(or WIFI),
+       "carrier": 中國移動,
        "timestamp": 123912938
    }
 */
