@@ -31,14 +31,17 @@ if(m_ver == 12){
     console.log("需要兩次");
 }
 
-// if(str_1.match(pattern_1)){
-//     console.log("str_1 符合格式");
-// }else{
-//     console.log("str_1 不符合格式");
-// }
+if(str_1.match(pattern_1)){
+    console.log("str_1 符合格式");
+}else{
+    console.log("str_1 不符合格式");
+}
 
-// if(str_2.match(pattern_2)){
-//     console.log("str_2 符合格式");
-// }else{
-//     console.log("str_2 不符合格式");
-// }
+console.log(pattern_2);
+console.log(/^[A-Za-z0-9]{40}$/.test(str_2));
+
+if(pattern_2.test(str_2)){
+    console.log("str_2 包含此格式");
+}else{
+    console.log("str_2 不包含此格式");
+}

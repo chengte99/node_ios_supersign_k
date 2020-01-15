@@ -1295,7 +1295,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
 
                     // log.info(result.devices);
                     var data = {
-                        udid_list: ret.udid_list,
+                        udid_list: ret.app_req_queue,
                         // file_path: ret.path,
                         ipa_path: ret.ipa_path,
                         app_name: ret.app_name,
