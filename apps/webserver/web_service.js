@@ -1323,6 +1323,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
 
                     // log.info(result.devices);
                     var data = {
+                        status: Response.OK,
                         udid_list: ret.app_req_queue,
                         // file_path: ret.path,
                         ipa_path: ret.ipa_path,
