@@ -294,6 +294,22 @@ function update_device_count_on_account_info(acc, devices, ret_func){
     })
 }
 
+function update_device_count_and_disable_account(acc, devices, ret_func){
+    if(typeof(acc) != "string" || acc == "" || typeof(devices) != "number"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    mysql_supersign.update_device_count_and_disable_account(acc, devices, function(status, sql_result){
+        if(status != Response.OK){
+            ret_func(status, null);
+            return;
+        }
+
+        ret_func(status, null);
+    })
+}
+
 function update_days_on_account_info_multi(id_list, ret_func){
     if(typeof(id_list) != "object"){
         ret_func(Response.INVAILD_PARAMS, null);
@@ -471,6 +487,7 @@ module.exports = {
     clean_sigh_by_udids_multi: clean_sigh_by_udids_multi,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
+    update_device_count_and_disable_account: update_device_count_and_disable_account,
     add_new_resign_info: add_new_resign_info,
     add_new_to_app_info: add_new_to_app_info,
     update_app_to_app_info: update_app_to_app_info,

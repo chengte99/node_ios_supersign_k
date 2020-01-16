@@ -167,7 +167,7 @@ function update_reg_content_by_id(id, reg_content, callback){
 }
 
 function get_valid_account(callback){
-    var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0 limit 1";
+    var sql_cmd = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 limit 1";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -181,7 +181,7 @@ function get_valid_account(callback){
 }
 
 function get_all_valid_accounts(callback){
-    var sql_cmd = "select * from account_info where devices < 99 and days < 30 and is_enable != 0";
+    var sql_cmd = "select * from account_info where devices < 95 and days < 30 and is_enable != 0";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -195,7 +195,7 @@ function get_all_valid_accounts(callback){
 }
 
 function get_max_devices_accounts(callback){
-    var sql_cmd = "select account from account_info where devices >= 99 and days < 30 and is_enable != 0";
+    var sql_cmd = "select account from account_info where devices >= 95 and days < 30 and is_enable != 0";
     // var sql_cmd = util.format(sql, udid);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -300,6 +300,20 @@ function get_downloadApp_url(tag, callback){
 
 function update_device_count_on_account_info(acc, devices, callback){
     var sql = "update account_info set devices = %d where account = \"%s\"";
+    var sql_cmd = util.format(sql, devices, acc);
+    log.info(sql_cmd);
+    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            callback(Response.SYS_ERROR, null);
+            return;
+        }
+
+        callback(Response.OK, null);
+    })
+}
+
+function update_device_count_and_disable_account(acc, devices, callback){
+    var sql = "update account_info set devices = %d, is_enable = 0 where account = \"%s\"";
     var sql_cmd = util.format(sql, devices, acc);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
@@ -443,6 +457,7 @@ module.exports = {
     clean_sigh_by_udids_multi: clean_sigh_by_udids_multi,
     get_downloadApp_url: get_downloadApp_url,
     update_device_count_on_account_info: update_device_count_on_account_info,
+    update_device_count_and_disable_account: update_device_count_and_disable_account,
     add_new_resign_info: add_new_resign_info,
     add_new_to_app_info: add_new_to_app_info,
     update_app_to_app_info: update_app_to_app_info,

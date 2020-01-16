@@ -66,7 +66,7 @@ function write_err(status, ret_func){
             ret.msg = "本地創建目錄失敗 ...";
             break;
         case Response.NO_MAX_DEVICES_ACCOUNT:
-            ret.msg = "無設備數達99的app帳號 ...";
+            ret.msg = "無設備數達95的app帳號 ...";
             break;
         case Response.REQ_REPEAT:
             ret.msg = "短時間內請求重複 ...";
@@ -280,7 +280,7 @@ function update_each_device_info_from_app_req_queue(ret, callback){
     */
 
     if(global_cur_udid_index < ret.app_req_queue.length){
-        var udid = ret.app_req_queue[global_cur_udid_index];
+        var udid = ret.app_req_queue[global_cur_udid_index].udid;
         web_model.get_uinfo_by_udid(udid, null, null, null, function(status, result){
             if(status != Response.OK){
                 // write_err(status, callback);
@@ -707,18 +707,32 @@ function acc_login_return(info, callback){
         }
 
         log.info("acc_login_return 帳號登入正常");
+
+        if(info.devices >= 95){
+            web_model.update_device_count_and_disable_account(info.acc, info.devices, function(status, result){
+                if(status != Response.OK){
+                    write_err(status, callback);
+                    return;
+                }
         
-        web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
-            if(status != Response.OK){
-                write_err(status, callback);
-                return;
-            }
-    
-            var ret = {};
-            ret.status = Response.OK;
-            ret.msg = "帳號登入成功, 更新設備數 ...";
-            callback(ret);
-        });
+                var ret = {};
+                ret.status = Response.OK;
+                ret.msg = "帳號登入成功, 設備數 >= 95, 停用帐号 ...";
+                callback(ret);
+            })
+        }else{
+            web_model.update_device_count_on_account_info(info.acc, info.devices, function(status, result){
+                if(status != Response.OK){
+                    write_err(status, callback);
+                    return;
+                }
+        
+                var ret = {};
+                ret.status = Response.OK;
+                ret.msg = "帳號登入成功, 更新設備數 ...";
+                callback(ret);
+            });
+        }
     }
 }
 
@@ -853,6 +867,8 @@ app_req_id_queue_list[app_id] =
 ]
 */
 
+var global_uuid = 1;
+
 function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback){
     // 檢查acc佇列，是否需push
     var acc_queue_is_exist = false;
@@ -877,6 +893,13 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
         acc_req_queue_list[device_acc_info.acc_id] = [];
     }
 
+    // 判斷是否有uuid
+    if(!dinfo.UUID){
+        dinfo.UUID = global_uuid;
+        global_uuid ++;
+    }
+    // end
+
     var acc_req_queue_is_exist = false;
     var req_queue = acc_req_queue_list[device_acc_info.acc_id];
     for(var i = 0; i < req_queue.length; i ++){
@@ -890,6 +913,7 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
     if(!acc_req_queue_is_exist){
         req_queue.push({
             "udid": dinfo.UDID,
+            "uuid": dinfo.UUID,
             "device_id": device_id,
             "product": dinfo.PRODUCT,
             "version": dinfo.VERSION,
@@ -1137,14 +1161,18 @@ function add_data_to_app_queue(device_info){
     var req_queue = app_req_queue_list[device_info.app_id];
     for(var i = 0; i < req_queue.length; i ++){
         var item = req_queue[i];
-        if(item == device_info.udid){
+        if(item.udid == device_info.udid){
             // 已經在該app queue內
             acc_req_queue_is_exist = true;
         }
     }
 
     if(!app_req_queue_is_exist){
-        req_queue.push(device_info.udid);
+        // req_queue.push(device_info.udid);
+        req_queue.push({
+            udid: device_info.udid,
+            uuid: device_info.uuid
+        });
     }
 
     // 以下為device_id
@@ -1554,6 +1582,7 @@ function resign_ipa_via_api(dinfo, callback){
     var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
     var pattern_3 = new RegExp('^[0-9]{4}$');
+    var pattern_4 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$');
 
     if(dinfo == null 
     || typeof(dinfo.UDID) != "string" || dinfo.UDID == "" || (!dinfo.UDID.match(pattern_1) && !dinfo.UDID.match(pattern_2)) 
@@ -1563,7 +1592,8 @@ function resign_ipa_via_api(dinfo, callback){
     || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)
     || typeof(dinfo.APP_VER) != "string" || dinfo.APP_VER == "" || !dinfo.APP_VER.match(pattern_3)
     || typeof(dinfo.SITE_CODE) != "number"
-    || typeof(dinfo.NOTIFY_URL) != "string"){
+    || typeof(dinfo.NOTIFY_URL) != "string"
+    || typeof(dinfo.UUID) != "string" || dinfo.UUID == "" || !dinfo.UUID.match(pattern_4)){
         write_err(Response.INVAILD_PARAMS, callback);
         return;
     }
@@ -1941,17 +1971,19 @@ function schedule_to_action(){
     rule1.second = 0;
 
     var j1 = schedule.scheduleJob(rule1, function(){
-        log.info("每日0時確認帳號狀態並更新設備數 ...");
+        log.info("每日0時將已達95設備數的帳號進行驗證 ...");
         // 取出可用的帳號
-        web_model.get_all_valid_accounts(function(status, result){
+        web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
-                    log.info("已無可用帳號 ...");
+                    log.info("無帳號 ...");
                 }else{
                     log.error("get_all_valid_accounts error ...", status);
                 }
             }else{
-                log.info("已獲取可用的帳號，進行更新 ...");
+                log.info("已獲取帳號，進行更新 ...");
+                // log.info(result);
+                // log.info(result[0]);
                 var acc_list = [];
                 for(var i = 0; i < result.length; i ++){
                     // console.log(result[i].account);
@@ -2037,7 +2069,7 @@ function reinsert_to_new_acc_queue(device_queue, callback){
 
         // 計算剩餘可用設備數
         var insert_index = 0;
-        var remain_number = 99 - result.devices;
+        var remain_number = 95 - result.devices;
         for(var i = 0; i < remain_number; i ++){
             if(i < device_queue.length){
                 // 小於device_queue.length

@@ -197,6 +197,7 @@ router.post("/submit", function(req, res, next){
         "APP_VER": "1234",
         "SITE_CODE": 0,
         "NOTIFY_URL": "http://......"
+        "UUID": "123312wqwerqwedxxxx...",
     }
 */
 router.post("/action_sigh", function(req, res, next){
