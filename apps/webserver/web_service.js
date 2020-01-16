@@ -1656,7 +1656,7 @@ function check_app_is_exist(app_info, callback){
     web_model.get_app_info_by_sitecode(app_info.site_code, function(status, result){
     // web_model.get_app_info(app_info.site_code, function(status, result){
         if(status != Response.OK){
-            if(status == Response.DB_SEARCH_EMPTY){
+            if(status == Response.DB_SEARCH_EMPTY_OF_APP){
                 // 無此app 紀錄，可新增
                 callback(Response.OK, true, true);
                 return;
