@@ -1826,8 +1826,14 @@ function clean_sigh_by_udid(info, callback){
     })
 }
 
-function sync_local_file(app_name, callback){
-    download_ipa_to_local(app_name, function(ret){
+function sync_local_file(sync_info, callback){
+    if(sync_info == null 
+    || typeof(sync_info.app_name) != "string" || sync_info.app_name == ""){
+        write_err(Response.INVAILD_PARAMS, callback);
+        return;
+    }
+
+    download_ipa_to_local(sync_info.app_name, function(ret){
         if(ret.status != Response.OK){
             write_err(ret.status, callback);
             return;
@@ -1877,9 +1883,9 @@ function create_app_to_db(app_info, callback){
                 var hostname = backup_mac_server_config.hostname;
                 var port = backup_mac_server_config.port;
                 var path = backup_mac_server_config.url;
-                var ret = {"app_name": app_info.app_name};
-                var json_data = JSON.stringify(ret);
-                http.http_post(hostname, port, path, null, json_data, function(is_ok, data){
+                var sync_json = {"app_name": app_info.app_name};
+                var sync_json_data = JSON.stringify(sync_json);
+                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
                     if(is_ok){
                         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                         log.warn("backup mac ... incoming_msg.statusCode = 200");
@@ -1913,9 +1919,9 @@ function create_app_to_db(app_info, callback){
                     var hostname = backup_mac_server_config.hostname;
                     var port = backup_mac_server_config.port;
                     var path = backup_mac_server_config.url;
-                    var ret = {"app_name": app_info.app_name};
-                    var json_data = JSON.stringify(ret);
-                    http.http_post(hostname, port, path, null, json_data, function(is_ok, data){
+                    var sync_json = {"app_name": app_info.app_name};
+                    var sync_json_data = JSON.stringify(sync_json);
+                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("backup mac ... incoming_msg.statusCode = 200");
