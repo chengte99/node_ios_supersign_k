@@ -1838,8 +1838,7 @@ function sync_local_file(sync_info, callback){
             write_err(ret.status, callback);
             return;
         }
-
-        var ret = {};
+        
         ret.msg = "已同步下載檔案包至本地端 ...";
         callback(ret);
         return;
