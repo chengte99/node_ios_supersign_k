@@ -25,11 +25,11 @@ var server_config = {
     },
 
     center_database: {
-        host: "127.0.0.1",
-        port: 3306,
-        db_name: "mytest_supersign",
-        user: "root",
-        password: "asd12345"
+        host: "127.0.0.1", // 192.168.20.203
+        port: 3306, // 3306
+        db_name: "mytest_supersign", // supersign
+        user: "root", // w_supersign
+        password: "asd12345" // Gfd^&12FV
     },
     
     center_redis: {
@@ -51,7 +51,13 @@ var server_config = {
     },
 
     local_mac_config: {
-        acc_group: 0,
+        acc_group: 0, // 0-> 本機測試用, 1-> imac-04, 2-> imac-01, 3-> 特殊
+    },
+
+    backup_mac_server_config: {
+        hostname: "10.159.5.141", //10.159.5.141, 10.159.5.114
+        port: 80,
+        url: "/sync_local_file",
     },
 
     appfile_config: {

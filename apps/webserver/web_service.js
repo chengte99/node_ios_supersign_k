@@ -1822,6 +1822,20 @@ function clean_sigh_by_udid(info, callback){
     })
 }
 
+function sync_local_file(app_name, callback){
+    download_ipa_to_local(app_name, function(ret){
+        if(ret.status != Response.OK){
+            write_err(ret.status, callback);
+            return;
+        }
+
+        var ret = {};
+        ret.msg = "已同步下載檔案包至本地端 ...";
+        callback(ret);
+        return;
+    });
+}
+
 function create_app_to_db(app_info, callback){
     var pattern_1 = new RegExp('^[A-Za-z0-9]{8}-[A-Za-z0-9]{16}$');
     var pattern_2 = new RegExp('^[A-Za-z0-9]{40}$');
@@ -1854,6 +1868,21 @@ function create_app_to_db(app_info, callback){
                     return;
                 }
 
+                // 通知備用機器同步下載檔案包
+                var backup_mac_server_config = server_config.backup_mac_server_config;
+                var hostname = backup_mac_server_config.hostname;
+                var port = backup_mac_server_config.port;
+                var path = backup_mac_server_config.url;
+                var ret = {"app_name": app_info.app_name};
+                var json_data = JSON.stringify(ret);
+                http.http_post(hostname, port, path, null, json_data, function(is_ok, data){
+                    if(is_ok){
+                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                        log.warn("backup mac ... incoming_msg.statusCode = 200");
+                    }
+                })
+                // end
+
                 web_model.add_new_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
                         write_err(status, callback);
@@ -1874,6 +1903,21 @@ function create_app_to_db(app_info, callback){
                         write_err(ret.status, callback);
                         return;
                     }
+
+                    // 通知備用機器同步下載檔案包
+                    var backup_mac_server_config = server_config.backup_mac_server_config;
+                    var hostname = backup_mac_server_config.hostname;
+                    var port = backup_mac_server_config.port;
+                    var path = backup_mac_server_config.url;
+                    var ret = {"app_name": app_info.app_name};
+                    var json_data = JSON.stringify(ret);
+                    http.http_post(hostname, port, path, null, json_data, function(is_ok, data){
+                        if(is_ok){
+                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                            log.warn("backup mac ... incoming_msg.statusCode = 200");
+                        }
+                    })
+                    // end
 
                     web_model.update_app_to_app_info(app_info, function(status, result){
                         if(status != Response.OK){
@@ -1966,13 +2010,13 @@ function start_verify_acc_state(queue){
 
 function schedule_to_action(){
     var rule1 = new schedule.RecurrenceRule();
-    // 每天0時執行
-    rule1.hour = 0;
+    // 每天12時執行
+    rule1.hour = 12;
     rule1.minute = 0;
     rule1.second = 0;
 
     var j1 = schedule.scheduleJob(rule1, function(){
-        log.info("每日0時將已達95設備數的帳號進行驗證 ...");
+        log.info("每日12時將已達95設備數的帳號進行驗證 ...");
         // 取出可用的帳號
         web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
@@ -1998,13 +2042,13 @@ function schedule_to_action(){
     });
 
     var rule2 = new schedule.RecurrenceRule();
-    // 每天1時執行
-    rule2.hour = 1;
+    // 每天13時執行
+    rule2.hour = 13;
     rule2.minute = 0;
     rule2.second = 0;
 
     var j2 = schedule.scheduleJob(rule2, function(){
-        log.info("每日1時更新帳號在本地端的session 天數 ...");
+        log.info("每日13時更新帳號在本地端的session 天數 ...");
         // 取出可用的帳號
         web_model.get_all_valid_accounts(function(status, result){
             if(status != Response.OK){
@@ -2164,6 +2208,7 @@ module.exports = {
 
     resign_ipa_via_api: resign_ipa_via_api,
     create_app_to_db: create_app_to_db,
+    sync_local_file: sync_local_file,
     reset_sigh_record: reset_sigh_record,
     clean_sigh_by_udid: clean_sigh_by_udid,
 

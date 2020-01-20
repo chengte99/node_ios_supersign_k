@@ -619,6 +619,70 @@ router.post("/create_app", function(req, res, next){
     }
 })
 
+// 由另一台mac送過來的同步本地端下載檔案包請求
+/* 
+   {
+       "app_name": "APP_XXX_1234",
+   }
+*/
+router.post("/sync_local_file", function(req, res, next){
+    // log.info(req.headers);
+    // log.info(req.query);
+    // log.info(req.body);
+    
+    if (req.body) {
+        //能正确解析 json 格式的post参数
+        log.info("正确解析");
+        var dinfo;
+        dinfo = req.body;
+
+        log.warn(dinfo);
+        // res.send({"status":"success", "dinfo": req.body})
+
+        web_service.sync_local_file(dinfo, function(ret){
+            log.warn(ret);
+
+            if(ret.status != Response.OK){
+                log.error("sync_local_file error ...", ret.status);
+                res.send(ret);
+                return;
+            }
+    
+            res.send(ret);
+        });
+    } else {
+        //不能正确解析json 格式的post参数
+        log.info("不正确解析");
+        var body = '', dinfo;
+        req.on('data', function (chunk) {
+            body += chunk; //读取参数流转化为字符串
+        });
+        req.on('end', function () {
+            //读取参数流结束后将转化的body字符串解析成 JSON 格式
+            try {
+                dinfo = JSON.parse(body);
+            } catch (err) {
+                dinfo = null;
+            }
+
+            log.warn(dinfo);
+            // dinfo ? res.send({"status":"success", "dinfo": dinfo}) : res.send({"status":"error"});
+
+            web_service.sync_local_file(dinfo, function(ret){
+                log.warn(ret);
+
+                if(ret.status != Response.OK){
+                    log.error("sync_local_file error ...", ret.status);
+                    res.send(ret);
+                    return;
+                }
+        
+                res.send(ret);
+            });
+        });
+    }
+})
+
 // app開啟後將serial通知後台並驗證是否過期
 /* 
    {
