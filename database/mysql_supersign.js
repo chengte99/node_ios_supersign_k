@@ -166,9 +166,9 @@ function update_reg_content_by_id(id, reg_content, callback){
     })
 }
 
-function get_valid_account(callback){
-    var sql_cmd = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 limit 1";
-    // var sql_cmd = util.format(sql, udid);
+function get_valid_account(group, callback){
+    var sql = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 and acc_group = %d limit 1";
+    var sql_cmd = util.format(sql, group);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -180,9 +180,9 @@ function get_valid_account(callback){
     })
 }
 
-function get_all_valid_accounts(callback){
-    var sql_cmd = "select * from account_info where devices < 95 and days < 30 and is_enable != 0";
-    // var sql_cmd = util.format(sql, udid);
+function get_all_valid_accounts(group, callback){
+    var sql = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 and acc_group = %d";
+    var sql_cmd = util.format(sql, group);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){
@@ -194,9 +194,9 @@ function get_all_valid_accounts(callback){
     })
 }
 
-function get_max_devices_accounts(callback){
-    var sql_cmd = "select account from account_info where devices >= 95 and days < 30 and is_enable != 0";
-    // var sql_cmd = util.format(sql, udid);
+function get_max_devices_accounts(group, callback){
+    var sql = "select account from account_info where devices >= 95 and days < 30 and is_enable != 0 and acc_group = %d";
+    var sql_cmd = util.format(sql, group);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){

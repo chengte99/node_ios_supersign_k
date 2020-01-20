@@ -18,6 +18,10 @@ var server_config = require("../server_config");
 var ftp_config = server_config.ftp_file_server;
 // ftp end
 
+// local
+var local_mac_config = server_config.local_mac_config;
+// end
+
 var APP_DOWNLOAD_SCHEME = server_config.appfile_config.appfile_download_scheme;
 var PUBLIC_URL = server_config.appfile_config.appfile_domain // kritars 自己測試用的ftp server
 var TEST_SITE_URL = server_config.rundown_config.appfile_domain // 與內部組對接用的ftp server
@@ -964,7 +968,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                         };
 
                         // 取一個有效的帳號來用
-                        web_model.get_valid_account(function(status, result){
+                        web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
                             if(status != Response.OK){
                                 write_err(status, callback);
                                 return;
@@ -1081,7 +1085,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
             log.info("無簽名紀錄，需要註冊帳號且重簽名app ...");
     
             // 取一個有效的帳號來用
-            web_model.get_valid_account(function(status, result){
+            web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
                 if(status != Response.OK){
                     write_err(status, callback);
                     return;
@@ -2018,12 +2022,12 @@ function schedule_to_action(){
     var j1 = schedule.scheduleJob(rule1, function(){
         log.info("每日12時將已達95設備數的帳號進行驗證 ...");
         // 取出可用的帳號
-        web_model.get_max_devices_accounts(function(status, result){
+        web_model.get_max_devices_accounts(local_mac_config.acc_group, function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
                     log.info("無帳號 ...");
                 }else{
-                    log.error("get_all_valid_accounts error ...", status);
+                    log.error("get_max_devices_accounts error ...", status);
                 }
             }else{
                 log.info("已獲取帳號，進行更新 ...");
@@ -2050,7 +2054,7 @@ function schedule_to_action(){
     var j2 = schedule.scheduleJob(rule2, function(){
         log.info("每日13時更新帳號在本地端的session 天數 ...");
         // 取出可用的帳號
-        web_model.get_all_valid_accounts(function(status, result){
+        web_model.get_all_valid_accounts(local_mac_config.acc_group, function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
                     log.info("已無可用帳號 ...");
@@ -2079,7 +2083,7 @@ function schedule_to_action(){
 function reinsert_to_new_acc_queue(device_queue, callback){
     log.info("待轉移佇列： ", device_queue);
 
-    web_model.get_valid_account(function(status, result){
+    web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
             return;

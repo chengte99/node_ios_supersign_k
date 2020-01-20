@@ -24,12 +24,21 @@ var server_config = {
         },
     },
 
+    // center_database: {
+    //     host: "127.0.0.1",
+    //     port: 3306,
+    //     db_name: "mytest_supersign",
+    //     user: "root",
+    //     password: "asd12345",
+    // },
+
+    // test_site
     center_database: {
-        host: "127.0.0.1", // 192.168.20.203
-        port: 3306, // 3306
-        db_name: "mytest_supersign", // supersign
-        user: "root", // w_supersign
-        password: "asd12345" // Gfd^&12FV
+        host: "192.168.20.203",
+        port: 3306,
+        db_name: "supersign",
+        user: "w_supersign",
+        password: "Gfd^&12FV",
     },
     
     center_redis: {
@@ -55,7 +64,7 @@ var server_config = {
     },
 
     backup_mac_server_config: {
-        hostname: "10.159.5.141", //10.159.5.141, 10.159.5.114
+        hostname: "10.159.5.141", //imac-04: 10.159.5.141, imac-01: 10.159.5.114
         port: 80,
         url: "/sync_local_file",
     },

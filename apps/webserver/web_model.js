@@ -110,8 +110,8 @@ function get_devices_by_id(id, ret_func){
     })
 }
 
-function get_valid_account(ret_func){
-    mysql_supersign.get_valid_account(function(status, sql_result){
+function get_valid_account(group, ret_func){
+    mysql_supersign.get_valid_account(group, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -126,8 +126,8 @@ function get_valid_account(ret_func){
     })
 }
 
-function get_all_valid_accounts(ret_func){
-    mysql_supersign.get_all_valid_accounts(function(status, sql_result){
+function get_all_valid_accounts(group, ret_func){
+    mysql_supersign.get_all_valid_accounts(group, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -142,8 +142,8 @@ function get_all_valid_accounts(ret_func){
     })
 }
 
-function get_max_devices_accounts(ret_func){
-    mysql_supersign.get_max_devices_accounts(function(status, sql_result){
+function get_max_devices_accounts(group, ret_func){
+    mysql_supersign.get_max_devices_accounts(group, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;

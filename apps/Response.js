@@ -15,7 +15,7 @@ var Response = {
     TIMESTAMP_INVALID: -110, // app下載期限已過一年
     GET_REMOTE_FAILED: -111, // 獲取遠端檔案失敗
     LOCAL_MKDIR_FAILED: -112, //本地創建目錄失敗
-    NO_MAX_DEVICES_ACCOUNT: -113, // 無設備數達100的app帳號
+    NO_MAX_DEVICES_ACCOUNT: -113, // 無設備數達95的app帳號
     REQ_REPEAT: -114, // 短時間內請求重複
 
     MOPROVISION_DOWNLOAD_FAILED: -115, // mobileprovision 下載異常
