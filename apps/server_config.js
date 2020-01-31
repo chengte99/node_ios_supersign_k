@@ -42,7 +42,9 @@ var server_config = {
     },
     
     center_redis: {
-
+        host: "127.0.0.1",
+        port: 6379,
+        db_index: 0,
     },
 
     sftp_file_server: {

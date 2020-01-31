@@ -84,6 +84,9 @@ function write_err(status, ret_func){
         case Response.RESIGN_COMPLETE_TXT_NOT_EXIST:
             ret.msg = "重簽名完成.txt 不存在 簽名異常 ...";
             break;
+        case Response.NO_THIS_ACCOUNT:
+            ret.msg = "找不到該帳號 ...";
+            break;
     }
     ret_func(ret);
 }
@@ -2029,23 +2032,23 @@ function schedule_to_action(){
         // 取出可用的帳號
         web_model.get_max_devices_accounts(local_mac_config.acc_group, function(status, result){
             if(status != Response.OK){
-                if(status == Response.NO_VALID_ACCOUNT){
-                    log.info("無帳號 ...");
+                if(status == Response.NO_MAX_DEVICES_ACCOUNT){
+                    log.info("無已達95設備數的帳號 ...");
                 }else{
                     log.error("get_max_devices_accounts error ...", status);
                 }
             }else{
-                log.info("已獲取帳號，進行更新 ...");
+                log.info("已獲取帳號 ..." + result + ", 進行驗證更新 ...");
                 // log.info(result);
                 // log.info(result[0]);
-                var acc_list = [];
-                for(var i = 0; i < result.length; i ++){
-                    // console.log(result[i].account);
-                    acc_list.push(result[i].account);
-                }
+                // var acc_list = [];
+                // for(var i = 0; i < result.length; i ++){
+                //     // console.log(result[i].account);
+                //     acc_list.push(result[i].account);
+                // }
 
                 // 檢查帳號登入是否正常
-                start_verify_acc_state(acc_list);
+                start_verify_acc_state(result);
             }
         })
     });
@@ -2059,27 +2062,27 @@ function schedule_to_action(){
     var j2 = schedule.scheduleJob(rule2, function(){
         log.info("每日13時更新帳號在本地端的session 天數 ...");
         // 取出可用的帳號
-        web_model.get_all_valid_accounts(local_mac_config.acc_group, function(status, result){
+        web_model.update_all_valid_acc_days(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
-                    log.info("已無可用帳號 ...");
+                    log.info("無可用帳號 ...");
                 }else{
-                    log.error("get_all_valid_accounts error ...", status);
+                    log.error("update_all_valid_acc_days error ...", status);
                 }
             }else{
-                log.info("已獲取可用的帳號，進行更新 ...");
-                var acc_id_list = [];
-                for(var i = 0; i < result.length; i ++){
-                    // console.log(result[i].id);
-                    acc_id_list.push(result[i].id);
-                }
+                log.info("已更新完可用帳號days ...");
+                // var acc_id_list = [];
+                // for(var i = 0; i < result.length; i ++){
+                //     // console.log(result[i].id);
+                //     acc_id_list.push(result[i].id);
+                // }
 
-                // 更新本地帳號session 期限
-                web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
-                    if(status != Response.OK){
-                        log.error("update_days_on_account_info_multi error ...", status);
-                    }
-                })
+                // // 更新本地帳號session 期限
+                // web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
+                //     if(status != Response.OK){
+                //         log.error("update_days_on_account_info_multi error ...", status);
+                //     }
+                // })
             }
         })
     });
@@ -2200,8 +2203,50 @@ function schedule_to_check_resign_queue(){
     });
 }
 
+// id&acc的對應表
+var global_valid_acc_dic = {};
+/*
+global_valid_obj_array = [{
+    id: id,
+    acc: acc,
+}, ...]
+*/
+var global_valid_obj_array = [];
+var global_valid_obj_array_index = 0;
+
+function startup_config(){
+    web_model.get_all_valid_accounts(local_mac_config.acc_group, function(status, result){
+        if(status != Response.OK){
+            if(status == Response.NO_VALID_ACCOUNT){
+                log.info("無可用帳號 ...");
+            }else{
+                log.error("get_all_valid_accounts error ...", status);
+            }
+        }else{
+            log.info("已獲取可用的帳號，已存到redis server ...");
+
+            // 存入帳號的id&acc 對應表
+            global_valid_acc_dic = result;
+
+            // var acc_id_list = [];
+            // for(var i = 0; i < result.length; i ++){
+            //     // console.log(result[i].id);
+            //     acc_id_list.push(result[i].id);
+            // }
+
+            // // 更新本地帳號session 期限
+            // web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
+            //     if(status != Response.OK){
+            //         log.error("update_days_on_account_info_multi error ...", status);
+            //     }
+            // })
+        }
+    });
+}
+
 setTimeout(function(){
     log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
+    startup_config();
     schedule_to_check_resign_queue();
 }, 5000);
 

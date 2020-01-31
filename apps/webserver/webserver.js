@@ -15,9 +15,15 @@ var apps = require("./apps");
 var server_config = require("../server_config");
 var log = require("../../utils/log");
 
-var mysql_supersign = require("../../database/mysql_supersign");
+// mysql
 var center_database = server_config.center_database;
+var mysql_supersign = require("../../database/mysql_supersign");
 mysql_supersign.connect(center_database.host, center_database.port, center_database.db_name, center_database.user, center_database.password);
+
+// redis
+var center_redis = server_config.center_redis;
+var redis_center = require("../../database/redis_center");
+redis_center.connect(center_redis.host, center_redis.port, center_redis.db_index);
 
 var app = express();
 
