@@ -1337,7 +1337,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                         app_name: ret.app_name,
                         site_code: ret.site_code,
                         sign_account: account_info.account,
-                        device_num: result.devices,
+                        device_num: result,
                         new_acc_list: ret.new_acc_list,
                         old_acc_list: ret.old_acc_list
                     };

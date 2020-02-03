@@ -7,3 +7,4 @@
 4. ios_sign/check2FA_valid.rb -> uri = URI('https://IP/acc_login_return')
 5. ios_sign/reg_to_acc.rb -> uri = URI('https://IP/reg_to_acc_return')
 6. ios_sign/add_new_acc.sh -> "liaoyanchi3@gmail.com"（更改要檢查的帳號）
+7. 確認redis-server 啟動 (系統服務的為brew services restart redis)

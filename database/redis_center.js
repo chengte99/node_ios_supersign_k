@@ -24,8 +24,8 @@ function set_accinfo_inredis(id, uinfo){
     var key = "supersign_center_acc_id_" + id;
     uinfo.id = uinfo.id.toString();
     uinfo.devices = uinfo.devices.toString();
-    uinfo.enable = uinfo.enable.toString();
-    uinfo.group = uinfo.group.toString();
+    uinfo.is_enable = uinfo.is_enable.toString();
+    uinfo.acc_group = uinfo.acc_group.toString();
     uinfo.expired = uinfo.expired.toString();
     uinfo.days = uinfo.days.toString();
 
@@ -57,8 +57,8 @@ function get_accinfo_inredis(id, callback){
         var uinfo = data;
         uinfo.id = parseInt(uinfo.id);
         uinfo.devices = parseInt(uinfo.devices);
-        uinfo.enable = parseInt(uinfo.enable);
-        uinfo.group = parseInt(uinfo.group);
+        uinfo.is_enable = parseInt(uinfo.is_enable);
+        uinfo.acc_group = parseInt(uinfo.acc_group);
         uinfo.expired = parseInt(uinfo.expired);
         uinfo.days = parseInt(uinfo.days);
 
