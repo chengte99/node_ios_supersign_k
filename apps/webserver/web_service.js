@@ -2203,17 +2203,6 @@ function schedule_to_check_resign_queue(){
     });
 }
 
-// id&acc的對應表
-var global_valid_acc_dic = {};
-/*
-global_valid_obj_array = [{
-    id: id,
-    acc: acc,
-}, ...]
-*/
-var global_valid_obj_array = [];
-var global_valid_obj_array_index = 0;
-
 function startup_config(){
     web_model.get_all_valid_accounts(local_mac_config.acc_group, function(status, result){
         if(status != Response.OK){
@@ -2224,9 +2213,6 @@ function startup_config(){
             }
         }else{
             log.info("已獲取可用的帳號，已存到redis server ...");
-
-            // 存入帳號的id&acc 對應表
-            global_valid_acc_dic = result;
 
             // var acc_id_list = [];
             // for(var i = 0; i < result.length; i ++){
