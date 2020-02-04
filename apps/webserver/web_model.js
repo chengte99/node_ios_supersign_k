@@ -159,6 +159,7 @@ function balance_switch(group, times, ret_func){
                 times ++;
                 log.warn("times = ", times);
                 if(times == global_acc_id_array.length){
+                    times = 0;
                     ret_func(Response.NO_VALID_ACCOUNT, null);
                     return;
                 }
