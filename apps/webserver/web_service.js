@@ -1661,8 +1661,7 @@ function resign_ipa_via_api(dinfo, callback){
 }
 
 function check_app_is_exist(app_info, callback){
-    web_model.get_app_info_by_sitecode(app_info.site_code, function(status, result){
-    // web_model.get_app_info(app_info.site_code, function(status, result){
+    web_model.get_app_info_by_sha1(app_info.sha1, function(status, result){ 
         if(status != Response.OK){
             if(status == Response.DB_SEARCH_EMPTY_OF_APP){
                 // 無此app 紀錄，可新增
