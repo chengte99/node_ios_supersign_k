@@ -376,7 +376,7 @@ function update_devices_by_id(id, count, ret_func){
                     info.devices += count;
 
                     // 寫回redis
-                    redis_center.set_accinfo_inredis(acc_id, info);
+                    redis_center.set_accinfo_inredis(info.id, info);
 
                     ret_func(Response.OK, null);
                     return;
@@ -498,7 +498,7 @@ function update_device_count_on_account_info(acc, devices, ret_func){
                     info.devices = devices;
 
                     // 寫回redis
-                    redis_center.set_accinfo_inredis(acc_id, info);
+                    redis_center.set_accinfo_inredis(info.id, info);
 
                     ret_func(Response.OK, null);
                     return;
@@ -545,7 +545,7 @@ function update_device_count_and_disable_account(acc, devices, ret_func){
                     info.is_enable = 0;
 
                     // 寫回redis
-                    redis_center.set_accinfo_inredis(acc_id, info);
+                    redis_center.set_accinfo_inredis(info.id, info);
 
                     ret_func(Response.OK, null);
                     return;
@@ -588,7 +588,7 @@ function update_all_valid_acc_days(ret_func){
                 info.days += 1;
 
                 // 寫回redis
-                redis_center.set_accinfo_inredis(acc_id, info);
+                redis_center.set_accinfo_inredis(info.id, info);
 
                 count ++;
                 if(count == id_list.length){
@@ -634,7 +634,7 @@ function disable_acc_by_acc(acc, objStr, ret_func){
                     info.err_record = objStr;
 
                     // 寫回redis
-                    redis_center.set_accinfo_inredis(acc_id, info);
+                    redis_center.set_accinfo_inredis(info.id, info);
 
                     ret_func(Response.OK, null);
                     return;
@@ -775,10 +775,10 @@ function update_acc_reg_content(id, device_ids, ret_func){
                     info.reg_content = reg_content_str;
 
                     // 更新redis
-                    redis_center.set_accinfo_inredis(acc_id, info);
+                    redis_center.set_accinfo_inredis(info.id, info);
 
                     // 更新數據庫
-                    mysql_supersign.update_reg_content_by_id(acc_id, reg_content_str, function(status, sql_result){
+                    mysql_supersign.update_reg_content_by_id(info.id, reg_content_str, function(status, sql_result){
                         if(status != Response.OK){
                             log.warn("update_reg_content_by_id fail, Response: ", status);
                             ret_func(status, null);
