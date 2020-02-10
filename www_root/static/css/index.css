@@ -798,16 +798,14 @@ em {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 80%;
-    height: 40vh;
     background: #fff;
-    border-radius: 5vmin;
+    border-radius: 4.5vmin;
     overflow: hidden;
     text-align: center;
 }
 .maskClick-box .msg {
     display: inline-flex;
     flex-wrap: wrap;
-    height: 70%;
     width: 100%;
     align-items:center;
     justify-content:center;
@@ -816,7 +814,7 @@ em {
 }
 .maskClick-box .msg .article > * {
     margin: 0;
-    padding: 2vmin 5vmin;
+    padding: 2vmin 5vmin 3vmin 5vmin;
     word-break: break-all;
 }
 .maskClick-box .msg h1 {
@@ -829,7 +827,6 @@ em {
 }  
 .copy-mytext {
     display: flex;
-    height: 30%;
     align-items:center;
     justify-content:center;
     border-top: 1px solid #ddd;  
@@ -841,6 +838,8 @@ em {
 .copy_coupon {  
     font-size: 1.2rem;
     color: #30a4fc;
+    padding: 3vmin 0;
+    width: 100%;
 }
 
 /*  */

@@ -143,10 +143,6 @@ $(function() {
     }
 
     sid = getUrlParam('sid');
-    if(sid){
-        var obj = {"serial": sid};
-        localStorage.setItem("device_obj", JSON.stringify(obj));
-    }
 
     // 顯示剪貼簿授權提示框
     $('.copy_coupon').on("click", function() {
