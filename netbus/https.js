@@ -105,9 +105,10 @@ function https_post(hostname, port, url, params, body, callback) {
 		incoming_msg.on("data", function(data) {
 			if (incoming_msg.statusCode === 200) {
 				callback(true, data);
+			}else{
+				callback(false, null);
 			}
 		});
-		 
 	});
 
 	// step2 写入body数据

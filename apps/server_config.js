@@ -63,12 +63,12 @@ var server_config = {
 
     local_mac_config: {
         acc_group: 1, // 1-> 正常群組, 2-> 特殊群組
-        balance_switch_acc: false, // 是否啟用平衡帳號註冊udid，不啟用則塞滿95後再換下一個帳號
-        m_code: 0, // 0-> 本機測試用, 1-> imac-04, 2-> imac-01
+        balance_switch_acc: true, // 是否啟用平衡帳號註冊udid，不啟用則塞滿95後再換下一個帳號
+        m_code: 0, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
     },
 
     backup_mac_server_config: {
-        hostname: "10.159.5.141", //imac-04: 10.159.5.141, imac-01: 10.159.5.114
+        hostname: "10.159.5.141", //imac-01: 10.159.5.114, imac-04: 10.159.5.141
         port: 80,
         url: "/sync_local_file",
     },

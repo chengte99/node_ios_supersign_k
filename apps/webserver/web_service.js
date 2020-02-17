@@ -1622,6 +1622,7 @@ function resign_ipa_via_api(dinfo, callback){
 }
 
 function check_app_is_exist(app_info, callback){
+    // 根據sitecode判斷
     web_model.get_app_info_by_sitecode(app_info.site_code, function(status, result){ 
         if(status != Response.OK){
             if(status == Response.DB_SEARCH_EMPTY_OF_APP){
@@ -1851,6 +1852,8 @@ function create_app_to_db(app_info, callback){
                     if(is_ok){
                         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                         log.warn("backup mac ... incoming_msg.statusCode = 200");
+                    }else{
+                        log.warn("backup mac connect failed ...");
                     }
                 })
                 // end
@@ -1887,6 +1890,8 @@ function create_app_to_db(app_info, callback){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("backup mac ... incoming_msg.statusCode = 200");
+                        }else{
+                            log.warn("backup mac connect failed ...");
                         }
                     })
                     // end
