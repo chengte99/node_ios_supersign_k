@@ -25,6 +25,7 @@ function set_accinfo_inredis(id, uinfo){
     uinfo.id = uinfo.id.toString();
     uinfo.devices = uinfo.devices.toString();
     uinfo.is_enable = uinfo.is_enable.toString();
+    uinfo.m_code = uinfo.m_code.toString();
     uinfo.acc_group = uinfo.acc_group.toString();
     uinfo.expired = uinfo.expired.toString();
     uinfo.days = uinfo.days.toString();
@@ -58,6 +59,7 @@ function get_accinfo_inredis(id, callback){
         uinfo.id = parseInt(uinfo.id);
         uinfo.devices = parseInt(uinfo.devices);
         uinfo.is_enable = parseInt(uinfo.is_enable);
+        uinfo.m_code = parseInt(uinfo.m_code);
         uinfo.acc_group = parseInt(uinfo.acc_group);
         uinfo.expired = parseInt(uinfo.expired);
         uinfo.days = parseInt(uinfo.days);

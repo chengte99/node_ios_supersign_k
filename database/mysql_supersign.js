@@ -19,6 +19,7 @@ function connect_to_server(host, port, db_name, user, password){
 function mysql_exec(sql, callback) {
 	conn_pool.getConnection(function(err, conn) {
 		if (err) {
+            log.error(err);
 			if(callback) {
 				callback(err, null, null);
 			}
@@ -29,6 +30,7 @@ function mysql_exec(sql, callback) {
             conn.release();
 
 			if (sql_err) {
+                log.error(sql_err);
 				if (callback) {
 					callback(sql_err, null, null);
 				}
@@ -180,9 +182,9 @@ function get_valid_account(group, callback){
     })
 }
 
-function get_all_valid_accounts(group, callback){
-    var sql = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 and acc_group = %d";
-    var sql_cmd = util.format(sql, group);
+function get_all_valid_accounts(m_code, callback){
+    var sql = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 and m_code = %d";
+    var sql_cmd = util.format(sql, m_code);
     log.info(sql_cmd);
     mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
         if(sql_err){

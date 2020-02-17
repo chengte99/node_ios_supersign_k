@@ -59,7 +59,7 @@ function test_sql_request(){
 
 connect_to_server(center_database.host, center_database.port, center_database.db_name, center_database.user, center_database.password);
 
-test_sql_request();
+// test_sql_request();
 
 // var udid = "c3d699593eae5c0cb68a83ce4a458c0000000000";
 // var sql = "select * from device_uinfo where udid = \"%s\"";

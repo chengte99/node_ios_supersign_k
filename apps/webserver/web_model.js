@@ -98,43 +98,20 @@ function get_devices_by_id(id, ret_func){
         return;
     }
 
-    var acc_exist = false;
-    
     for(var key in global_acc_id_dic){
         if(parseInt(key) == id){
             var acc_id = parseInt(key);
-            acc_exist = true;
-
             redis_center.get_accinfo_inredis(acc_id, function(status, info){
                 if(status != Response.OK){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
-                }else{
-                    ret_func(Response.OK, info.devices);
-                    return;
                 }
+                
+                ret_func(Response.OK, info.devices);
             });
         }
     }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
-    }
-
-    // mysql_supersign.get_devices_by_id(id, function(status, sql_result){
-    //     if(status != Response.OK){
-    //         ret_func(status, null);
-    //         return;
-    //     }
-
-    //     if(sql_result.length <= 0){
-    //         // log.info("no valid account ...");
-    //         ret_func(Response.NO_VALID_ACCOUNT, null);
-    //     }else{
-    //         ret_func(status, sql_result[0]);
-    //     }
-    // })
 }
 
 function balance_switch(group, times, ret_func){
@@ -150,30 +127,30 @@ function balance_switch(group, times, ret_func){
             log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
             ret_func(status, null);
             return;
-        }else{
-            if(info.devices < 95 && info.days < 30 && info.is_enable != 0 && info.acc_group == group){
-                ret_func(Response.OK, info);
-                return;
-            }else{
-                log.warn("不符合可用帳號條件, 獲取是否有下個帳號 ...");
-                times ++;
-                log.warn("times = ", times);
-                if(times == global_acc_id_array.length){
-                    times = 0;
-                    ret_func(Response.NO_VALID_ACCOUNT, null);
-                    return;
-                }
+        }
 
-                balance_switch(group, times, ret_func);
+        if(info.devices < 95 && info.days < 30 && info.is_enable != 0 && info.acc_group == group){
+            ret_func(Response.OK, info);
+            return;
+        }else{
+            log.warn("不符合可用帳號條件, 獲取是否有下個帳號 ...");
+            times ++;
+            log.warn("times = ", times);
+            if(times == global_acc_id_array.length){
+                times = 0;
+                ret_func(Response.NO_VALID_ACCOUNT, null);
+                return;
             }
+
+            balance_switch(group, times, ret_func);
         }
     });
 }
 
 function get_valid_account(group, ret_func){
-    if(group != 3 && local_mac_config.balance_switch_acc == true){
-        // balance_switch_acc = true時
-        balance_switch(group, 0, function(status, info){
+    if(group != 2 && local_mac_config.balance_switch_acc == true){
+        // balance_switch_acc = true時, group固定寫1（正常群組）
+        balance_switch(1, 0, function(status, info){
             if(status != Response.OK){
                 ret_func(status, null);
                 return;
@@ -192,36 +169,22 @@ function get_valid_account(group, ret_func){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
+                }
+
+                count ++;
+                if(info.devices < 95 && info.days < 30 && info.is_enable != 0){
+                    ret_func(Response.OK, info);
+                    return;
                 }else{
-                    if(info.devices < 95 && info.days < 30 && info.is_enable != 0 && info.acc_group == group){
-                        ret_func(Response.OK, info);
-                        return;
-                    }else{
-                        log.warn("不符合可用帳號條件, 獲取是否有下個帳號 ...");
-                        count ++;
-                        if(count == global_acc_id_array.length){
-                            count = 0;
-                            ret_func(Response.NO_VALID_ACCOUNT, null);
-                        }
+                    log.warn("不符合可用帳號條件, 獲取是否有下個帳號 ...");
+                    if(count == global_acc_id_array.length - 1){
+                        count = 0;
+                        ret_func(Response.NO_VALID_ACCOUNT, null);
                     }
                 }
             });
         }
     }
-
-    // mysql_supersign.get_valid_account(group, function(status, sql_result){
-    //     if(status != Response.OK){
-    //         ret_func(status, null);
-    //         return;
-    //     }
-
-    //     if(sql_result.length <= 0){
-    //         // log.info("no valid account ...");
-    //         ret_func(Response.NO_VALID_ACCOUNT, null);
-    //     }else{
-    //         ret_func(status, sql_result[0]);
-    //     }
-    // })
 }
 
 // 全域對應表
@@ -244,6 +207,7 @@ function get_accinfo_success(data, ret_func){
             bundle_id: data[i].bundle_id,
             devices: data[i].devices,
             is_enable: data[i].is_enable,
+            m_code: data[i].m_code,
             acc_group: data[i].acc_group,
             expired: data[i].expired,
             days: data[i].days,
@@ -255,8 +219,8 @@ function get_accinfo_success(data, ret_func){
     ret_func(Response.OK, global_acc_id_dic);
 }
 
-function get_all_valid_accounts(group, ret_func){
-    mysql_supersign.get_all_valid_accounts(group, function(status, sql_result){
+function get_all_valid_accounts(m_code, ret_func){
+    mysql_supersign.get_all_valid_accounts(m_code, function(status, sql_result){
         if(status != Response.OK){
             ret_func(status, null);
             return;
@@ -271,41 +235,35 @@ function get_all_valid_accounts(group, ret_func){
     })
 }
 
-function get_max_devices_accounts(group, ret_func){
+function get_max_devices_accounts(ret_func){
     var acc_array = [];
+    var count = 0;
     for(var key in global_acc_id_dic){
         var acc_id = parseInt(key);
-        log.info("acc_id = ", acc_id);
+        // log.info("acc_id = ", acc_id);
         redis_center.get_accinfo_inredis(acc_id, function(status, info){
             if(status != Response.OK){
                 log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
-            }else{
-                if(info.devices >= 95 && info.days < 30 && info.is_enable != 0 && info.acc_group == group){
-                    acc_array.push(global_acc_id_dic[key]);
+                ret_func(status, null);
+                return;
+            }
+
+            // 紀錄成功獲取redis的次數
+            count ++;
+            if(info.devices >= 95 && info.days < 30 && info.is_enable != 0){
+                acc_array.push(info.account);                
+            }
+            
+            if(count == global_acc_id_array.length - 1){
+                count = 0;
+                if(acc_array.length > 0){
+                    ret_func(Response.OK, acc_array);
+                }else{
+                    ret_func(Response.NO_MAX_DEVICES_ACCOUNT, null);
                 }
             }
         });
     }
-    
-    if(acc_array.length > 0){
-        ret_func(Response.OK, acc_array);
-    }else{
-        ret_func(Response.NO_MAX_DEVICES_ACCOUNT, null);
-    }
-
-    // mysql_supersign.get_max_devices_accounts(group, function(status, sql_result){
-    //     if(status != Response.OK){
-    //         ret_func(status, null);
-    //         return;
-    //     }
-
-    //     if(sql_result.length <= 0){
-    //         // log.info("no valid account ...");
-    //         ret_func(Response.NO_MAX_DEVICES_ACCOUNT, null);
-    //     }else{
-    //         ret_func(status, sql_result);
-    //     }
-    // })
 }
 
 function get_info_by_account(acc, ret_func){
@@ -349,14 +307,23 @@ function update_devices_by_id(id, count, ret_func){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
-
-    var acc_exist = false;
     
     for(var key in global_acc_id_dic){
         if(parseInt(key) == id){
-            var acc_id = parseInt(key);
+            // 更新redis
+            redis_center.get_accinfo_inredis(id, function(status, info){
+                if(status != Response.OK){
+                    log.error("無此id = " + id + " 的帳號資訊, get_accinfo_inredis status ...", status);
+                    ret_func(status, null);
+                    return;
+                }
 
-            acc_exist = true;
+                info.devices += count;
+
+                // 寫回redis
+                redis_center.set_accinfo_inredis(info.id, info);
+            });
+
             // 更新數據庫
             mysql_supersign.update_devices_by_id(id, count, function(status, sql_result){
                 if(status != Response.OK){
@@ -364,39 +331,11 @@ function update_devices_by_id(id, count, ret_func){
                     ret_func(status, null);
                     return;
                 }
-            });
 
-            // 更新redis
-            redis_center.get_accinfo_inredis(acc_id, function(status, info){
-                if(status != Response.OK){
-                    log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
-                    ret_func(status, null);
-                    return;
-                }else{
-                    info.devices += count;
-
-                    // 寫回redis
-                    redis_center.set_accinfo_inredis(info.id, info);
-
-                    ret_func(Response.OK, null);
-                    return;
-                }
+                ret_func(Response.OK, null);
             });
         }
     }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
-    }
-
-    // mysql_supersign.update_devices_by_id(id, count, function(status, sql_result){
-    //     if(status != Response.OK){
-    //         ret_func(status, null);
-    //         return;
-    //     }
-
-    //     ret_func(status, null);
-    // })
 }
 
 function update_jsonstr_by_id_multi(values, ret_func){
@@ -473,20 +412,8 @@ function update_device_count_on_account_info(acc, devices, ret_func){
         return;
     }
 
-    var acc_exist = false;
-
     for(var key in global_acc_id_dic){
         if(global_acc_id_dic[key] == acc){
-            acc_exist = true;
-            // 更新數據庫
-            mysql_supersign.update_device_count_on_account_info(acc, devices, function(status, sql_result){
-                if(status != Response.OK){
-                    log.warn("update_device_count_on_account_info fail, Response: ", status);
-                    ret_func(status, null);
-                    return;
-                }
-            });
-
             // 更新redis
             var acc_id = parseInt(key);
             redis_center.get_accinfo_inredis(acc_id, function(status, info){
@@ -494,21 +421,25 @@ function update_device_count_on_account_info(acc, devices, ret_func){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
-                }else{
-                    info.devices = devices;
+                }
 
-                    // 寫回redis
-                    redis_center.set_accinfo_inredis(info.id, info);
+                info.devices = devices;
 
-                    ret_func(Response.OK, null);
+                // 寫回redis
+                redis_center.set_accinfo_inredis(info.id, info);
+            });
+
+            // 更新數據庫
+            mysql_supersign.update_device_count_on_account_info(acc, devices, function(status, sql_result){
+                if(status != Response.OK){
+                    log.warn("update_device_count_on_account_info fail, Response: ", status);
+                    ret_func(status, null);
                     return;
                 }
+
+                ret_func(Response.OK, null);
             });
         }
-    }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
     }
 }
 
@@ -518,20 +449,8 @@ function update_device_count_and_disable_account(acc, devices, ret_func){
         return;
     }
 
-    var acc_exist = false;
-
     for(var key in global_acc_id_dic){
         if(global_acc_id_dic[key] == acc){
-            acc_exist = true;
-            // 更新數據庫
-            mysql_supersign.update_device_count_and_disable_account(acc, devices, function(status, sql_result){
-                if(status != Response.OK){
-                    log.warn("update_device_count_and_disable_account fail, Response: ", status);
-                    ret_func(status, null);
-                    return;
-                }
-            });
-
             // 更新redis
             var acc_id = parseInt(key);
             redis_center.get_accinfo_inredis(acc_id, function(status, info){
@@ -539,41 +458,32 @@ function update_device_count_and_disable_account(acc, devices, ret_func){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
-                }else{
-                    // 停用
-                    info.devices = devices;
-                    info.is_enable = 0;
+                }
 
-                    // 寫回redis
-                    redis_center.set_accinfo_inredis(info.id, info);
+                // 停用
+                info.devices = devices;
+                info.is_enable = 0;
 
-                    ret_func(Response.OK, null);
+                // 寫回redis
+                redis_center.set_accinfo_inredis(info.id, info);
+            });
+
+            // 更新數據庫
+            mysql_supersign.update_device_count_and_disable_account(acc, devices, function(status, sql_result){
+                if(status != Response.OK){
+                    log.warn("update_device_count_and_disable_account fail, Response: ", status);
+                    ret_func(status, null);
                     return;
                 }
+
+                ret_func(Response.OK, null);
             });
         }
-    }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
     }
 }
 
 function update_all_valid_acc_days(ret_func){
-    var id_list = [];
-    for(var key in global_acc_id_dic){
-        var acc_id = parseInt(key);
-        id_list.push(acc_id);
-    }
-
-    mysql_supersign.update_days_on_account_info_multi(id_list, function(status, sql_result){
-        if(status != Response.OK){
-            log.warn("update_days_on_account_info_multi fail, Response: ", status);
-            ret_func(status, null);
-            return;
-        }
-    })
-
+    var acc_id_array = [];
     var count = 0;
     for(var key in global_acc_id_dic){
         // 更新redis
@@ -583,18 +493,37 @@ function update_all_valid_acc_days(ret_func){
                 log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                 ret_func(status, null);
                 return;
-            }else{
-                // 停用
+            }
+
+            // 紀錄成功獲取redis的次數
+            count ++;
+
+            if(info.devices < 95 && info.days < 30 && info.is_enable != 0){
                 info.days += 1;
 
                 // 寫回redis
                 redis_center.set_accinfo_inredis(info.id, info);
 
-                count ++;
-                if(count == id_list.length){
-                    // 已全數更新完
-                    count = 0;
-                    ret_func(Response.OK, null);
+                // acc_id_array 加入要更新天數的acc_id
+                acc_id_array.push(info.id);
+            }
+
+            if(count == global_acc_id_array.length - 1){
+                count = 0;
+                // 已全數更新完redis，準備更新mysql
+                if(acc_id_array.length > 0){
+                    mysql_supersign.update_days_on_account_info_multi(acc_id_array, function(status, sql_result){
+                        if(status != Response.OK){
+                            log.warn("update_days_on_account_info_multi fail, Response: ", status);
+                            ret_func(status, null);
+                            return;
+                        }
+
+                        // 成功更新完mysql
+                        ret_func(Response.OK, null);
+                    })
+                }else{
+                    ret_func(Response.NO_VALID_ACCOUNT, null);
                 }
             }
         });
@@ -607,20 +536,8 @@ function disable_acc_by_acc(acc, objStr, ret_func){
         return;
     }
 
-    var acc_exist = false;
-
     for(var key in global_acc_id_dic){
         if(global_acc_id_dic[key] == acc){
-            acc_exist = true;
-            // 更新數據庫
-            mysql_supersign.disable_acc_and_record_err_by_acc(acc, objStr, function(status, sql_result){
-                if(status != Response.OK){
-                    log.warn("disable_acc_and_record_err_by_acc fail, Response: ", status);
-                    ret_func(status, null);
-                    return;
-                }
-            })
-
             // 更新redis
             var acc_id = parseInt(key);
             redis_center.get_accinfo_inredis(acc_id, function(status, info){
@@ -628,23 +545,27 @@ function disable_acc_by_acc(acc, objStr, ret_func){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
-                }else{
-                    // 停用且紀錄原因
-                    info.is_enable = 0;
-                    info.err_record = objStr;
+                }
 
-                    // 寫回redis
-                    redis_center.set_accinfo_inredis(info.id, info);
+                // 停用且紀錄原因
+                info.is_enable = 0;
+                info.err_record = objStr;
 
-                    ret_func(Response.OK, null);
+                // 寫回redis
+                redis_center.set_accinfo_inredis(info.id, info);
+            });
+
+            // 更新數據庫
+            mysql_supersign.disable_acc_and_record_err_by_acc(acc, objStr, function(status, sql_result){
+                if(status != Response.OK){
+                    log.warn("disable_acc_and_record_err_by_acc fail, Response: ", status);
+                    ret_func(status, null);
                     return;
                 }
+
+                ret_func(Response.OK, null);
             });
         }
-    }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
     }
 }
 
@@ -748,84 +669,47 @@ function update_acc_reg_content(id, device_ids, ret_func){
         ret_func(Response.INVAILD_PARAMS, null);
         return;
     }
-
-    var acc_exist = false;
     
     for(var key in global_acc_id_dic){
         if(parseInt(key) == id){
             var acc_id = parseInt(key);
-            acc_exist = true;
-
             // 更新redis
             redis_center.get_accinfo_inredis(acc_id, function(status, info){
                 if(status != Response.OK){
                     log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
                     ret_func(status, null);
                     return;
-                }else{
-                    var reg_content = info.reg_content;
-                    var reg_content_json = JSON.parse(reg_content);
-                    for(var i = 0; i < device_ids.length; i ++){
-                        var did = device_ids[i];
-                        if(reg_content_json.udids.indexOf(did) == -1){
-                            reg_content_json.udids.push(did);
-                        }
-                    }
-                    var reg_content_str = JSON.stringify(reg_content_json);
-                    info.reg_content = reg_content_str;
-
-                    // 更新redis
-                    redis_center.set_accinfo_inredis(info.id, info);
-
-                    // 更新數據庫
-                    mysql_supersign.update_reg_content_by_id(info.id, reg_content_str, function(status, sql_result){
-                        if(status != Response.OK){
-                            log.warn("update_reg_content_by_id fail, Response: ", status);
-                            ret_func(status, null);
-                            return;
-                        }else{
-                            ret_func(Response.OK, null);
-                            return;
-                        }
-                    });
                 }
+
+                var reg_content = info.reg_content;
+                var reg_content_json = JSON.parse(reg_content);
+                for(var i = 0; i < device_ids.length; i ++){
+                    var did = device_ids[i];
+                    if(reg_content_json.udids.indexOf(did) == -1){
+                        reg_content_json.udids.push(did);
+                    }
+                }
+                var reg_content_str = JSON.stringify(reg_content_json);
+
+                // 更新reg_content欄位
+                info.reg_content = reg_content_str;
+
+                // 更新redis
+                redis_center.set_accinfo_inredis(info.id, info);
+
+                // 更新數據庫
+                mysql_supersign.update_reg_content_by_id(info.id, reg_content_str, function(status, sql_result){
+                    if(status != Response.OK){
+                        log.warn("update_reg_content_by_id fail, Response: ", status);
+                        ret_func(status, null);
+                        return;
+                    }
+
+                    ret_func(Response.OK, null);
+                });
             });
         }
     }
-
-    if(!acc_exist){
-        ret_func(Response.NO_THIS_ACCOUNT, null);
-    }
-
-    // mysql_supersign.get_reg_content_by_id(acc_id, function(status, sql_result){
-    //     if(status != Response.OK){
-    //         ret_func(status, null);
-    //         return;
-    //     }
-
-    //     if(sql_result.length <= 0){
-    //         ret_func(Response.DB_SEARCH_EMPTY, null);
-    //         return;
-    //     }
-            
-    //     var reg_content = sql_result[0].reg_content;
-    //     var reg_content_json = JSON.parse(reg_content);
-    //     for(var i = 0; i < device_ids.length; i ++){
-    //         var id = device_ids[i];
-    //         if(reg_content_json.udids.indexOf(id) == -1){
-    //             reg_content_json.udids.push(id);
-    //         }
-    //     }
-    //     var reg_content_str = JSON.stringify(reg_content_json);
-    //     mysql_supersign.update_reg_content_by_id(acc_id, reg_content_str, function(status, sql_result){
-    //         if(status != Response.OK){
-    //             ret_func(status, null);
-    //             return;
-    //         }
-    
-    //         ret_func(status, null);
-    //     })
-    // })
 }
 
 module.exports = {

@@ -929,9 +929,6 @@ function add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callbac
             "app_desc": ainfo.app_desc,
             "app_ver": ainfo.app_ver,
             "site_code": ainfo.site_code,
-            
-            // "acc_id": device_acc_info.acc_id,
-            // "account": device_acc_info.account,
         })
     }
 
@@ -985,34 +982,16 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                                 bundle_id: result.bundle_id,
                             }
 
-                            // // 將該帳號已註冊udid的內容取出，再新增該設備的id
-                            // var acc_content_json = JSON.parse(result.reg_content);
-                            // if(acc_content_json.udids.indexOf(device_id) == -1){
-                            //     acc_content_json.udids.push(device_id);
+                            // 將該帳號設備數+1，以防滿了被其他請求取得
+                            web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                                if(status != Response.OK){
+                                    write_err(status, callback);
+                                    return;
+                                }
 
-                            //     var acc_content_str = JSON.stringify(acc_content_json);
-                            //     // 更新reg_content, devices on account_info
-                            //     web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
-                            //         if(status != Response.OK){
-                            //             write_err(status, callback);
-                            //             return;
-                            //         }
-
-                            //         // 加入acc佇列
-                            //         add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                            //     });
-                            // }else{
-                                // 將該帳號設備數+1，以防滿了被其他請求取得
-                                web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
-                                    if(status != Response.OK){
-                                        write_err(status, callback);
-                                        return;
-                                    }
-
-                                    // 加入acc佇列
-                                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                                });
-                            // }
+                                // 加入acc佇列
+                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                            });
                         });
                     })
                     
@@ -1102,34 +1081,16 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                     bundle_id: result.bundle_id,
                 }
 
-                // 將該帳號已註冊udid的內容取出，再新增該設備的id
-                // var acc_content_json = JSON.parse(result.reg_content);
-                // if(acc_content_json.udids.indexOf(device_id) == -1){
-                //     acc_content_json.udids.push(device_id);
+                // 將該帳號設備數+1，以防滿了被其他請求取得
+                web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                    if(status != Response.OK){
+                        write_err(status, callback);
+                        return;
+                    }
 
-                //     var acc_content_str = JSON.stringify(acc_content_json);
-                //     // 更新reg_content, devices on account_info
-                //     web_model.update_multi_value_by_id(device_acc_info.acc_id, acc_content_str, 1, function(status, result){
-                //         if(status != Response.OK){
-                //             write_err(status, callback);
-                //             return;
-                //         }
-
-                //         // 加入acc佇列
-                //         add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                //     });
-                // }else{
-                    // 將該帳號設備數+1，以防滿了被其他請求取得
-                    web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
-                        if(status != Response.OK){
-                            write_err(status, callback);
-                            return;
-                        }
-
-                        // 加入acc佇列
-                        add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                    });
-                // }
+                    // 加入acc佇列
+                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                });
             });
         }
     });
@@ -1504,8 +1465,8 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                 global_reg_to_acc = 0;
 
                 log.error("帳號異常 error ...", account_info.account);
-                log.warn(account_info);
-                log.warn(acc_req_queue);
+                // log.warn(account_info);
+                // log.warn(acc_req_queue);
                 // 將acc_queue_list內該帳號移除
                 acc_queue_list[acc_queue_index] = null;
                 acc_queue_list.splice(acc_queue_index, 1);
@@ -1879,20 +1840,20 @@ function create_app_to_db(app_info, callback){
                     return;
                 }
 
-                // 通知備用機器同步下載檔案包
-                var backup_mac_server_config = server_config.backup_mac_server_config;
-                var hostname = backup_mac_server_config.hostname;
-                var port = backup_mac_server_config.port;
-                var path = backup_mac_server_config.url;
-                var sync_json = {"app_name": app_info.app_name};
-                var sync_json_data = JSON.stringify(sync_json);
-                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
-                    if(is_ok){
-                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                        log.warn("backup mac ... incoming_msg.statusCode = 200");
-                    }
-                })
-                // end
+                // // 通知備用機器同步下載檔案包
+                // var backup_mac_server_config = server_config.backup_mac_server_config;
+                // var hostname = backup_mac_server_config.hostname;
+                // var port = backup_mac_server_config.port;
+                // var path = backup_mac_server_config.url;
+                // var sync_json = {"app_name": app_info.app_name};
+                // var sync_json_data = JSON.stringify(sync_json);
+                // http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                //     if(is_ok){
+                //         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                //         log.warn("backup mac ... incoming_msg.statusCode = 200");
+                //     }
+                // })
+                // // end
 
                 web_model.add_new_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
@@ -1915,20 +1876,20 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    // 通知備用機器同步下載檔案包
-                    var backup_mac_server_config = server_config.backup_mac_server_config;
-                    var hostname = backup_mac_server_config.hostname;
-                    var port = backup_mac_server_config.port;
-                    var path = backup_mac_server_config.url;
-                    var sync_json = {"app_name": app_info.app_name};
-                    var sync_json_data = JSON.stringify(sync_json);
-                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
-                        if(is_ok){
-                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.warn("backup mac ... incoming_msg.statusCode = 200");
-                        }
-                    })
-                    // end
+                    // // 通知備用機器同步下載檔案包
+                    // var backup_mac_server_config = server_config.backup_mac_server_config;
+                    // var hostname = backup_mac_server_config.hostname;
+                    // var port = backup_mac_server_config.port;
+                    // var path = backup_mac_server_config.url;
+                    // var sync_json = {"app_name": app_info.app_name};
+                    // var sync_json_data = JSON.stringify(sync_json);
+                    // http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                    //     if(is_ok){
+                    //         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                    //         log.warn("backup mac ... incoming_msg.statusCode = 200");
+                    //     }
+                    // })
+                    // // end
 
                     web_model.update_app_to_app_info(app_info, function(status, result){
                         if(status != Response.OK){
@@ -2029,26 +1990,18 @@ function schedule_to_action(){
     var j1 = schedule.scheduleJob(rule1, function(){
         log.info("每日12時將已達95設備數的帳號進行驗證 ...");
         // 取出可用的帳號
-        web_model.get_max_devices_accounts(local_mac_config.acc_group, function(status, result){
+        web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
                 if(status == Response.NO_MAX_DEVICES_ACCOUNT){
                     log.info("無已達95設備數的帳號 ...");
                 }else{
                     log.error("get_max_devices_accounts error ...", status);
                 }
-            }else{
-                log.info("已獲取帳號 ..." + result + ", 進行驗證更新 ...");
-                // log.info(result);
-                // log.info(result[0]);
-                // var acc_list = [];
-                // for(var i = 0; i < result.length; i ++){
-                //     // console.log(result[i].account);
-                //     acc_list.push(result[i].account);
-                // }
-
-                // 檢查帳號登入是否正常
-                start_verify_acc_state(result);
             }
+
+            log.info("已獲取帳號列表 ..." + result + ", 進行驗證更新 ...");
+            // 檢查帳號登入是否正常
+            start_verify_acc_state(result);
         })
     });
 
@@ -2068,21 +2021,9 @@ function schedule_to_action(){
                 }else{
                     log.error("update_all_valid_acc_days error ...", status);
                 }
-            }else{
-                log.info("已更新完可用帳號days ...");
-                // var acc_id_list = [];
-                // for(var i = 0; i < result.length; i ++){
-                //     // console.log(result[i].id);
-                //     acc_id_list.push(result[i].id);
-                // }
-
-                // // 更新本地帳號session 期限
-                // web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
-                //     if(status != Response.OK){
-                //         log.error("update_days_on_account_info_multi error ...", status);
-                //     }
-                // })
             }
+            
+            log.info("已更新完可用帳號days ...");
         })
     });
 }
@@ -2124,49 +2065,94 @@ function reinsert_to_new_acc_queue(device_queue, callback){
         }
 
         // 計算剩餘可用設備數
-        var insert_index = 0;
-        var remain_number = 95 - result.devices;
-        for(var i = 0; i < remain_number; i ++){
-            if(i < device_queue.length){
-                // 小於device_queue.length
+        var remain_number = 95 - result.devices;  // 3 
 
-                var acc_req_queue_is_exist = false;
-                var req_queue = acc_req_queue_list[new_acc_info.acc_id];
-                for(var i = 0; i < req_queue.length; i ++){
-                    var item = req_queue[i];
-                    if(item.udid == device_queue[i].udid){
-                        // 已經在該app queue內
-                        acc_req_queue_is_exist = true;
+        if(device_queue.length <= remain_number){
+            // 伫列数量小于等于 剩馀可用数量，可全部用掉
+            web_model.update_devices_by_id(new_acc_info.acc_id, device_queue.length, function(status, result){
+                if(status != Response.OK){
+                    write_err(status, callback);
+                    return;
+                }
+
+                for(var i = 0; i < device_queue.length; i ++){
+                    var acc_req_queue_is_exist = false;
+                    var req_queue = acc_req_queue_list[new_acc_info.acc_id];
+                    for(var j = 0; j < req_queue.length; j ++){
+                        var item = req_queue[j];
+                        if(item.udid == device_queue[i].udid){
+                            // 已經在該app queue內
+                            acc_req_queue_is_exist = true;
+                        }
+                    }
+    
+                    if(!acc_req_queue_is_exist){
+                        req_queue.push(device_queue[i]);
+                    }
+
+                    if(i == device_queue.length - 1){
+                        // 若伫列已转移完毕
+                        device_queue = null;
+
+                        log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
+                        var ret = {};
+                        ret.status = Response.OK;
+                        ret.msg = "待轉移佇列已全數轉移至新帳號佇列 ...";
+                        callback(ret);
                     }
                 }
-
-                if(!acc_req_queue_is_exist){
-                    req_queue.push(device_queue[i]);
-                }
-                insert_index = i + 1;
-            }
-        }
-
-        // 計算已加入到新帳號的數量，若小於device_queue.length 則從0開始去掉該數量
-        if(insert_index < device_queue.length){
-            device_queue.splice(0, insert_index);
-
-            setTimeout(function(){
-                log.info("該帳號可用設備數已滿，仍有未轉移設備資訊，0.5s後重新抓取");
-                reinsert_to_new_acc_queue(device_queue, callback);
-            }, 500);
+            });
         }else{
-            // 非小於則為大於等於，均已加入新帳號佇列，將該device_queue 設為null
-            device_queue = null;
+            // 伫列数量大于 剩馀可用数量，不够用，需拆分可用的伫列及 重新获取新帐号的伫列
+            var valid_queue = [];
+            for(var i = 0; i < remain_number; i ++){
+                var item = device_queue[i];
+                valid_queue.push(item);
+            }
 
-            log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
-            var ret = {};
-            ret.status = Response.OK;
-            ret.msg = "待轉移佇列已全數轉移至新帳號佇列 ...";
-            callback(ret);
+            // 将valid_queue 排入转移流程
+            web_model.update_devices_by_id(new_acc_info.acc_id, valid_queue.length, function(status, result){
+                if(status != Response.OK){
+                    write_err(status, callback);
+                    return;
+                }
+
+                for(var i = 0; i < valid_queue.length; i ++){
+                    var acc_req_queue_is_exist = false;
+                    var req_queue = acc_req_queue_list[new_acc_info.acc_id];
+                    for(var j = 0; j < req_queue.length; j ++){
+                        var item = req_queue[j];
+                        if(item.udid == valid_queue[i].udid){
+                            // 已經在該app queue內
+                            acc_req_queue_is_exist = true;
+                        }
+                    }
+    
+                    if(!acc_req_queue_is_exist){
+                        req_queue.push(valid_queue[i]);
+                    }
+
+                    if(i == valid_queue.length - 1){
+                        // 若伫列已转移完毕
+                        valid_queue = null;
+
+                        log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
+                        
+                        // 将原始device_queue splice 去除已转移到valid_queue的item
+                        log.info(device_queue.length);
+                        device_queue.splice(0, remain_number);
+                        log.info(device_queue.length);
+
+                        // 将还没转移的device丢入 reinsert_to_new_acc_queue 重跑
+                        setTimeout(function(){
+                            log.info("該帳號可用設備數已滿，仍有未轉移設備資訊，0.5s後重新抓取");
+                            reinsert_to_new_acc_queue(device_queue, callback);
+                        }, 500);
+                    }
+                }
+            });
         }
     })
-    
 }
 
 function schedule_to_check_resign_queue(){
@@ -2203,7 +2189,7 @@ function schedule_to_check_resign_queue(){
 }
 
 function startup_config(){
-    web_model.get_all_valid_accounts(local_mac_config.acc_group, function(status, result){
+    web_model.get_all_valid_accounts(local_mac_config.m_code, function(status, result){
         if(status != Response.OK){
             if(status == Response.NO_VALID_ACCOUNT){
                 log.info("無可用帳號 ...");
@@ -2212,19 +2198,6 @@ function startup_config(){
             }
         }else{
             log.info("已獲取可用的帳號，已存到redis server ...");
-
-            // var acc_id_list = [];
-            // for(var i = 0; i < result.length; i ++){
-            //     // console.log(result[i].id);
-            //     acc_id_list.push(result[i].id);
-            // }
-
-            // // 更新本地帳號session 期限
-            // web_model.update_days_on_account_info_multi(acc_id_list, function(status, result){
-            //     if(status != Response.OK){
-            //         log.error("update_days_on_account_info_multi error ...", status);
-            //     }
-            // })
         }
     });
 }
