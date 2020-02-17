@@ -1851,9 +1851,9 @@ function create_app_to_db(app_info, callback){
                 http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
                     if(is_ok){
                         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                        log.info("backup mac" + hostname + " connect success ...", result.toString());
+                        log.info("backup mac " + hostname + " connect success ...", result.toString());
                     }else{
-                        log.warn("backup mac" + hostname + " connect failed ...", result);
+                        log.warn("backup mac " + hostname + " connect failed ...", result);
                     }
                 })
                 // end
@@ -1889,9 +1889,9 @@ function create_app_to_db(app_info, callback){
                     http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("backup mac" + hostname + " connect success ...", result.toString());
+                            log.info("backup mac " + hostname + " connect success ...", result.toString());
                         }else{
-                            log.warn("backup mac" + hostname + " connect failed ...", result);
+                            log.warn("backup mac " + hostname + " connect failed ...", result);
                         }
                     })
                     // end
