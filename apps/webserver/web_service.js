@@ -1840,20 +1840,20 @@ function create_app_to_db(app_info, callback){
                     return;
                 }
 
-                // // 通知備用機器同步下載檔案包
-                // var backup_mac_server_config = server_config.backup_mac_server_config;
-                // var hostname = backup_mac_server_config.hostname;
-                // var port = backup_mac_server_config.port;
-                // var path = backup_mac_server_config.url;
-                // var sync_json = {"app_name": app_info.app_name};
-                // var sync_json_data = JSON.stringify(sync_json);
-                // http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
-                //     if(is_ok){
-                //         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                //         log.warn("backup mac ... incoming_msg.statusCode = 200");
-                //     }
-                // })
-                // // end
+                // 通知備用機器同步下載檔案包
+                var backup_mac_server_config = server_config.backup_mac_server_config;
+                var hostname = backup_mac_server_config.hostname;
+                var port = backup_mac_server_config.port;
+                var path = backup_mac_server_config.url;
+                var sync_json = {"app_name": app_info.app_name};
+                var sync_json_data = JSON.stringify(sync_json);
+                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                    if(is_ok){
+                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                        log.warn("backup mac ... incoming_msg.statusCode = 200");
+                    }
+                })
+                // end
 
                 web_model.add_new_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
@@ -1876,20 +1876,20 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    // // 通知備用機器同步下載檔案包
-                    // var backup_mac_server_config = server_config.backup_mac_server_config;
-                    // var hostname = backup_mac_server_config.hostname;
-                    // var port = backup_mac_server_config.port;
-                    // var path = backup_mac_server_config.url;
-                    // var sync_json = {"app_name": app_info.app_name};
-                    // var sync_json_data = JSON.stringify(sync_json);
-                    // http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
-                    //     if(is_ok){
-                    //         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                    //         log.warn("backup mac ... incoming_msg.statusCode = 200");
-                    //     }
-                    // })
-                    // // end
+                    // 通知備用機器同步下載檔案包
+                    var backup_mac_server_config = server_config.backup_mac_server_config;
+                    var hostname = backup_mac_server_config.hostname;
+                    var port = backup_mac_server_config.port;
+                    var path = backup_mac_server_config.url;
+                    var sync_json = {"app_name": app_info.app_name};
+                    var sync_json_data = JSON.stringify(sync_json);
+                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                        if(is_ok){
+                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                            log.warn("backup mac ... incoming_msg.statusCode = 200");
+                        }
+                    })
+                    // end
 
                     web_model.update_app_to_app_info(app_info, function(status, result){
                         if(status != Response.OK){
@@ -1994,8 +1994,10 @@ function schedule_to_action(){
             if(status != Response.OK){
                 if(status == Response.NO_MAX_DEVICES_ACCOUNT){
                     log.info("無已達95設備數的帳號 ...");
+                    return;
                 }else{
                     log.error("get_max_devices_accounts error ...", status);
+                    return;
                 }
             }
 
@@ -2007,8 +2009,8 @@ function schedule_to_action(){
 
     var rule2 = new schedule.RecurrenceRule();
     // 每天13時執行
-    rule2.hour = 13;
-    rule2.minute = 0;
+    rule2.hour = 12;
+    rule2.minute = 30;
     rule2.second = 0;
 
     var j2 = schedule.scheduleJob(rule2, function(){
@@ -2018,8 +2020,10 @@ function schedule_to_action(){
             if(status != Response.OK){
                 if(status == Response.NO_VALID_ACCOUNT){
                     log.info("無可用帳號 ...");
+                    return;
                 }else{
                     log.error("update_all_valid_acc_days error ...", status);
+                    return;
                 }
             }
             

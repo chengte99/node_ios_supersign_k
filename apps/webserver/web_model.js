@@ -177,7 +177,7 @@ function get_valid_account(group, ret_func){
                     return;
                 }else{
                     log.warn("不符合可用帳號條件, 獲取是否有下個帳號 ...");
-                    if(count == global_acc_id_array.length - 1){
+                    if(count == global_acc_id_array.length){
                         count = 0;
                         ret_func(Response.NO_VALID_ACCOUNT, null);
                     }
@@ -240,7 +240,6 @@ function get_max_devices_accounts(ret_func){
     var count = 0;
     for(var key in global_acc_id_dic){
         var acc_id = parseInt(key);
-        // log.info("acc_id = ", acc_id);
         redis_center.get_accinfo_inredis(acc_id, function(status, info){
             if(status != Response.OK){
                 log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
@@ -254,12 +253,58 @@ function get_max_devices_accounts(ret_func){
                 acc_array.push(info.account);                
             }
             
-            if(count == global_acc_id_array.length - 1){
+            if(count == global_acc_id_array.length){
                 count = 0;
                 if(acc_array.length > 0){
                     ret_func(Response.OK, acc_array);
                 }else{
                     ret_func(Response.NO_MAX_DEVICES_ACCOUNT, null);
+                }
+            }
+        });
+    }
+}
+
+function update_all_valid_acc_days(ret_func){
+    var acc_id_array = [];
+    var count = 0;
+    for(var key in global_acc_id_dic){
+        var acc_id = parseInt(key);
+        redis_center.get_accinfo_inredis(acc_id, function(status, info){
+            if(status != Response.OK){
+                log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
+                ret_func(status, null);
+                return;
+            }
+
+            // 紀錄成功獲取redis的次數
+            count ++;
+            if(info.devices < 95 && info.days < 30 && info.is_enable != 0){
+                info.days += 1;
+
+                // 寫回redis
+                redis_center.set_accinfo_inredis(info.id, info);
+
+                // acc_id_array 加入要更新天數的acc_id
+                acc_id_array.push(info.id);
+            }
+
+            if(count == global_acc_id_array.length){
+                count = 0;
+                // 已全數更新完redis，準備更新mysql
+                if(acc_id_array.length > 0){
+                    mysql_supersign.update_days_on_account_info_multi(acc_id_array, function(status, sql_result){
+                        if(status != Response.OK){
+                            log.warn("update_days_on_account_info_multi fail, Response: ", status);
+                            ret_func(status, null);
+                            return;
+                        }
+
+                        // 成功更新完mysql
+                        ret_func(Response.OK, null);
+                    })
+                }else{
+                    ret_func(Response.NO_VALID_ACCOUNT, null);
                 }
             }
         });
@@ -479,54 +524,6 @@ function update_device_count_and_disable_account(acc, devices, ret_func){
                 ret_func(Response.OK, null);
             });
         }
-    }
-}
-
-function update_all_valid_acc_days(ret_func){
-    var acc_id_array = [];
-    var count = 0;
-    for(var key in global_acc_id_dic){
-        // 更新redis
-        var acc_id = parseInt(key);
-        redis_center.get_accinfo_inredis(acc_id, function(status, info){
-            if(status != Response.OK){
-                log.error("無此id = " + acc_id + " 的帳號資訊, get_accinfo_inredis status ...", status);
-                ret_func(status, null);
-                return;
-            }
-
-            // 紀錄成功獲取redis的次數
-            count ++;
-
-            if(info.devices < 95 && info.days < 30 && info.is_enable != 0){
-                info.days += 1;
-
-                // 寫回redis
-                redis_center.set_accinfo_inredis(info.id, info);
-
-                // acc_id_array 加入要更新天數的acc_id
-                acc_id_array.push(info.id);
-            }
-
-            if(count == global_acc_id_array.length - 1){
-                count = 0;
-                // 已全數更新完redis，準備更新mysql
-                if(acc_id_array.length > 0){
-                    mysql_supersign.update_days_on_account_info_multi(acc_id_array, function(status, sql_result){
-                        if(status != Response.OK){
-                            log.warn("update_days_on_account_info_multi fail, Response: ", status);
-                            ret_func(status, null);
-                            return;
-                        }
-
-                        // 成功更新完mysql
-                        ret_func(Response.OK, null);
-                    })
-                }else{
-                    ret_func(Response.NO_VALID_ACCOUNT, null);
-                }
-            }
-        });
     }
 }
 
