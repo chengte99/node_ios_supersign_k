@@ -1848,12 +1848,12 @@ function create_app_to_db(app_info, callback){
                 var path = backup_mac_server_config.url;
                 var sync_json = {"app_name": app_info.app_name};
                 var sync_json_data = JSON.stringify(sync_json);
-                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
                     if(is_ok){
                         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                        log.warn("backup mac ... incoming_msg.statusCode = 200");
+                        log.info("backup mac" + hostname + " connect success ...", result.toString());
                     }else{
-                        log.error("backup mac connect failed ...", data);
+                        log.warn("backup mac" + hostname + " connect failed ...", result);
                     }
                 })
                 // end
@@ -1886,12 +1886,12 @@ function create_app_to_db(app_info, callback){
                     var path = backup_mac_server_config.url;
                     var sync_json = {"app_name": app_info.app_name};
                     var sync_json_data = JSON.stringify(sync_json);
-                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, data){
+                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.warn("backup mac ... incoming_msg.statusCode = 200");
+                            log.info("backup mac" + hostname + " connect success ...", result.toString());
                         }else{
-                            log.error("backup mac connect failed ...", data);
+                            log.warn("backup mac" + hostname + " connect failed ...", result);
                         }
                     })
                     // end

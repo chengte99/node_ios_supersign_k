@@ -70,7 +70,6 @@ function https_get(ip, port, url, params, callback) {
 	});
 
 	req.on("error", function(err){
-		console.log("error: ", err);
 		callback(false, err);
 	});
 
@@ -114,7 +113,6 @@ function https_post(hostname, port, url, params, body, callback) {
 	});
 
 	req.on("error", function(err){
-		console.log("error: ", err);
 		callback(false, err);
 	});
 

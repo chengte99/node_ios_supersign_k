@@ -64,8 +64,11 @@ function http_get(ip, port, url, params, callback) {
 			if (incoming_msg.statusCode === 200) {
 				callback(true, data);
 			}
-		});
-		 
+		}); 
+	});
+
+	req.on("error", function(err){
+		callback(false, err);
 	});
 
 	// 把这个请求发送出去
@@ -105,7 +108,10 @@ function http_post(hostname, port, url, params, body, callback) {
 				callback(true, data);
 			}
 		});
-		 
+	});
+
+	req.on("error", function(err){
+		callback(false, err);
 	});
 
 	// step2 写入body数据
