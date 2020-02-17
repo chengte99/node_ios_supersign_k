@@ -67,7 +67,11 @@ function https_get(ip, port, url, params, callback) {
 				callback(true, data);
 			}
 		});
-		 
+	});
+
+	req.on("error", function(err){
+		console.log("error: ", err);
+		callback(false, err);
 	});
 
 	// 把这个请求发送出去
@@ -105,10 +109,13 @@ function https_post(hostname, port, url, params, body, callback) {
 		incoming_msg.on("data", function(data) {
 			if (incoming_msg.statusCode === 200) {
 				callback(true, data);
-			}else{
-				callback(false, null);
 			}
 		});
+	});
+
+	req.on("error", function(err){
+		console.log("error: ", err);
+		callback(false, err);
 	});
 
 	// step2 写入body数据

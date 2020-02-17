@@ -1853,7 +1853,7 @@ function create_app_to_db(app_info, callback){
                         // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                         log.warn("backup mac ... incoming_msg.statusCode = 200");
                     }else{
-                        log.warn("backup mac connect failed ...");
+                        log.error("backup mac connect failed ...", data);
                     }
                 })
                 // end
@@ -1891,7 +1891,7 @@ function create_app_to_db(app_info, callback){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.warn("backup mac ... incoming_msg.statusCode = 200");
                         }else{
-                            log.warn("backup mac connect failed ...");
+                            log.error("backup mac connect failed ...", data);
                         }
                     })
                     // end
