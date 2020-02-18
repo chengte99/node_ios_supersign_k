@@ -2116,7 +2116,7 @@ function schedule_to_action(){
     rule1.second = 0;
 
     var j1 = schedule.scheduleJob(rule1, function(){
-        log.info("每日12時將已達95設備數的帳號進行驗證 ...");
+        log.info("每日1200 將已達95設備數的帳號進行驗證 ...");
         // 取出可用的帳號
         web_model.get_max_devices_accounts(function(status, result){
             if(status != Response.OK){
@@ -2142,7 +2142,7 @@ function schedule_to_action(){
     rule2.second = 0;
 
     var j2 = schedule.scheduleJob(rule2, function(){
-        log.info("每日13時更新帳號在本地端的session 天數 ...");
+        log.info("每日1230 更新帳號在本地端的session 天數 ...");
         // 取出可用的帳號
         web_model.update_all_valid_acc_days(function(status, result){
             if(status != Response.OK){
