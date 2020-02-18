@@ -210,20 +210,6 @@ function get_max_devices_accounts(group, callback){
     })
 }
 
-function update_multi_value_by_id(id, reg_content, count, callback){
-    var sql = "update account_info set reg_content = \'%s\', devices = devices+%d where id = %d ";
-    var sql_cmd = util.format(sql, reg_content, count, id);
-    log.info(sql_cmd);
-    mysql_exec(sql_cmd, function(sql_err, sql_result, field_desc){
-        if(sql_err){
-            callback(Response.SYS_ERROR, null);
-            return;
-        }
-
-        callback(Response.OK, null);
-    })
-}
-
 function update_devices_by_id(id, count, callback){
     var sql = "update account_info set devices = devices+%d where id = %d ";
     var sql_cmd = util.format(sql, count, id);
@@ -469,7 +455,6 @@ module.exports = {
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_days_on_account_info_multi: update_days_on_account_info_multi,
-    update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_and_record_err_by_acc: disable_acc_and_record_err_by_acc,
     clear_record_by_sid: clear_record_by_sid,
     get_reg_content_by_id: get_reg_content_by_id,

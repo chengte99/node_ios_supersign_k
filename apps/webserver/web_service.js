@@ -951,16 +951,120 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
 
         var device_id = result.id;
         if(result.jsonstr != null){
-            log.info("有簽名紀錄 ...", result.jsonstr);
+            // log.info("有簽名紀錄 ...", result.jsonstr);
             var json = JSON.parse(result.jsonstr);
             var reg_acc_info = json.reg_acc_info;
 
             if(reg_acc_info.acc_id != 0){
-                // 已註冊過apple帳號
-                if(now_time > reg_acc_info.expired){
-                    // 帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號
-                    log.info("紀錄的帳號已超過一年未續費，清除該設備的簽名紀錄，重新抓取可用帳號進行簽名 ...");
-                    
+                // 判斷該id 是否為本機內用的帳號，若是跑原流程，不是則清除紀錄重跑流程
+                if(web_model.check_accid_exist_inredis(reg_acc_info.acc_id)){
+                    // 若存在
+                    if(now_time > reg_acc_info.expired){
+                        // 帳號已超過一年未續費，清除該設備的簽名資訊，重新抓取可用帳號
+                        log.info("有簽名紀錄，前次apple帳號位於目前機器，但紀錄的帳號已超過一年未續費，清除當前設備的簽名紀錄，重新抓取可用帳號進行簽名 ...");
+                        
+                        web_model.update_device_info_by_udid(dinfo.UDID, null, 0, function(status, result){
+                            if(status != Response.OK){
+                                write_err(status, callback);
+                                return;
+                            };
+
+                            // 取一個有效的帳號來用
+                            web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
+                                if(status != Response.OK){
+                                    write_err(status, callback);
+                                    return;
+                                }
+
+                                var device_acc_info = {
+                                    acc_id: result.id,
+                                    account: result.account,
+                                    cert_name: result.cert_name,
+                                    expired: result.expired,
+                                    bundle_id: result.bundle_id,
+                                }
+
+                                // 將該帳號設備數+1，以防滿了被其他請求取得
+                                web_model.update_devices_by_id(device_acc_info.acc_id, 1, function(status, result){
+                                    if(status != Response.OK){
+                                        write_err(status, callback);
+                                        return;
+                                    }
+
+                                    // 加入acc佇列
+                                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                                });
+                            });
+                        })
+                    }else{
+                        // 帳號未超過一年，判斷檔案
+                        log.info("有簽名紀錄，前次apple帳號位於目前機器，紀錄的帳號未超過一年，判斷簽名紀錄 ...");
+
+                        // 將該設備註冊的帳號資訊抓出來
+                        var device_acc_info = {
+                            acc_id: reg_acc_info.acc_id,
+                            account: reg_acc_info.reg_account,
+                            cert_name: reg_acc_info.cert_name,
+                            expired: reg_acc_info.expired,
+                            bundle_id: reg_acc_info.bundle_id
+                        }
+
+                        var download_name = "";
+                        var index = -1;
+                        for(var i = 0; i < json.app_resigned_info.length; i ++){
+                            if(json.app_resigned_info[i].site_code == ainfo.site_code){
+                                log.info("紀錄有簽過site_code該app，判斷版本 ...");
+                                // 如果有簽過該app
+                                if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
+                                    // 紀錄的版本號與當前DB app_info的版本號相同
+                                    log.info("紀錄的版本號與當前DB app_info的版本號相同 ...");
+                                    download_name = json.app_resigned_info[i].ipa_name;
+                                }else{
+                                    // 紀錄的版本號與當前DB app_info的版本號不同
+                                    log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
+                                    index = i;
+                                }
+                            }else{
+                                log.info("紀錄查無此site_code，跳過 ...");
+                            }
+                        }
+                        
+                        if(download_name != null && download_name != ""){
+                            // 有簽過該app 且download_name不為空
+                            log.info("有簽過該app且版本號與最新版本相同，不需重簽名直接分發");
+                            var ret = {};
+                            ret.status = Response.OK;
+                            ret.device_id = device_id;
+                            ret.ipa_name = download_name;
+                            ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
+                            callback(ret);
+                            return;
+                        }else{
+                            // 更新該設備的jsonStr 內容
+                            if(index != -1){
+                                log.info("有簽過該app，但版本不符，移除原先紀錄並重簽名app");
+                                json.app_resigned_info[index] = null;
+                                json.app_resigned_info.splice(index, 1);
+
+                                var jsonstr = JSON.stringify(json);
+                                web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, 0, function(status, result){
+                                    if(status != Response.OK){
+                                        write_err(status, callback);
+                                        return;
+                                    };
+
+                                    add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                                })
+                            }else{
+                                log.info("沒簽過該app，加入重簽名佇列");
+
+                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
+                            }
+                        }
+                    }
+                }else{
+                    // 不存在
+                    log.info("有簽名紀錄，前次apple帳號位於別台機器，清除當前設備的簽名紀錄，重新抓取可用帳號進行簽名 ...");
                     web_model.update_device_info_by_udid(dinfo.UDID, null, 0, function(status, result){
                         if(status != Response.OK){
                             write_err(status, callback);
@@ -994,77 +1098,11 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                             });
                         });
                     })
-                    
-                }else{
-                    // 帳號未超過一年，判斷檔案
-                    log.info("紀錄的帳號未超過一年，判斷簽名紀錄 ...");
-
-                    // 將該設備註冊的帳號資訊抓出來
-                    var device_acc_info = {
-                        acc_id: reg_acc_info.acc_id,
-                        account: reg_acc_info.reg_account,
-                        cert_name: reg_acc_info.cert_name,
-                        expired: reg_acc_info.expired,
-                        bundle_id: reg_acc_info.bundle_id
-                    }
-
-                    var download_name = "";
-                    var index = -1;
-                    for(var i = 0; i < json.app_resigned_info.length; i ++){
-                        if(json.app_resigned_info[i].site_code == ainfo.site_code){
-                            log.info("紀錄有簽過site_code該app，判斷版本 ...");
-                            // 如果有簽過該app
-                            if(json.app_resigned_info[i].app_ver == ainfo.app_ver){
-                                // 紀錄的版本號與當前DB app_info的版本號相同
-                                log.info("紀錄的版本號與當前DB app_info的版本號相同 ...");
-                                download_name = json.app_resigned_info[i].ipa_name;
-                            }else{
-                                // 紀錄的版本號與當前DB app_info的版本號不同
-                                log.info("紀錄的版本號與當前DB app_info的版本號不同 ...");
-                                index = i;
-                            }
-                        }else{
-                            log.info("紀錄查無此site_code，跳過 ...");
-                        }
-                    }
-                    
-                    if(download_name != null && download_name != ""){
-                        // 有簽過該app 且download_name不為空
-                        log.info("有簽過該app且版本號與最新版本相同，不需重簽名直接分發");
-                        var ret = {};
-                        ret.status = Response.OK;
-                        ret.device_id = device_id;
-                        ret.ipa_name = download_name;
-                        ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
-                        callback(ret);
-                        return;
-                    }else{
-                        // 更新該設備的jsonStr 內容
-                        if(index != -1){
-                            log.info("有簽過該app，但版本不符，移除原先紀錄並重簽名app");
-                            json.app_resigned_info[index] = null;
-                            json.app_resigned_info.splice(index, 1);
-
-                            var jsonstr = JSON.stringify(json);
-                            web_model.update_device_info_by_udid(dinfo.UDID, jsonstr, 0, function(status, result){
-                                if(status != Response.OK){
-                                    write_err(status, callback);
-                                    return;
-                                };
-
-                                add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                            })
-                        }else{
-                            log.info("沒簽過該app，加入重簽名佇列");
-
-                            add_data_to_acc_queue(dinfo, ainfo, device_acc_info, device_id, callback);
-                        }
-                    }
                 }
             }
         }else{
             // 未註冊過帳號，需要註冊帳號且重簽名app
-            log.info("無簽名紀錄，需要註冊帳號且重簽名app ...");
+            log.info("無簽名紀錄，抓取可用帳號進行簽名 ...");
     
             // 取一個有效的帳號來用
             web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
@@ -1271,7 +1309,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.warn("管理后台incoming_msg.statusCode = 200");
+                            log.info("https_post success ...", result.toString());
+                        }else{
+                            log.warn("https_post failed ...", result);
                         }
                     })
                 }
@@ -1322,7 +1362,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.warn("管理后台incoming_msg.statusCode = 200");
+                            log.info("https_post success ...", result.toString());
+                        }else{
+                            log.warn("https_post failed ...", result);
                         }
                     })
                 });
@@ -1545,6 +1587,63 @@ var udid_cache_area = {};
 }
 */
 
+var global_simulate_dinfo_dic = {};
+
+function simulate_sign_complete(){
+    // log.info("simulate_sign_complete ...");
+    for(var key in global_simulate_dinfo_dic){
+        var dinfo = global_simulate_dinfo_dic[key];
+        if(dinfo){
+            var ret = {};
+            ret.status = Response.OK;
+            ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
+            ret.ipa_path = "https://appdownload.webpxy.info/....../xxx.ipa";
+            ret.app_name = dinfo.APP_NAME;
+            ret.site_code = dinfo.SITE_CODE;
+            ret.sign_account = "xxxx@gmail.com";
+            ret.device_num = 12;
+            ret.new_acc_list = [dinfo.UDID];
+
+
+            var json_data = JSON.stringify(ret);
+            // log.warn(json_data);
+            
+            // 將global_simulate_dinfo_dic該筆資料清除
+            global_simulate_dinfo_dic[key] = null;
+            delete global_simulate_dinfo_dic[key];
+
+            // post到管理後台
+            // https://api-518.webpxy.info/api/v2/request/sign_notify
+
+            var api_system_config = server_config.rundown_config.api_system_config;
+            var hostname, path;
+            if(global_notify_url == ""){
+                hostname = api_system_config.hostname;
+                path = api_system_config.url;
+            }else{
+                var n_url = new URL(global_notify_url);
+                hostname = n_url.hostname;
+                path = n_url.pathname;
+            }
+            
+            https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, result){
+                if(is_ok){
+                    // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                    log.info("https_post success ...", result.toString());
+                }else{
+                    log.warn("https_post failed ...", result);
+                }
+            })
+        }
+    }
+}
+
+function start_check_simulate_mode(){
+    setInterval(function(){
+        simulate_sign_complete();
+    }, 5000);
+}
+
 var global_notify_url = "";
 
 function resign_ipa_via_api(dinfo, callback){
@@ -1561,6 +1660,7 @@ function resign_ipa_via_api(dinfo, callback){
     || typeof(dinfo.SHA1) != "string" || dinfo.SHA1 == "" || !dinfo.SHA1.match(pattern_2)
     || typeof(dinfo.APP_VER) != "string" || dinfo.APP_VER == "" || !dinfo.APP_VER.match(pattern_3)
     || typeof(dinfo.SITE_CODE) != "number"
+    || typeof(dinfo.SIMULATE) != "boolean"
     || typeof(dinfo.NOTIFY_URL) != "string"
     || typeof(dinfo.UUID) != "string" || dinfo.UUID == "" || !dinfo.UUID.match(pattern_4)){
         write_err(Response.INVAILD_PARAMS, callback);
@@ -1572,52 +1672,75 @@ function resign_ipa_via_api(dinfo, callback){
         global_notify_url = dinfo.NOTIFY_URL;
     }
 
-    if(!udid_cache_area[dinfo.UDID]){
-        // 短時間內第一次請求，加入快取區
-        udid_cache_area[dinfo.UDID] = dinfo;
-
+    if(dinfo.SIMULATE){
+        // 模擬模式
         web_model.get_app_info_by_sha1(dinfo.SHA1, function(status, result){
             if(status != Response.OK){
                 write_err(status, callback);
-                remove_udid_from_cache_area(dinfo.UDID);
                 return;
             }
-    
-            var app_info = {
-                app_id: result.id,
-                app_name: result.app_name,
-                app_desc: result.app_desc,
-                app_ver: result.version,
-                site_code: result.site_code
-            };
-    
-            check_udid_is_resigned(app_info, dinfo, function(ret){
-                if(ret.status != Response.OK){
-                    write_err(ret.status, callback);
-                    remove_udid_from_cache_area(dinfo.UDID);
-                    return;
-                }
-    
-                ret.sid = dinfo.SERIAL;
-                // 已有簽過該app，不需再簽名
-                if(ret.ipa_name != null && ret.ipa_name != ""){
-                    ret.status = Response.APP_IS_EXIST;
-                    ret.site_code = app_info.site_code;
-                    ret.msg = "app已存在且已簽過名 ...";
-                    callback(ret);
-                    remove_udid_from_cache_area(dinfo.UDID);
-                    return;
-                }
-    
-                ret.msg = "已接收並排入簽名佇列 ...";
-                ret.sha1 = dinfo.SHA1;
-                callback(ret);
-            });
+            
+            // 新增一個參數
+            dinfo.APP_NAME = result.app_name;
+            // 加入global表
+            global_simulate_dinfo_dic[dinfo.UUID] = dinfo;
+
+            var ret = {};
+            ret.status = Response.OK;
+            ret.sid = dinfo.SERIAL;
+            ret.msg = "已接收並排入簽名佇列 ...";
+            ret.sha1 = dinfo.SHA1;
+            callback(ret);
         });
     }else{
-        // 短時間內重複請求，仍在快取區，返回response
-        write_err(Response.REQ_REPEAT, callback);
-        return;
+        // 營運模式
+        if(!udid_cache_area[dinfo.UDID]){
+            // 短時間內第一次請求，加入快取區
+            udid_cache_area[dinfo.UDID] = dinfo;
+    
+            web_model.get_app_info_by_sha1(dinfo.SHA1, function(status, result){
+                if(status != Response.OK){
+                    write_err(status, callback);
+                    remove_udid_from_cache_area(dinfo.UDID);
+                    return;
+                }
+        
+                var app_info = {
+                    app_id: result.id,
+                    app_name: result.app_name,
+                    app_desc: result.app_desc,
+                    app_ver: result.version,
+                    site_code: result.site_code
+                };
+        
+                check_udid_is_resigned(app_info, dinfo, function(ret){
+                    if(ret.status != Response.OK){
+                        write_err(ret.status, callback);
+                        remove_udid_from_cache_area(dinfo.UDID);
+                        return;
+                    }
+        
+                    ret.sid = dinfo.SERIAL;
+                    // 已有簽過該app，不需再簽名
+                    if(ret.ipa_name != null && ret.ipa_name != ""){
+                        ret.status = Response.APP_IS_EXIST;
+                        ret.site_code = app_info.site_code;
+                        ret.msg = "app已存在且已簽過名 ...";
+                        callback(ret);
+                        remove_udid_from_cache_area(dinfo.UDID);
+                        return;
+                    }
+        
+                    ret.msg = "已接收並排入簽名佇列 ...";
+                    ret.sha1 = dinfo.SHA1;
+                    callback(ret);
+                });
+            });
+        }else{
+            // 短時間內重複請求，仍在快取區，返回response
+            write_err(Response.REQ_REPEAT, callback);
+            return;
+        }
     }
 }
 
@@ -2215,6 +2338,7 @@ setTimeout(function(){
     log.info("服务器启动，5秒后开始跑帐号注册伫列 ...");
     startup_config();
     schedule_to_check_resign_queue();
+    start_check_simulate_mode();
 }, 5000);
 
 // 定時器

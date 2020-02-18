@@ -331,22 +331,6 @@ function get_info_by_account(acc, ret_func){
     })
 }
 
-function update_multi_value_by_id(id, reg_content, count, ret_func){
-    if(typeof(id) != "number" || typeof(reg_content) != "string" || reg_content == "" || typeof(count) != "number"){
-        ret_func(Response.INVAILD_PARAMS, null);
-        return;
-    }
-
-    mysql_supersign.update_multi_value_by_id(id, reg_content, count, function(status, sql_result){
-        if(status != Response.OK){
-            ret_func(status, null);
-            return;
-        }
-
-        ret_func(status, null);
-    })
-}
-
 function update_devices_by_id(id, count, ret_func){
     if(typeof(id) != "number" || typeof(count) != "number"){
         ret_func(Response.INVAILD_PARAMS, null);
@@ -661,6 +645,25 @@ function get_timestamp_valid_by_sid(sid, ret_func){
     })
 }
 
+function check_accid_exist_inredis(id){
+    if(typeof(id) != "number"){
+        ret_func(Response.INVAILD_PARAMS, null);
+        return;
+    }
+
+    for(var key in global_acc_id_dic){
+        if(parseInt(key) != id){
+            continue;
+        }
+
+        // 存在
+        return true;
+    }
+
+    // 不存在
+    return false;
+}
+
 function update_acc_reg_content(id, device_ids, ret_func){
     if(typeof(id) != "number" || typeof(device_ids) != "object"){
         ret_func(Response.INVAILD_PARAMS, null);
@@ -731,8 +734,8 @@ module.exports = {
     get_uinfo_by_id: get_uinfo_by_id,
     get_max_devices_accounts: get_max_devices_accounts,
     update_all_valid_acc_days: update_all_valid_acc_days,
-    update_multi_value_by_id: update_multi_value_by_id,
     disable_acc_by_acc: disable_acc_by_acc,
     clear_record_by_sid: clear_record_by_sid,
     update_acc_reg_content: update_acc_reg_content,
+    check_accid_exist_inredis: check_accid_exist_inredis,
 }
