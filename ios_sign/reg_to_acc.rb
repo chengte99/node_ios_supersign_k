@@ -122,7 +122,7 @@ ensure
     # puts jsonStr
 
     # uri = URI('https://kritars.com/reg_to_acc_return')
-    uri = URI('http://10.159.5.114/reg_to_acc_return')
+    uri = URI('http://192.168.20.18/reg_to_acc_return')
     Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
     request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
     request.body = jsonStr

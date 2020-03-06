@@ -24,6 +24,7 @@ var server_config = {
         },
     },
 
+    // local
     // center_database: {
     //     host: "127.0.0.1",
     //     port: 3306,
@@ -34,6 +35,15 @@ var server_config = {
 
     // test_site
     center_database: {
+        host: "192.168.20.203",
+        port: 3306,
+        db_name: "supersign",
+        user: "w_supersign",
+        password: "Gfd^&12FV",
+    },
+
+    // pro_site
+    center_database_pro: {
         host: "192.168.20.203",
         port: 3306,
         db_name: "supersign",
@@ -54,6 +64,7 @@ var server_config = {
         password: "qaz123"
     },
 
+    // test_site
     ftp_file_server: {
         host: "192.168.20.8", // 210.68.95.166 (192.168.20.8)
         port: 4428,
@@ -61,14 +72,22 @@ var server_config = {
         password: "8yxRPG7C5k"
     },
 
+    // pro_site
+    ftp_file_server_pro: {
+        host: "192.168.20.19",
+        port: 21,
+        username: "supersign",
+        password: "8yxRPG7C5k"
+    },
+
     local_mac_config: {
         acc_group: 1, // 1-> 正常群組, 2-> 特殊群組
         balance_switch_acc: true, // 是否啟用平衡帳號註冊udid，不啟用則塞滿95後再換下一個帳號
-        m_code: 0, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
+        m_code: 1, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
     },
 
     backup_mac_server_config: {
-        hostname: "10.159.5.141", //imac-01: 10.159.5.114, imac-04: 10.159.5.141
+        hostname: "192.168.20.17", //imac-01: 192.168.20.18, imac-04: 192.168.20.17
         port: 80,
         url: "/sync_local_file",
     },
@@ -84,9 +103,18 @@ var server_config = {
             hostname: "api-518.webpxy.info",
             port: 443,
             url: "/api/v1/request/sign_notify",
+            appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
         },
-        appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
+
+        api_system_config_pro: {
+            hostname: "api-518.webpxy.org",
+            port: 443,
+            url: "/api/v1/request/sign_notify",
+            appfile_domain: "https://appdownload.webpxy.org/", // 與內部組對接用的ftp server pro
+        },
     },
+
+    server_type: 1, // 0-> 測試站，1-> 正測站，2-> 正式站
 }
 
 module.exports = server_config;

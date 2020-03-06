@@ -15,7 +15,12 @@ var https = require("../../netbus/https");
 // ftp
 var Client = require("ftp");
 var server_config = require("../server_config");
-var ftp_config = server_config.ftp_file_server;
+
+if(server_config.server_type != 0){
+    var ftp_config = server_config.ftp_file_server_pro
+}else{
+    var ftp_config = server_config.ftp_file_server;
+}
 // ftp end
 
 // local
@@ -24,7 +29,12 @@ var local_mac_config = server_config.local_mac_config;
 
 var APP_DOWNLOAD_SCHEME = server_config.appfile_config.appfile_download_scheme;
 var PUBLIC_URL = server_config.appfile_config.appfile_domain // kritars 自己測試用的ftp server
-var TEST_SITE_URL = server_config.rundown_config.appfile_domain // 與內部組對接用的ftp server
+
+if(server_config.server_type != 0){
+    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config.appfile_domain // 與內部組對接用的app下載路徑
+}else{
+    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config_pro.appfile_domain // 與內部組對接用的ftp server pro
+}
 
 function write_err(status, ret_func){
     var ret = {};
@@ -493,7 +503,7 @@ function ready_to_sigh(ret, callback){
                 var json = plist.parse(xml);
                 // console.log(json.items[0].assets[0].url);
                 
-                json.items[0].assets[0].url = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+                json.items[0].assets[0].url = APP_DOWNLOAD_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
                 
                 json.items[0].metadata.title = "" + ret.app_desc;
                 var newxml = plist.build(json);
@@ -1036,7 +1046,7 @@ function check_udid_is_resigned(ainfo, dinfo, callback){
                             ret.status = Response.OK;
                             ret.device_id = device_id;
                             ret.ipa_name = download_name;
-                            ret.ipa_path = TEST_SITE_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
+                            ret.ipa_path = APP_DOWNLOAD_URL + ainfo.app_name + "/" + download_name + "/" + download_name + ".ipa";
                             callback(ret);
                             return;
                         }else{
@@ -1255,8 +1265,8 @@ function start_resign_app(account_info, app_info, callback){
     ret.old_acc_list = [];
     // ret.path = "itms-services://?action=download-manifest&url=https://apple.bckappgs.info/dev_188/xxxxx/manifest.plist";
 
-    ret.path = APP_DOWNLOAD_SCHEME + TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
-    ret.ipa_path = TEST_SITE_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
+    ret.path = APP_DOWNLOAD_SCHEME + APP_DOWNLOAD_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".plist";
+    ret.ipa_path = APP_DOWNLOAD_URL + ret.app_name + "/" + ret.tag + "/" + ret.tag + ".ipa";
 
     ready_to_sigh(ret, callback);
 }

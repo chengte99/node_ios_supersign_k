@@ -4,7 +4,11 @@ var Client = require("ftp");
 var server_config = require("../apps/server_config");
 var log = require("../utils/log");
 
-var ftp_config = server_config.ftp_file_server;
+if(server_config.server_type != 0){
+    var ftp_config = server_config.ftp_file_server_pro
+}else{
+    var ftp_config = server_config.ftp_file_server;
+}
 
 var local_dir_path = __dirname + "/../ios_sign/app_resource/dev_188/1572942535";
 fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
