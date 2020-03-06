@@ -28,6 +28,15 @@ var ftp_client = new Client();
 ftp_client.on("ready", function(){
     log.info("ftp file server已連線 ...");
 
+    if(server_config.server_type != 0){
+        ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+            if(err){
+                log.err("cwd error: ", err);
+                return;
+            }
+        })
+    }
+    
     ftp_client.get("/appfile/dev_188/1572942535/1572942535.plist", function(err, stream){
         if(err){
             log.error(err);

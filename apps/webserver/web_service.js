@@ -149,6 +149,15 @@ function ready_to_upload(ret, local_plist_path){
     ftp_client.on("ready", function(){    
         log.info("ftp connection 已連線 ...");
 
+        if(server_config.server_type != 0){
+            ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+                if(err){
+                    log.err("cwd error: ", err);
+                    return;
+                }
+            })
+        }
+
         ftp_client.mkdir(remote_dir_path, true, function(err){
             if(err){
                 log.error("mkdir error: ", err);
@@ -214,6 +223,15 @@ function upload_mobileprovision(local_file_path){
     var ftp_client = new Client();
     ftp_client.on("ready", function(){    
         log.info("ftp connection 已連線 ...");
+
+        if(server_config.server_type != 0){
+            ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+                if(err){
+                    log.err("cwd error: ", err);
+                    return;
+                }
+            })
+        }
 
         ftp_client.put(local_file_path, remote_file_path, function(err){
             if(err){
@@ -1826,6 +1844,15 @@ function download_ipa_to_local(app_name, callback){
         ftp_client.on("ready", function(){
             log.info("ftp connection 已連線 ...");
 
+            if(server_config.server_type != 0){
+                ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+                    if(err){
+                        log.err("cwd error: ", err);
+                        return;
+                    }
+                })
+            }
+            
             ftp_client.get(remote_ipa_path, function(err, stream){
                 if(err){
                     log.error(err);
