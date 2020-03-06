@@ -1,6 +1,5 @@
 var fs = require("fs");
 var Client = require("ftp");
-
 var server_config = require("../apps/server_config");
 var log = require("../utils/log");
 
@@ -10,19 +9,22 @@ if(server_config.server_type != 0){
     var ftp_config = server_config.ftp_file_server;
 }
 
-var local_dir_path = __dirname + "/../ios_sign/app_resource/dev_188/1572942535";
-fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
-    if(err){
-        log.error(err);
+// var local_dir_path = __dirname + "/../ios_sign/app_resource/dev_188/1572942535";
+// fs.access(local_dir_path, fs.constants.F_OK | fs.constants.W_OK, function(err){
+//     if(err){
+//         log.error(err);
 
-        fs.mkdir(local_dir_path, {recursive: true}, function(err){
-            if(err){
-                log.error(err);
-                return;
-            }
-        });
-    }
-});
+//         fs.mkdir(local_dir_path, {recursive: true}, function(err){
+//             if(err){
+//                 log.error(err);
+//                 return;
+//             }
+//         });
+//     }
+// });
+
+var upload_file = __dirname + "/../README.md";
+var download_file = "/appfile/README.md";
 
 var ftp_client = new Client();
 ftp_client.on("ready", function(){
@@ -36,21 +38,32 @@ ftp_client.on("ready", function(){
             }
         })
     }
-    
-    ftp_client.get("/appfile/dev_188/1572942535/1572942535.plist", function(err, stream){
-        if(err){
-            log.error(err);
-            return;
-        }
 
-        log.info("準備下載 ...");
-        stream.once('close', function(){
-            log.info("下載完成 ...");
-            ftp_client.end();
-        });
+    // 上傳檔案
+    // ftp_client.put(upload_file, download_file, function(err){
+    //     if(err){
+    //         log.error("put error: ", err);
+    //         return;
+    //     }
 
-        stream.pipe(fs.createWriteStream(local_dir_path + "/1572942535.plist"));
-    })
+    //     log.info("上傳ipa成功 ...");
+    // })
+
+    // 下載檔案
+    // ftp_client.get(download_file, function(err, stream){
+    //     if(err){
+    //         log.error(err);
+    //         return;
+    //     }
+
+    //     log.info("準備下載 ...");
+    //     stream.once('close', function(){
+    //         log.info("下載完成 ...");
+    //         ftp_client.end();
+    //     });
+
+    //     stream.pipe(fs.createWriteStream(__dirname + "/../README.md.back"));
+    // })
 });
 
 ftp_client.on("end", function(){
