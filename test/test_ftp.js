@@ -23,24 +23,34 @@ if(server_config.server_type != 0){
 //     }
 // });
 
-var upload_file = __dirname + "/../README.md";
-var download_file = "/appfile/README.md";
+var local_path = __dirname + "/../README.md";
+var remote_path = "/appfile/README.md";
+var upload_file = "README.md";
 
 var ftp_client = new Client();
 ftp_client.on("ready", function(){
     log.info("ftp file server已連線 ...");
 
-    if(server_config.server_type != 0){
-        ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+    if(server_config.server_type == 0){
+        ftp_client.cwd("/appfile/", function(err, cdir){
             if(err){
                 log.err("cwd error: ", err);
                 return;
             }
         })
     }
+    
+    // ftp_client.list(function(err, list){
+    //     if(err){
+    //         log.error("list err", err);
+    //         return;
+    //     }
+
+    //     console.log(list);
+    // })
 
     // 上傳檔案
-    // ftp_client.put(upload_file, download_file, function(err){
+    // ftp_client.put(local_path, upload_file, function(err){
     //     if(err){
     //         log.error("put error: ", err);
     //         return;
@@ -50,7 +60,7 @@ ftp_client.on("ready", function(){
     // })
 
     // 下載檔案
-    // ftp_client.get(download_file, function(err, stream){
+    // ftp_client.get(remote_path, function(err, stream){
     //     if(err){
     //         log.error(err);
     //         return;
