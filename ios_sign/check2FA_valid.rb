@@ -18,6 +18,9 @@ cwd_path = Pathname.new(File.dirname(__FILE__)).realpath
 
 puts "帳戶: #{acc}"
 
+dic = {}
+jsonStr = ""
+
 begin
     credentials = CredentialsManager::AccountManager.new(user: acc)
     Spaceship::Portal.login(credentials.user, credentials.password)
@@ -57,16 +60,26 @@ rescue Exception => e
 
 ensure
 
-    jsonStr = JSON[dic]
-    # puts jsonStr
+    if dic.empty?
+        puts "dic is empty ..."
+    else
+        puts "dic isn't empty ..."
+        jsonStr = JSON[dic]
+    end
+    
+    if jsonStr.empty?
+        puts "jsonStr is empty ..."
+    else
+        puts "jsonStr is: #{jsonStr}"
 
-    uri = URI('https://kritars.com/acc_login_return')
-    # uri = URI('http://192.168.20.18/acc_login_return')
-    Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-    request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-    request.body = jsonStr
-    response = http.request request # Net::HTTPResponse object
-    puts "#{response.body}"
+        uri = URI('https://kritars.com/acc_login_return')
+        # uri = URI('http://192.168.20.18/acc_login_return')
+        Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+        request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+        request.body = jsonStr
+        response = http.request request # Net::HTTPResponse object
+        puts "#{response.body}"
+        end
     end
 end
 
