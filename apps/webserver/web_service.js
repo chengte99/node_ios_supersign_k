@@ -2008,22 +2008,24 @@ function create_app_to_db(app_info, callback){
                     return;
                 }
 
-                // 通知備用機器同步下載檔案包
-                var backup_mac_server_config = server_config.backup_mac_server_config;
-                var hostname = backup_mac_server_config.hostname;
-                var port = backup_mac_server_config.port;
-                var path = backup_mac_server_config.url;
-                var sync_json = {"app_name": app_info.app_name};
-                var sync_json_data = JSON.stringify(sync_json);
-                http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
-                    if(is_ok){
-                        // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                        log.info("backup mac " + hostname + " connect success ...", result.toString());
-                    }else{
-                        log.warn("backup mac " + hostname + " connect failed ...", result);
-                    }
-                })
-                // end
+                if(server_config.server_type != 0){
+                    // 通知備用機器同步下載檔案包
+                    var backup_mac_server_config = server_config.backup_mac_server_config;
+                    var hostname = backup_mac_server_config.hostname;
+                    var port = backup_mac_server_config.port;
+                    var path = backup_mac_server_config.url;
+                    var sync_json = {"app_name": app_info.app_name};
+                    var sync_json_data = JSON.stringify(sync_json);
+                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
+                        if(is_ok){
+                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                            log.info("backup mac " + hostname + " connect success ...", result.toString());
+                        }else{
+                            log.warn("backup mac " + hostname + " connect failed ...", result);
+                        }
+                    })
+                    // end
+                }
 
                 web_model.add_new_to_app_info(app_info, function(status, result){
                     if(status != Response.OK){
@@ -2046,22 +2048,24 @@ function create_app_to_db(app_info, callback){
                         return;
                     }
 
-                    // 通知備用機器同步下載檔案包
-                    var backup_mac_server_config = server_config.backup_mac_server_config;
-                    var hostname = backup_mac_server_config.hostname;
-                    var port = backup_mac_server_config.port;
-                    var path = backup_mac_server_config.url;
-                    var sync_json = {"app_name": app_info.app_name};
-                    var sync_json_data = JSON.stringify(sync_json);
-                    http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
-                        if(is_ok){
-                            // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("backup mac " + hostname + " connect success ...", result.toString());
-                        }else{
-                            log.warn("backup mac " + hostname + " connect failed ...", result);
-                        }
-                    })
-                    // end
+                    if(server_config.server_type != 0){
+                        // 通知備用機器同步下載檔案包
+                        var backup_mac_server_config = server_config.backup_mac_server_config;
+                        var hostname = backup_mac_server_config.hostname;
+                        var port = backup_mac_server_config.port;
+                        var path = backup_mac_server_config.url;
+                        var sync_json = {"app_name": app_info.app_name};
+                        var sync_json_data = JSON.stringify(sync_json);
+                        http.http_post(hostname, port, path, null, sync_json_data, function(is_ok, result){
+                            if(is_ok){
+                                // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                                log.info("backup mac " + hostname + " connect success ...", result.toString());
+                            }else{
+                                log.warn("backup mac " + hostname + " connect failed ...", result);
+                            }
+                        })
+                        // end
+                    }
 
                     web_model.update_app_to_app_info(app_info, function(status, result){
                         if(status != Response.OK){
