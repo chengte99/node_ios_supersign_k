@@ -162,7 +162,11 @@ router.post("/submit", function(req, res, next){
             if(ret.status != Response.OK){
                 if(ret.status == Response.APP_IS_EXIST){
                     log.info("app已簽過，分發上次的檔案 ...");
-                    var r_url = "https://kritars.com?step=2&taskId=" + ret.ipa_name + "&sid=" + ret.sid;
+                    if(ret.site_code == 103){
+                        var r_url = "https://kritars.com/game?step=2&taskId=" + ret.ipa_name + "&sid=" + ret.sid;
+                    }else{
+                        var r_url = "https://kritars.com?step=2&taskId=" + ret.ipa_name + "&sid=" + ret.sid;
+                    }
                     res.redirect(301, r_url);
                     return;
                 }
@@ -175,7 +179,7 @@ router.post("/submit", function(req, res, next){
             
             // 排入佇列，返回device_id
             var r_url;
-            if(ret.sha1 == "dc404401f6ff8896374ba5da50f0fc13fe07e988"){
+            if(ret.site_code == 103){
                 r_url = "https://kritars.com/game?step=1&dID=" + ret.device_id + "&fid=" + ret.sha1 + "&sid=" + ret.sid;
             }else{
                 r_url = "https://kritars.com?step=1&dID=" + ret.device_id + "&fid=" + ret.sha1 + "&sid=" + ret.sid;

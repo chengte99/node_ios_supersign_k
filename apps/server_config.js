@@ -3,15 +3,6 @@ var server_config = {
 
     },
 
-    center_server: {
-
-    },
-
-    system_server: {
-        host: "127.0.0.1",
-        port: 6081,
-    },
-
     webserver: {
         http_config: {
             host: "127.0.0.1",
@@ -83,7 +74,7 @@ var server_config = {
     local_mac_config: {
         acc_group: 1, // 1-> 正常群組, 2-> 特殊群組
         balance_switch_acc: true, // 是否啟用平衡帳號註冊udid，不啟用則塞滿95後再換下一個帳號
-        m_code: 1, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
+        m_code: 0, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
     },
 
     backup_mac_server_config: {
@@ -98,7 +89,7 @@ var server_config = {
     },
 
     rundown_config: {
-        api_with_system: true,
+        api_with_system: false,
         api_system_config: {
             hostname: "api-518.webpxy.info",
             port: 443,
@@ -114,7 +105,7 @@ var server_config = {
         },
     },
 
-    server_type: 1, // 0-> 測試站，1-> 正測站，2-> 正式站
+    server_type: 0, // 0-> 測試站，1-> 正測站，2-> 正式站
 }
 
 module.exports = server_config;

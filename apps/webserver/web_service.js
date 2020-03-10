@@ -31,9 +31,9 @@ var APP_DOWNLOAD_SCHEME = server_config.appfile_config.appfile_download_scheme;
 var PUBLIC_URL = server_config.appfile_config.appfile_domain // kritars 自己測試用的ftp server
 
 if(server_config.server_type != 0){
-    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config.appfile_domain // 與內部組對接用的app下載路徑
+    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config_pro.appfile_domain // 正測、正式站下載路徑
 }else{
-    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config_pro.appfile_domain // 與內部組對接用的ftp server pro
+    var APP_DOWNLOAD_URL = server_config.rundown_config.api_system_config.appfile_domain // 測試站下載路徑
 }
 
 function write_err(status, ret_func){
@@ -149,12 +149,14 @@ function ready_to_upload(ret, local_plist_path){
     ftp_client.on("ready", function(){    
         log.info("ftp connection 已連線 ...");
 
-        if(server_config.server_type != 0){
-            ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+        if(server_config.server_type == 0){
+            ftp_client.cwd("/appfile", function(err, cdir){
                 if(err){
-                    log.err("cwd error: ", err);
+                    log.error("err: ", err);
                     return;
                 }
+    
+                // log.info("cdir: ", cdir);
             })
         }
 
@@ -224,12 +226,14 @@ function upload_mobileprovision(local_file_path){
     ftp_client.on("ready", function(){    
         log.info("ftp connection 已連線 ...");
 
-        if(server_config.server_type != 0){
-            ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+        if(server_config.server_type == 0){
+            ftp_client.cwd("/appfile", function(err, cdir){
                 if(err){
-                    log.err("cwd error: ", err);
+                    log.error("err: ", err);
                     return;
                 }
+    
+                // log.info("cdir: ", cdir);
             })
         }
 
@@ -607,6 +611,7 @@ function resign_ipa(dinfo, callback){
                 }
     
                 ret.msg = "已接收並排入簽名佇列 ...";
+                ret.site_code = app_info.site_code;
                 ret.sha1 = dinfo.SHA1;
                 callback(ret);
             });
@@ -1844,12 +1849,14 @@ function download_ipa_to_local(app_name, callback){
         ftp_client.on("ready", function(){
             log.info("ftp connection 已連線 ...");
 
-            if(server_config.server_type != 0){
-                ftp_client.cwd("/home/web_gs_pb/fun", function(err, cdir){
+            if(server_config.server_type == 0){
+                ftp_client.cwd("/appfile", function(err, cdir){
                     if(err){
-                        log.err("cwd error: ", err);
+                        log.error("err: ", err);
                         return;
                     }
+        
+                    // log.info("cdir: ", cdir);
                 })
             }
             

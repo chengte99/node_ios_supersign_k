@@ -23,34 +23,49 @@ if(server_config.server_type != 0){
 //     }
 // });
 
-var local_path = __dirname + "/../README.md";
-var remote_path = "/appfile/README.md";
-var upload_file = "README.md";
+var local_file_path = __dirname + "/../README.md";
+var remote_file_name = "README.md";
+
+var remote_file_path = "README.md";
+var download_file_path = __dirname + "/../README.md.back";
 
 var ftp_client = new Client();
 ftp_client.on("ready", function(){
     log.info("ftp file server已連線 ...");
 
     if(server_config.server_type == 0){
-        ftp_client.cwd("/appfile/", function(err, cdir){
+        ftp_client.cwd("/appfile", function(err, cdir){
             if(err){
-                log.err("cwd error: ", err);
+                log.error("err: ", err);
                 return;
             }
+
+            // log.info("cdir: ", cdir);
         })
     }
     
-    // ftp_client.list(function(err, list){
+    // 印出當前路徑（每個ftp帳號預設路徑不同，該預設路徑為/ 根目錄）
+    // ftp_client.pwd(function(err, path){
     //     if(err){
-    //         log.error("list err", err);
+    //         log.error("err: ", err);
     //         return;
     //     }
 
-    //     console.log(list);
+    //     log.info("path :", path);
+    // })
+    
+    // 印出當前路徑下所有文件
+    // ftp_client.list(function(err, list){
+    //     if(err){
+    //         log.error("err: ", err);
+    //         return;
+    //     }
+
+    //     log.info("list: ", list);
     // })
 
     // 上傳檔案
-    // ftp_client.put(local_path, upload_file, function(err){
+    // ftp_client.put(local_file_path, remote_file_name, function(err){
     //     if(err){
     //         log.error("put error: ", err);
     //         return;
@@ -60,7 +75,7 @@ ftp_client.on("ready", function(){
     // })
 
     // 下載檔案
-    // ftp_client.get(remote_path, function(err, stream){
+    // ftp_client.get(remote_file_path, function(err, stream){
     //     if(err){
     //         log.error(err);
     //         return;
@@ -72,7 +87,7 @@ ftp_client.on("ready", function(){
     //         ftp_client.end();
     //     });
 
-    //     stream.pipe(fs.createWriteStream(__dirname + "/../README.md.back"));
+    //     stream.pipe(fs.createWriteStream(download_file_path));
     // })
 });
 

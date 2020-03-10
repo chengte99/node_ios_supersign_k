@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadContent</key>
+    <dict>
+      <key>URL</key>
+      <string>https://kritars.com/submit?params=9bdc23ea1dbba98d6e23651204e29824da456607</string>
+      <key>DeviceAttributes</key>
+      <array>
+        <string>UDID</string>
+        <string>SERIAL</string>
+        <string>VERSION</string>
+        <string>PRODUCT</string>
+        <string>MAC_ADDRESS_EN0</string>
+        <string>ICCID</string>
+        <string>IMEI</string>
+        <string>DEVICE_NAME</string>
+      </array>
+      <key>Challenge</key>
+      <string>my_kingdom_rush</string>
+    </dict>
+    <key>PayloadDisplayName</key>
+    <string>my_kingdom_rush--【点击安装】</string>
+    <key>PayloadOrganization</key>
+    <string>授权安装APP进入下一步</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadUUID</key>
+    <string>df3640c5-6253-462e-9ccd-047018e091d0</string>
+    <key>PayloadIdentifier</key>
+    <string>com.Apple.US.Jobs.steup</string>
+    <key>PayloadDescription</key>
+    <string>授权安装APP</string>
+    <key>PayloadType</key>
+    <string>Profile Service</string>
+  </dict>
+</plist>

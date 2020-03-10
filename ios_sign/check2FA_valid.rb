@@ -60,8 +60,8 @@ ensure
     jsonStr = JSON[dic]
     # puts jsonStr
 
-    # uri = URI('https://kritars.com/acc_login_return')
-    uri = URI('http://192.168.20.18/acc_login_return')
+    uri = URI('https://kritars.com/acc_login_return')
+    # uri = URI('http://192.168.20.18/acc_login_return')
     Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
     request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
     request.body = jsonStr

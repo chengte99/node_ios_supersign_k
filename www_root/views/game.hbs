@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
     {{>header}}
-    <body>
+    <body class="mybody">
         {{!-- <h1>{{h1}}</h1> --}}
         <div class="contain-page">
             <!-- info -->
             <div class="app-info">
                 <div class="app-logo">
-                    <img src="/imgs/5d848ef2b28d0.png">
+                    <img src="/imgs/kingdomrush.png">
                 </div>
                 <div class="app-info-rig">
-                    <strong>SPORT</strong>
+                    <strong>皇城突袭1.0</strong>
                     <p>参考</p>
                     <div class="clr">
                         <a class="arouse" style="display: none"><b>?</b>安装教程</a>
@@ -39,7 +39,7 @@
             <div class="app-intro">
                 <h2 class="app-title">简介</h2>
                 <div class="app-intro-con" style="height: auto;">
-                    <p>十六大平台 一掌之间<br>游戏天地随你移动 无时无刻立即游玩</p>
+                    <p>复刻皇城突袭一代<br>金币99999</p>
                     <span style="display: none;">更多</span>
                 </div>
             </div>
@@ -210,14 +210,28 @@
                     </div>
                 </div>
             </div>
-        </div>
+            <!-- 授權剪貼簿提示框 -->
+            <div class="maskDark">
+                <div class="maskClick-box">
+                    <div class="msg">
+                        <div class="article">
+                            <h1>免责声明</h1>
+                            <h2>用户明确并同意其使用该APP网络服务所存在的风险将完全由其本人承担;因其使用该APP网络服务而产生的一切后果也由其本人承担，该APP对此不承担任何责任。</h2>
+                        </div>
+                    </div>
+                    <div class="copy-mytext">
+                        <input id="foo" type="text">
+                        <button class="copy_coupon">确认</button>
+                    </div>
+                </div>
+            </div>
         <script src="/js/jquery-3.4.1.js"></script>
         <script>
-            var version = '0', //ios 12以上設為'1'，以下設為'0'，預設'0'
+            var version = '0', //ios 12.2以上設為'1'，以下設為'0'，預設'0'
                 status = '1', //狀態為1才會進入下載流程，研判由下載開關來控制
                 urlschemes = '',
                 showOpen = '0',
-                down_session = "67437ffc0c33dd92b63c120c686db2d9", //app名稱的md5
+                down_session = "cc2dd476e6f6e6890dc0745f3452e249", //app名稱的md5
                 progress_url = "https://d-hkws.ggonet.cn/progress.php?s=cd9447ad40b515444f03ee7eb2b3546a",
                 qrCode = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAADnAQMAAADfOtNjAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPklEQVRYhe2YMZaDMAxEh0eRMkfgKBzNHI2jcISUFDy0GtnOOvvYarcZnlUE29/NRPIgA/To0eM/4mmM/bkhnaPZNsd8U6YcjLtvWuzw2bzURV062znugD/weGFesvo7UBf68AzehbI0b0MRNemnDDmDuKhYKVp9Y14o+zdXEaJtIhuhwpQWOFh1QkxG+2j/DTnqkYZYjk2+PBzalKkbogoT9YKzT1dRo9TLn2kFfcMfVA9hSmneHPlycvtoFmUphUYrAWSaPk6ZIC2+wSGPl70PmyylQjtYjCn2rulnxapRzqMzX5lBvo1LPmVp3eQdRTH1q9ewEi09EsICo4+VpxxEBtNbb5NfSZpvT1NtlSwuujegvNpmwzjxHcK03DWy7Pa7iiJFuQ/Cl1/x/m31CtJ6H6z0ygmlaI8ePf4WX3SdNOrrmFt9AAAAAElFTkSuQmCC",
                 appendParams = "eyJjaGFubmVsIjoiIiwidWRpZDEiOiIiLCJ1ZGlkMiI6IiIsInVhIjoiTW96aWxsYVwvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE0XzYpIEFwcGxlV2ViS2l0XC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWVcLzc2LjAuMzgwOS4xMzIgU2FmYXJpXC81MzcuMzYiLCJhcHBlbmRkYXRhIjoiIn0*",
@@ -265,6 +279,53 @@
             $('#video').on('canplaythrough', function () {
                 videoDown = true;
             })
+
+            // 測試剪貼簿
+            window.Clipboard = (function(window, document, navigator) {
+                var textArea,
+                copy;
+
+                function isOS() {
+                    return navigator.userAgent.match(/ipad|iphone/i);
+                }
+
+                function createTextArea(text) {
+                    textArea = document.createElement('textArea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                }
+
+                function selectText() {
+                    var range,
+                    selection;
+
+                    if (isOS()) {
+                        range = document.createRange();
+                        range.selectNodeContents(textArea);
+                        selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        textArea.setSelectionRange(0, 999999);
+                    } else {
+                        textArea.select();
+                    }
+                }
+
+                function copyToClipboard() {
+                    document.execCommand("Copy");
+                    document.body.removeChild(textArea);
+                }
+
+                copy = function(text) {
+                    createTextArea(text);
+                    selectText();
+                    copyToClipboard();
+                };
+
+                return {
+                    copy: copy
+                };
+            })(window, document, navigator);
         </script>
         <script type="text/javascript" src="/js/fingerprint2.min.js"></script>
         {{!-- 原先的 --}}
