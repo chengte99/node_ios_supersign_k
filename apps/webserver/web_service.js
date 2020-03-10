@@ -1343,7 +1343,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                         path = n_url.pathname;
                     }
                     
-                    https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
+                    http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.info("https_post success ...", result.toString());
@@ -1399,7 +1399,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                         path = n_url.pathname;
                     }
                     
-                    https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
+                    http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                             log.info("https_post success ...", result.toString());
@@ -1669,7 +1669,7 @@ function simulate_sign_complete(){
                 path = n_url.pathname;
             }
             
-            https.https_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, result){
+            http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, result){
                 if(is_ok){
                     // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
                     log.info("https_post success ...", result.toString());
