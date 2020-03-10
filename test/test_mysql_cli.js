@@ -1,7 +1,13 @@
 var mysql = require("mysql");
 var util = require("util");
 
-var center_database = require("../apps/server_config").center_database;
+var server_config = require("../apps/server_config");
+if(server_config.server_type != 0){
+    var center_database = server_config.center_database_pro
+}else{
+    var center_database = server_config.center_database;
+}
+
 var log = require("../utils/log");
 var Response = require("../apps/Response");
 
@@ -42,8 +48,8 @@ function mysql_exec(sql, callback) {
 	});
 }
 
-function test_sql_request(){
-    var sql = "select account from account_info where devices = 99 and is_enable != 0";
+function test_select(){
+    var sql = "select * from account_info where devices < 95 and days < 30 and is_enable != 0 and m_code = 1";
     // var sql_cmd = util.format(sql, tag, udid_data.list[i]);
     log.info(sql);
 
@@ -57,9 +63,27 @@ function test_sql_request(){
     })
 }
 
+function test_update(){
+    var sql = "update account_info set days = 15 where id = 1";
+    // var sql_cmd = util.format(sql, reg_content, id);
+    log.info(sql);
+    mysql_exec(sql, function(sql_err, sql_result, field_desc){
+        if(sql_err){
+            log.error(sql_err);
+            return;
+        }
+
+        // log.info("sql_reult = ", sql_result);
+    })
+}
+
 connect_to_server(center_database.host, center_database.port, center_database.db_name, center_database.user, center_database.password);
 
-// test_sql_request();
+// test_select();
+
+// test_update();
+
+
 
 // var udid = "c3d699593eae5c0cb68a83ce4a458c0000000000";
 // var sql = "select * from device_uinfo where udid = \"%s\"";

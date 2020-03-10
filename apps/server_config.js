@@ -35,7 +35,7 @@ var server_config = {
 
     // pro_site
     center_database_pro: {
-        host: "192.168.20.203",
+        host: "192.168.20.81", // 192.168.20.80 only read
         port: 3306,
         db_name: "supersign",
         user: "w_supersign",
