@@ -1328,7 +1328,11 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
     
                     // post到管理後台
                     // https://api-518.webpxy.info/api/v2/request/sign_notify
-                    var api_system_config = server_config.rundown_config.api_system_config;
+                    if(server_config.server_type != 0){
+                        var api_system_config = server_config.rundown_config.api_system_config_pro;
+                    }else{
+                        var api_system_config = server_config.rundown_config.api_system_config;
+                    }
                     var hostname, path;
                     if(global_notify_url == ""){
                         hostname = api_system_config.hostname;
@@ -1380,8 +1384,11 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
     
                     // post到管理後台
                     // https://api-518.webpxy.info/api/v2/request/sign_notify
-    
-                    var api_system_config = server_config.rundown_config.api_system_config;
+                    if(server_config.server_type != 0){
+                        var api_system_config = server_config.rundown_config.api_system_config_pro;
+                    }else{
+                        var api_system_config = server_config.rundown_config.api_system_config;
+                    }
                     var hostname, path;
                     if(global_notify_url == ""){
                         hostname = api_system_config.hostname;
@@ -1647,8 +1654,11 @@ function simulate_sign_complete(){
 
             // post到管理後台
             // https://api-518.webpxy.info/api/v2/request/sign_notify
-
-            var api_system_config = server_config.rundown_config.api_system_config;
+            if(server_config.server_type != 0){
+                var api_system_config = server_config.rundown_config.api_system_config_pro;
+            }else{
+                var api_system_config = server_config.rundown_config.api_system_config;
+            }
             var hostname, path;
             if(global_notify_url == ""){
                 hostname = api_system_config.hostname;
