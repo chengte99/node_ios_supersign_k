@@ -1346,9 +1346,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("https_post success ...", result.toString());
+                            log.info("http_post success ...", result.toString());
                         }else{
-                            log.warn("https_post failed ...", result);
+                            log.warn("http_post failed ...", result);
                         }
                     })
                 }
@@ -1402,9 +1402,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("https_post success ...", result.toString());
+                            log.info("http_post success ...", result.toString());
                         }else{
-                            log.warn("https_post failed ...", result);
+                            log.warn("http_post failed ...", result);
                         }
                     })
                 });
@@ -1672,9 +1672,9 @@ function simulate_sign_complete(){
             http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, result){
                 if(is_ok){
                     // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                    log.info("https_post success ...", result.toString());
+                    log.info("http_post success ...", result.toString());
                 }else{
-                    log.warn("https_post failed ...", result);
+                    log.warn("http_post failed ...", result);
                 }
             })
         }
