@@ -1346,9 +1346,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("http_post success ...", result.toString());
+                            log.info("http_post success ...", data.toString());
                         }else{
-                            log.warn("http_post failed ...", result);
+                            log.warn("http_post failed ...", data);
                         }
                     })
                 }
@@ -1402,9 +1402,9 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                            log.info("http_post success ...", result.toString());
+                            log.info("http_post success ...", data.toString());
                         }else{
-                            log.warn("http_post failed ...", result);
+                            log.warn("http_post failed ...", data);
                         }
                     })
                 });
@@ -1669,12 +1669,12 @@ function simulate_sign_complete(){
                 path = n_url.pathname;
             }
             
-            http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, result){
+            http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                 if(is_ok){
                     // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
-                    log.info("http_post success ...", result.toString());
+                    log.info("http_post success ...", data.toString());
                 }else{
-                    log.warn("http_post failed ...", result);
+                    log.warn("http_post failed ...", data);
                 }
             })
         }
