@@ -92,14 +92,14 @@ var server_config = {
         api_with_system: false,
         api_system_config: {
             hostname: "api-518.webpxy.info",
-            port: 443,
+            port: 80,
             url: "/api/v1/request/sign_notify",
             appfile_domain: "https://appdownload.webpxy.info/", // 與內部組對接用的ftp server
         },
 
         api_system_config_pro: {
             hostname: "api-518.webpxy.org",
-            port: 443,
+            port: 80,
             url: "/api/v1/request/sign_notify",
             appfile_domain: "https://appdownload.webpxy.org/", // 與內部組對接用的ftp server pro
         },
