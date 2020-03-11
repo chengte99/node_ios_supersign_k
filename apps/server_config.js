@@ -74,7 +74,7 @@ var server_config = {
     local_mac_config: {
         acc_group: 1, // 1-> 正常群組, 2-> 特殊群組
         balance_switch_acc: true, // 是否啟用平衡帳號註冊udid，不啟用則塞滿95後再換下一個帳號
-        m_code: 0, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04
+        m_code: 0, // 0-> 本機測試用, 1-> imac-01, 2-> imac-04, 3-> IMAC1804003
     },
 
     backup_mac_server_config: {
