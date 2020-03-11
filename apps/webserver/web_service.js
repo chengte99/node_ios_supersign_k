@@ -141,7 +141,7 @@ function remove_local_files(local_plist_path, local_ipa_path){
 function ready_to_upload(ret, local_plist_path){
     // ftp
     var local_ipa_path = __dirname + "/../../ios_sign/app_resource/" + ret.app_name + "/" + ret.tag + ".ipa";
-    var remote_dir_path = "/appfile/" + ret.app_name + "/" + ret.tag;
+    var remote_dir_path = ret.app_name + "/" + ret.tag;
     var remote_ipa_path = remote_dir_path + "/" + ret.tag + ".ipa";
     var remote_plist_path = remote_dir_path + "/" + ret.tag + ".plist";
 
@@ -1851,8 +1851,7 @@ function download_ipa_to_local(app_name, callback){
 
         // ftp 下載至本地目錄
         var local_ipa_path = local_dir_path + "/" + app_name + ".ipa";
-        var remote_dir_path = "/appfile/" + app_name;
-        var remote_ipa_path = remote_dir_path + "/" + app_name + ".ipa";
+        var remote_ipa_path = app_name + "/" + app_name + ".ipa";
 
         var ftp_client = new Client();
 
