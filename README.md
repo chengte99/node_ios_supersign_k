@@ -11,3 +11,4 @@
 8. ios_sign/add_new_acc.sh -> "liaoyanchi3@gmail.com"（更改要檢查的帳號）
 9. 確認redis-server 啟動 (系統服務的為brew services restart redis)
 10. server_config.js -> server_type 
+11. server_config.js -> api_system_config_pro -> hostname, appfile_domain根據正式或正測站調整 
