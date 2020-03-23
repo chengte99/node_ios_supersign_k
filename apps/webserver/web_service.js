@@ -1343,6 +1343,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                         path = n_url.pathname;
                     }
                     
+                    log.info("後端簽名通知api位置： ", hostname, path);
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
@@ -1399,6 +1400,7 @@ function start_resign_on_app_queue(account_info, mobileprovision_path, callback)
                         path = n_url.pathname;
                     }
                     
+                    log.info("後端簽名通知api位置： ", hostname, path);
                     http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                         if(is_ok){
                             // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
@@ -1671,15 +1673,24 @@ function simulate_sign_complete(){
         var dinfo = global_simulate_dinfo_dic[key];
         if(dinfo){
             var ret = {};
-            ret.status = Response.OK;
-            ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
-            ret.ipa_path = "https://appdownload.webpxy.info/....../xxx.ipa";
-            ret.app_name = dinfo.APP_NAME;
-            ret.site_code = dinfo.SITE_CODE;
-            ret.sign_account = "xxxx@gmail.com";
-            ret.device_num = 12;
-            ret.new_acc_list = [dinfo.UDID];
-
+            var randon_number = utils.random_int(0, 1);
+            if(randon_number == 1){
+                // 成功
+                ret.status = Response.OK;
+                ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
+                ret.ipa_path = "https://appdownload.webpxy.info/....../xxx.ipa";
+                ret.app_name = dinfo.APP_NAME;
+                ret.site_code = dinfo.SITE_CODE;
+                ret.sign_account = "xxxx@gmail.com";
+                ret.device_num = 12;
+                ret.new_acc_list = [dinfo.UDID];
+            }else{
+                // 失敗
+                ret.status = Response.RESIGN_COMPLETE_TXT_NOT_EXIST;
+                ret.msg = "重簽名完成.txt 不存在 簽名異常 ...";
+                ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
+                ret.site_code = dinfo.SITE_CODE;
+            }
 
             var json_data = JSON.stringify(ret);
             // log.warn(json_data);
@@ -1705,6 +1716,7 @@ function simulate_sign_complete(){
                 path = n_url.pathname;
             }
             
+            log.info("後端簽名通知api位置： ", hostname, path);
             http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
                 if(is_ok){
                     // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
