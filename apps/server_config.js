@@ -107,7 +107,7 @@ var server_config = {
         },
     },
 
-    server_type: 0, // 0-> 測試站，1-> 正測站，2-> 正式站
+    server_type: 0, // 0-> 開發站，1-> 正測站，2-> 正式站，3-> 測試站
 }
 
 module.exports = server_config;
