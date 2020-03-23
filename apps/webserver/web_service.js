@@ -1693,7 +1693,7 @@ function simulate_sign_complete(){
             }
 
             var json_data = JSON.stringify(ret);
-            // log.warn(json_data);
+            log.warn(json_data);
             
             // 將global_simulate_dinfo_dic該筆資料清除
             global_simulate_dinfo_dic[key] = null;

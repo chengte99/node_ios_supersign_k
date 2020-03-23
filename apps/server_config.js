@@ -78,7 +78,7 @@ var server_config = {
     },
 
     backup_mac_server_config: {
-        hostname: "192.168.20.17", //imac-01: 192.168.20.18, imac-04: 192.168.20.17
+        hostname: "192.168.20.17", //imac-01: 192.168.20.18, imac-04: 192.168.20.17, IMAC1804003: 10.159.5.114
         port: 80,
         url: "/sync_local_file",
     },
@@ -107,7 +107,7 @@ var server_config = {
         },
     },
 
-    server_type: 0, // 0-> 開發站，1-> 正測站，2-> 正式站，3-> 測試站
+    server_type: 0, // 0-> 開發站，1-> 正測站，2-> 正式站
 }
 
 module.exports = server_config;
