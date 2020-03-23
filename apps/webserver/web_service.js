@@ -1490,6 +1490,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
         }
 
         // Response.OK
+        var non_rep_count = 0;
         var b_interval = setInterval(function(){
             if(global_reg_to_acc == 1){
                 // 檢查正常，開始簽名流程
@@ -1571,6 +1572,40 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
 
                     callback(ret);
                 });
+            }else{
+                // ruby腳本無回應，有可能停在輸入驗證碼階段
+                non_rep_count ++;
+                if(non_rep_count == 10){
+                    // 無回應達10s
+                    non_rep_count = 0;
+
+                    clearInterval(b_interval);
+                    log.error("長達10s無回應，可能停在輸入驗證碼階段 ...", account_info.account);
+                    // log.warn(account_info);
+                    // log.warn(acc_req_queue);
+                    // 將acc_queue_list內該帳號移除
+                    acc_queue_list[acc_queue_index] = null;
+                    acc_queue_list.splice(acc_queue_index, 1);
+
+                    // 將設備批次文件刪除
+                    fs.unlink(file_path, function(err){
+                        if(err){
+                            throw err;
+                        }
+
+                        log.info("删除" + file_path);
+                    });
+        
+                    reinsert_to_new_acc_queue(acc_req_queue, function(ret){
+                        if(ret.status != Response.OK){
+                            log.error("reinsert_to_new_acc_queue error ...", ret.status);
+                            write_err(status, callback);
+                            return;
+                        }
+
+                        callback(ret);
+                    });
+                }
             }
         }, 1000);
     });
@@ -1591,6 +1626,7 @@ function ready_to_reg_apple(account_info, callback){
     // 加入帳號的md5到表內
     account_info.acc_md5 = utils.md5(account_info.account);
 
+    log.info("創建需註冊設備的udid文本 ...");
     var file_path = __dirname + "/../../ios_sign/account/" + account_info.acc_md5 + ".txt";
     var writeStream = fs.createWriteStream(file_path, {flags: "a+"});
 
@@ -2167,7 +2203,7 @@ function start_verify_acc_state(queue){
 
 function schedule_to_action(){
     var rule1 = new schedule.RecurrenceRule();
-    // 每天12時執行
+    // 每天1200時執行
     rule1.hour = 12;
     rule1.minute = 0;
     rule1.second = 0;
@@ -2193,7 +2229,7 @@ function schedule_to_action(){
     });
 
     var rule2 = new schedule.RecurrenceRule();
-    // 每天13時執行
+    // 每天1230時執行
     rule2.hour = 12;
     rule2.minute = 30;
     rule2.second = 0;
