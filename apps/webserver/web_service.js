@@ -1568,7 +1568,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                 reinsert_to_new_acc_queue(acc_req_queue, account_info.account, function(ret){
                     if(ret.status != Response.OK){
                         log.error("reinsert_to_new_acc_queue error ...", ret.status);
-                        write_err(status, callback);
+                        write_err(ret.status, callback);
                         return;
                     }
 
@@ -1609,17 +1609,17 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                         }
 
                         log.info("停用該帳號成功 ...");
-                    })
-        
-                    reinsert_to_new_acc_queue(acc_req_queue, account_info.account, function(ret){
-                        if(ret.status != Response.OK){
-                            log.error("reinsert_to_new_acc_queue error ...", ret.status);
-                            write_err(status, callback);
-                            return;
-                        }
+                        reinsert_to_new_acc_queue(acc_req_queue, account_info.account, function(ret){
+                            if(ret.status != Response.OK){
+                                log.error("reinsert_to_new_acc_queue error ...", ret.status);
 
-                        callback(ret);
-                    });
+                                write_err(ret.status, callback);
+                                return;
+                            }
+    
+                            callback(ret);
+                        });
+                    })
                 }
             }
         }, 1000);
@@ -2278,11 +2278,83 @@ function schedule_to_action(){
     });
 }
 
+function notify_sign_error(ret){
+
+    // 簽名異常，通知管理後台該次簽名的udid有哪些，顯示app已下架
+    /*
+    ret = {
+        status: 
+        msg:
+        udid_list: 
+        site_code: 
+    }
+    */
+    log.error("notify_sign_error ...", ret.status);
+
+    if(server_config.rundown_config.api_with_system){
+        var json_data = JSON.stringify(ret);
+        log.warn(json_data);
+
+        // post到管理後台
+        // https://api-518.webpxy.info/api/v2/request/sign_notify
+        if(server_config.server_type != 0){
+            var api_system_config = server_config.rundown_config.api_system_config_pro;
+        }else{
+            var api_system_config = server_config.rundown_config.api_system_config;
+        }
+        var hostname, path;
+        if(global_notify_url == ""){
+            hostname = api_system_config.hostname;
+            path = api_system_config.url;
+        }else{
+            var n_url = new URL(global_notify_url);
+            hostname = n_url.hostname;
+            path = n_url.pathname;
+        }
+        
+        log.info("後端簽名通知api位置： ", hostname, path);
+        http.http_post(hostname, api_system_config.port, path, null, json_data, function(is_ok, data){
+            if(is_ok){
+                // log.warn("管理后台incoming_msg.statusCode = 200，response ...", data.toString());
+                log.info("http_post success ...", data.toString());
+            }else{
+                log.warn("http_post failed ...", data);
+            }
+        })
+    }
+
+    // 清掉udid_list內的快取區紀錄
+    remove_udid_from_cache_area_by_array(ret.udid_list);
+}
+
 function reinsert_to_new_acc_queue(device_queue, account, callback){
     log.info("待轉移佇列： ", device_queue);
 
     web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
         if(status != Response.OK){
+            //
+            var tt_queue = {};
+            for(var i = 0; i < device_queue.length; i ++){
+                var sitecode = device_queue[i].site_code
+                if(tt_queue[sitecode]){
+                    tt_queue[sitecode].udid_list.push({"udid":device_queue[i].udid, "uuid":device_queue[i].uuid});
+                }else{
+                    var ret = {};
+                    ret.status = status;
+                    ret.msg = "無可用app帳號 ...";
+                    ret.site_code = sitecode;
+                    ret.udid_list = [];
+
+                    tt_queue[sitecode] = ret;
+                    tt_queue[sitecode].udid_list.push({"udid":device_queue[i].udid, "uuid":device_queue[i].uuid});
+                }
+            }
+
+            for(var key in tt_queue){
+                log.info(tt_queue[key]);
+                notify_sign_error(tt_queue[key]);
+            }
+
             write_err(status, callback);
             return;
         }
