@@ -3,19 +3,17 @@
     {{>header}}
     <body>
         <h1>{{h1}}</h1>
-        <script src="/static/js/jquery-3.4.1.js"></script>
-        <script>
-            
-            var obj = localStorage.getItem("device_obj");
-            if(obj){
-                var json = JSON.parse(obj);
-                console.log(json);
-                console.log(json.serial);
-
-                location.href = "myApp518Scheme://serial?" + json.serial;
-            }
-            
-            // location.href = "myApp518Scheme://serial?12345";
-        </script>
+        {{!-- <script src="/static/js/jquery-3.4.1.js"></script> --}}
+        <dev>
+            <input type="button" value="触发" onclick="onClick()"/>
+        </dev>
     </body>
+    <script>
+        function onClick () {
+            // 其中一个设置 URL 方案
+            console.log("onClick ...");
+            document.location = 'testkey://a=1&b=2';
+        }
+        // location.href = "myApp518Scheme://serial?12345";
+    </script>
 </html>

@@ -22,6 +22,7 @@ var Response = {
     DB_SEARCH_EMPTY_OF_APP: -116, // db找不到app資料
     RESIGN_COMPLETE_TXT_NOT_EXIST: -117, // 重簽名完成.txt 不存在 簽名異常
     NO_THIS_ACCOUNT: -118, // 找不到該帳號
+    NO_VALID_NEW_ACCOUNT: -119, // 無可用新app帳號
 };
 
 module.exports = Response;

@@ -1565,7 +1565,7 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
                     log.info("删除" + file_path);
                 });
     
-                reinsert_to_new_acc_queue(acc_req_queue, function(ret){
+                reinsert_to_new_acc_queue(acc_req_queue, account_info.account, function(ret){
                     if(ret.status != Response.OK){
                         log.error("reinsert_to_new_acc_queue error ...", ret.status);
                         write_err(status, callback);
@@ -1577,12 +1577,12 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
             }else{
                 // ruby腳本無回應，有可能停在輸入驗證碼階段
                 non_rep_count ++;
-                if(non_rep_count == 10){
-                    // 無回應達10s
-                    non_rep_count = 0;
-
+                if(non_rep_count == 20){
+                    // 無回應達20s
                     clearInterval(b_interval);
-                    log.error("長達10s無回應，可能停在輸入驗證碼階段 ...", account_info.account);
+
+                    non_rep_count = 0;
+                    log.error("長達20s無回應，可能停在輸入驗證碼階段 ...", account_info.account);
                     // log.warn(account_info);
                     // log.warn(acc_req_queue);
                     // 將acc_queue_list內該帳號移除
@@ -1597,8 +1597,21 @@ function action_reg_to_apple(account_info, acc_req_queue, file_path, callback){
 
                         log.info("删除" + file_path);
                     });
+
+                    // 將該帳號暫時關閉 -> redis
+                    var obj = {"resultCode": -2000, "resultString": "20 second no response ..."};
+                    log.info("長達20s無回應，可能停在輸入驗證碼階段，暫停使用該帳號", obj);
+                    var objStr = JSON.stringify(obj);
+                    web_model.disable_acc_by_acc(account_info.account, objStr, function(status, result){
+                        if(status != Response.OK){
+                            write_err(status, callback);
+                            return;
+                        }
+
+                        log.info("停用該帳號成功 ...");
+                    })
         
-                    reinsert_to_new_acc_queue(acc_req_queue, function(ret){
+                    reinsert_to_new_acc_queue(acc_req_queue, account_info.account, function(ret){
                         if(ret.status != Response.OK){
                             log.error("reinsert_to_new_acc_queue error ...", ret.status);
                             write_err(status, callback);
@@ -2265,12 +2278,18 @@ function schedule_to_action(){
     });
 }
 
-function reinsert_to_new_acc_queue(device_queue, callback){
+function reinsert_to_new_acc_queue(device_queue, account, callback){
     log.info("待轉移佇列： ", device_queue);
 
     web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
         if(status != Response.OK){
             write_err(status, callback);
+            return;
+        }
+
+        if(result.account == account){
+            // 新帳號與舊帳號，直接返回。
+            write_err(Response.NO_VALID_NEW_ACCOUNT, callback);
             return;
         }
 
@@ -2326,18 +2345,14 @@ function reinsert_to_new_acc_queue(device_queue, callback){
                     if(!acc_req_queue_is_exist){
                         req_queue.push(device_queue[i]);
                     }
-
-                    if(i == device_queue.length - 1){
-                        // 若伫列已转移完毕
-                        device_queue = null;
-
-                        log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
-                        var ret = {};
-                        ret.status = Response.OK;
-                        ret.msg = "待轉移佇列已全數轉移至新帳號佇列 ...";
-                        callback(ret);
-                    }
                 }
+
+                device_queue = null;
+                log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
+                var ret = {};
+                ret.status = Response.OK;
+                ret.msg = "待轉移佇列已全數轉移至新帳號佇列 ...";
+                callback(ret);
             });
         }else{
             // 伫列数量大于 剩馀可用数量，不够用，需拆分可用的伫列及 重新获取新帐号的伫列
@@ -2368,25 +2383,23 @@ function reinsert_to_new_acc_queue(device_queue, callback){
                     if(!acc_req_queue_is_exist){
                         req_queue.push(valid_queue[i]);
                     }
-
-                    if(i == valid_queue.length - 1){
-                        // 若伫列已转移完毕
-                        valid_queue = null;
-
-                        log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
-                        
-                        // 将原始device_queue splice 去除已转移到valid_queue的item
-                        log.info(device_queue.length);
-                        device_queue.splice(0, remain_number);
-                        log.info(device_queue.length);
-
-                        // 将还没转移的device丢入 reinsert_to_new_acc_queue 重跑
-                        setTimeout(function(){
-                            log.info("該帳號可用設備數已滿，仍有未轉移設備資訊，0.5s後重新抓取");
-                            reinsert_to_new_acc_queue(device_queue, callback);
-                        }, 500);
-                    }
                 }
+
+                // 若伫列已转移完毕
+                valid_queue = null;
+
+                log.info("待轉移佇列已全數轉移至新帳號佇列 ...");
+                
+                // 将原始device_queue splice 去除已转移到valid_queue的item
+                log.info(device_queue.length);
+                device_queue.splice(0, remain_number);
+                log.info(device_queue.length);
+
+                // 将还没转移的device丢入 reinsert_to_new_acc_queue 重跑
+                setTimeout(function(){
+                    log.info("該帳號可用設備數已滿，仍有未轉移設備資訊，0.5s後重新抓取");
+                    reinsert_to_new_acc_queue(device_queue, new_acc_info.account, callback);
+                }, 500);
             });
         }
     })
