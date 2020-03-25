@@ -93,9 +93,8 @@ function http_post(hostname, port, url, params, body, callback) {
 		// path: url + "?" + params,
 		path: url,
 		method: "POST",
-
 		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
+			// "Content-Type": "application/x-www-form-urlencoded",
 			"Content-Type": "application/json",
 			"Content-Length": body.length
 		}
@@ -103,7 +102,6 @@ function http_post(hostname, port, url, params, body, callback) {
 
 	var req = http.request(options, function(incoming_msg) {
 		console.log("respones status " + incoming_msg.statusCode);
-
 		// 监听IncomingMessage的data事件，当收到服务器发过来的数据的时候，触发这个事件
 		incoming_msg.on("data", function(data) {
 			if (incoming_msg.statusCode === 200) {
@@ -111,6 +109,10 @@ function http_post(hostname, port, url, params, body, callback) {
 			}
 		});
 		 
+	});
+
+	req.on("error", function(err){
+		callback(false, err);
 	});
 
 	// step2 写入body数据

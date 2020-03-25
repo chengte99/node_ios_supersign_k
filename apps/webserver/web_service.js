@@ -1700,9 +1700,9 @@ function simulate_sign_complete(){
             }else{
                 // 失敗
                 ret.status = Response.RESIGN_COMPLETE_TXT_NOT_EXIST;
-                ret.msg = "重簽名完成.txt 不存在 簽名異常 ...";
-                ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
+                ret.msg = "reg_to_acc error ...";
                 ret.site_code = dinfo.SITE_CODE;
+                ret.udid_list = [{"udid": dinfo.UDID, "uuid": dinfo.UUID}];
             }
 
             var json_data = JSON.stringify(ret);
@@ -2332,7 +2332,7 @@ function reinsert_to_new_acc_queue(device_queue, account, callback){
 
     web_model.get_valid_account(local_mac_config.acc_group, function(status, result){
         if(status != Response.OK){
-            //
+            // 已無可用帳號，將該佇列按sitecode分成不同response。
             var tt_queue = {};
             for(var i = 0; i < device_queue.length; i ++){
                 var sitecode = device_queue[i].site_code
@@ -2356,12 +2356,6 @@ function reinsert_to_new_acc_queue(device_queue, account, callback){
             }
 
             write_err(status, callback);
-            return;
-        }
-
-        if(result.account == account){
-            // 新帳號與舊帳號，直接返回。
-            write_err(Response.NO_VALID_NEW_ACCOUNT, callback);
             return;
         }
 
