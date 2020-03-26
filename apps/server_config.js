@@ -99,7 +99,7 @@ var server_config = {
 
         api_system_config_pro: {
             hostname: "api-518.webpxy.org",
-            // hostname: "api.xkmmy.com", // 正式站
+            // hostname: "api.play516888.com", // 正式站
             port: 80,
             url: "/api/v1/request/sign_notify",
             appfile_domain: "https://appdownload.webpxy.org/", // 與內部組對接用的ftp server pro
